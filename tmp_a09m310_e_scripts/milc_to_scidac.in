@@ -1,0 +1,32 @@
+prompt 0
+nx NL
+ny NL
+nz NL
+nt NT
+iseed 5682304
+job_id cfg.scidac
+
+######################################################################
+# source time 0
+######################################################################
+
+# Gauge field description
+
+reload_serial cfgs/ENSSTREAM.CFG
+u0 0.85535
+no_gauge_fix
+save_parallel_scidac cfgs_scidac/ENSSTREAM.CFG.scidac
+staple_weight 0
+ape_iter 0
+coordinate_origin 0 0 0 0
+time_bc antiperiodic
+
+max_number_of_eigenpairs 0
+number_of_pbp_masses 0
+number_of_base_sources 0
+number_of_modified_sources 0
+number_of_sets 0
+number_of_quarks 0
+number_of_mesons 0
+number_of_baryons 0
+

@@ -1,0 +1,3291 @@
+head='''<?xml version="1.0"?>
+<lalibe>
+<Param>
+  <InlineMeasurements>
+
+'''
+
+tail='''
+  </InlineMeasurements>
+   <nrow>%(NL)s %(NL)s %(NL)s %(NT)s</nrow>
+</Param>
+
+<Cfg>
+ <cfg_type>SCIDAC</cfg_type>
+ <cfg_file>%(CFG_FILE)s</cfg_file>
+  <parallel_io>true</parallel_io>
+</Cfg>
+</lalibe>
+'''
+
+hdf5_read='''<elem>
+<Name>HDF5_READ_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(OBJ_ID)s</object_id>
+  <object_type>%(OBJ_TYPE)s</object_type>
+</NamedObject>
+<File>
+  <file_name>%(H5_FILE)s</file_name>
+  <path>/%(H5_PATH)s</path>
+  <obj_name>%(H5_OBJ_NAME)s</obj_name>
+</File>
+</elem>
+
+'''
+
+hdf5_write='''<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(OBJ_ID)s</object_id>
+  <object_type>%(OBJ_TYPE)s</object_type>
+</NamedObject>
+<File>
+  <file_name>%(H5_FILE)s</file_name>
+  <path>/%(H5_PATH)s</path>
+  <obj_name>%(H5_OBJ_NAME)s</obj_name>
+</File>
+</elem>
+
+'''
+
+qio_read='''<elem>
+<Name>QIO_READ_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(OBJ_ID)s</object_id>
+  <object_type>%(OBJ_TYPE)s</object_type>
+</NamedObject>
+<File>
+  <file_name>%(LIME_FILE)s</file_name>
+  <file_volfmt>SINGLEFILE</file_volfmt>
+  <parallel_io>true</parallel_io>
+</File>
+</elem>
+
+
+
+'''
+
+qio_write='''<elem>
+<Name>QIO_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(OBJ_ID)s</object_id>
+  <object_type>%(OBJ_TYPE)s</object_type>
+</NamedObject>
+<File>
+  <file_name>%(LIME_FILE)s</file_name>
+  <file_volfmt>SINGLEFILE</file_volfmt>
+  <parallel_io>true</parallel_io>
+</File>
+</elem>
+
+'''
+
+quda_nef='''<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>%(M5)s</OverMass>
+  <N5>%(L5)s</N5>
+  <b5>%(B5)s</b5>
+  <c5>%(C5)s</c5>
+  <Mass>%(MQ)s</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>%(MAX_ITER)s</MaxIter>
+<RsdTarget>%(RSD_TARGET)s</RsdTarget>
+<Delta>%(Q_DELTA)s</Delta>
+<RsdToleranceFactor>%(RSD_TOL)s</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>false</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>%(M5)s</OverMass>
+  <N5>%(L5)s</N5>
+  <b5>%(B5)s</b5>
+  <c5>%(C5)s</c5>
+  <Mass>%(MQ)s</Mass>
+  <clovCoeff>0</clovCoeff>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME)s</source_id>
+  <prop_id>%(PROP_NAME)s</prop_id>
+</NamedObject>
+%(PROP_XML)s
+</elem>
+
+'''
+
+shell_smearing='''
+<elem>
+<Name>SINK_SMEAR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>5</version>
+<Sink>
+  <version>2</version>
+  <SinkType>SHELL_SINK</SinkType>
+  <j_decay>3</j_decay>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>%(WF_S)s</wvf_param>
+    <wvfIntPar>%(WF_N)s</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Sink>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <prop_id>%(PROP_NAME)s</prop_id>
+  <smeared_prop_id>%(SMEARED_PROP)s</smeared_prop_id>
+</NamedObject>
+</elem>
+
+'''
+
+lalibe_seqsource='''<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>%(FLAV)s</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK)s</up_quark>
+        <down_quark>%(DOWN_QUARK)s</down_quark>
+        <seqsource_id>%(SEQSOURCE)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+'''
+
+add_8_coherent_sinks='''
+<elem>
+<Name>MULTI_PROP_ADD</Name>
+<Frequency>1</Frequency>
+<PropWeights>
+<delete_props>false</delete_props>
+<weights>1 1 1 1 1 1 1 1</weights>
+</PropWeights>
+<NamedObject>
+<prop_ids>
+    <elem>%(SEQSOURCE_0)s</elem>
+    <elem>%(SEQSOURCE_1)s</elem>
+    <elem>%(SEQSOURCE_2)s</elem>
+    <elem>%(SEQSOURCE_3)s</elem>
+    <elem>%(SEQSOURCE_4)s</elem>
+    <elem>%(SEQSOURCE_5)s</elem>
+    <elem>%(SEQSOURCE_6)s</elem>
+    <elem>%(SEQSOURCE_7)s</elem>
+</prop_ids>
+<result_prop>%(COHERENT_SEQSOURCE)s</result_prop>
+</NamedObject>
+</elem>
+
+'''
+
+
+lalibe_formfac='''<elem>
+<annotation>
+  SPECIFIED MOMENTUM
+</annotation>
+<Name>LALIBE_BAR3PTFN</Name>
+<Frequency>1</Frequency>
+<Param>
+    <version>7</version>
+    <j_decay>3</j_decay>
+    <currents>
+        <elem>S</elem>
+        <elem>P</elem>
+        <elem>V1</elem>
+        <elem>V2</elem>
+        <elem>V3</elem>
+        <elem>V4</elem>
+        <elem>A1</elem>
+        <elem>A2</elem>
+        <elem>A3</elem>
+        <elem>A4</elem>
+    </currents>
+    <mom_list>
+        <elem>0 0 0</elem>
+        <elem>1 0 0</elem>
+        <elem>-1 0 0</elem>
+        <elem>0 1 0</elem>
+        <elem>0 -1 0</elem>
+        <elem>0 0 1</elem>
+        <elem>0 0 -1</elem>
+        <elem>2 0 0</elem>
+        <elem>-2 0 0</elem>
+        <elem>0 2 0</elem>
+        <elem>0 -2 0</elem>
+        <elem>0 0 2</elem>
+        <elem>0 0 -2</elem>
+        <elem>3 0 0</elem>
+        <elem>-3 0 0</elem>
+        <elem>0 3 0</elem>
+        <elem>0 -3 0</elem>
+        <elem>0 0 3</elem>
+        <elem>0 0 -3</elem>
+        <elem>4 0 0</elem>
+        <elem>-4 0 0</elem>
+        <elem>0 4 0</elem>
+        <elem>0 -4 0</elem>
+        <elem>0 0 4</elem>
+        <elem>0 0 -4</elem>
+    </mom_list>
+    <h5_file_name>%(THREE_PT_FILE)s</h5_file_name>
+    <path>/</path>
+</Param>
+<NamedObject>
+    <gauge_id>default_gauge_field</gauge_id>
+    <prop_id>%(PROP_NAME)s</prop_id>
+    <seqprops>
+        <elem>
+            <seqprop_id>%(UU_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(UU_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(DD_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(DD_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+    </seqprops>
+</NamedObject>
+</elem>
+
+<elem>
+<annotation>
+  4D CORRELATORS
+</annotation>
+<Name>LALIBE_BAR3PTFN</Name>
+<Frequency>1</Frequency>
+<Param>
+    <version>7</version>
+    <j_decay>3</j_decay>
+    <currents>
+        <elem>S</elem>
+        <elem>P</elem>
+        <elem>V1</elem>
+        <elem>V2</elem>
+        <elem>V3</elem>
+        <elem>V4</elem>
+        <elem>A1</elem>
+        <elem>A2</elem>
+        <elem>A3</elem>
+        <elem>A4</elem>
+    </currents>
+    <h5_file_name>%(THREE_PT_FILE_4D)s</h5_file_name>
+    <path>/</path>
+</Param>
+<NamedObject>
+    <gauge_id>default_gauge_field</gauge_id>
+    <prop_id>%(PROP_NAME)s</prop_id>
+    <seqprops>
+        <elem>
+            <seqprop_id>%(UU_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(UU_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(DD_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(DD_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+    </seqprops>
+</NamedObject>
+</elem>
+
+<elem>
+<annotation>
+  0 MOMENTUM for a few correlators
+</annotation>
+<Name>LALIBE_BAR3PTFN</Name>
+<Frequency>1</Frequency>
+<Param>
+    <version>7</version>
+    <j_decay>3</j_decay>
+    <currents>
+      <elem>T12</elem>
+      <elem>T34</elem>
+      <elem>CHROMO_MAG</elem>
+    </currents>
+    <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE)s</h5_file_name>
+    <path>/</path>
+</Param>
+<NamedObject>
+    <gauge_id>default_gauge_field</gauge_id>
+    <prop_id>%(PROP_NAME)s</prop_id>
+    <seqprops>
+        <elem>
+            <seqprop_id>%(UU_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(UU_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(DD_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(DD_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+    </seqprops>
+</NamedObject>
+</elem>
+'''
+
+
+
+
+formfac='''<?xml version="1.0"?>
+<lalibe>
+<Param>
+  <InlineMeasurements>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X0)s %(Y0)s %(Z0)s %(T0)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME)s</source_id>
+</NamedObject>
+</elem>
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME)s</source_id>
+  <prop_id>%(PROP_NAME)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML)s</xml_file>
+</elem>
+
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK)s</up_quark>
+        <down_quark>%(DOWN_QUARK)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(UP_SEQSRC_NAME)s</source_id>
+  <prop_id>%(UP_SEQPROP_NAME)s</prop_id>
+</NamedObject>
+<xml_file>%(UP_SEQPROP_XML)s</xml_file>
+</elem>
+
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK)s</up_quark>
+        <down_quark>%(DOWN_QUARK)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(DOWN_SEQSRC_NAME)s</source_id>
+  <prop_id>%(DOWN_SEQPROP_NAME)s</prop_id>
+</NamedObject>
+<xml_file>%(DOWN_SEQPROP_XML)s</xml_file>
+</elem>
+
+
+
+
+  <elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(BARYON_FILE)s</h5_file_name>
+     <path>/</path>
+     <is_antiperiodic>true</is_antiperiodic>
+     <p2_max>0</p2_max>
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK)s</up_quark>
+      <down_quark>%(DOWN_QUARK)s</down_quark>
+    </NamedObject>
+  </elem>
+
+    <elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>7</version>
+        <j_decay>3</j_decay>
+       <currents><elem>S</elem><elem>P</elem><elem>V1</elem><elem>V2</elem><elem>V3</elem><elem>V4</elem><elem>A1</elem><elem>A2</elem><elem>A3</elem><elem>A4</elem><elem>T12</elem><elem>T13</elem><elem>T14</elem><elem>T23</elem><elem>T24</elem><elem>T34</elem><elem>CHROMO_MAG</elem></currents>
+       <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(UP_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+          <elem>
+            <seqprop_id>%(DOWN_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+
+
+  </InlineMeasurements>
+   <nrow>16 16 16 48</nrow>
+</Param>
+
+<RNG>
+  <Seed>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>0</elem>
+  </Seed>
+</RNG>
+
+<Cfg>
+ <cfg_type>SCIDAC</cfg_type>
+ <cfg_file>%(CFG_FILE)s</cfg_file>
+  <parallel_io>true</parallel_io>
+</Cfg>
+</lalibe>
+'''
+
+
+coherent_seqsource_formfac='''<?xml version="1.0"?>
+<lalibe>
+<Param>
+  <InlineMeasurements>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X01)s %(Y01)s %(Z01)s %(T01)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME1)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X02)s %(Y02)s %(Z02)s %(T02)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME2)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X03)s %(Y03)s %(Z03)s %(T03)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME3)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X04)s %(Y04)s %(Z04)s %(T04)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME4)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X05)s %(Y05)s %(Z05)s %(T05)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME5)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X06)s %(Y06)s %(Z06)s %(T06)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME6)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X07)s %(Y07)s %(Z07)s %(T07)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME7)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X08)s %(Y08)s %(Z08)s %(T08)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME8)s</source_id>
+</NamedObject>
+</elem>
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME1)s</source_id>
+  <prop_id>%(PROP_NAME1)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML1)s</xml_file>
+</elem>
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME2)s</source_id>
+  <prop_id>%(PROP_NAME2)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML2)s</xml_file>
+</elem>
+
+
+
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME3)s</source_id>
+  <prop_id>%(PROP_NAME3)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML3)s</xml_file>
+</elem>
+
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME4)s</source_id>
+  <prop_id>%(PROP_NAME4)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML4)s</xml_file>
+</elem>
+
+
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME5)s</source_id>
+  <prop_id>%(PROP_NAME5)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML5)s</xml_file>
+</elem>
+
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME6)s</source_id>
+  <prop_id>%(PROP_NAME6)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML6)s</xml_file>
+</elem>
+
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME7)s</source_id>
+  <prop_id>%(PROP_NAME7)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML7)s</xml_file>
+</elem>
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME8)s</source_id>
+  <prop_id>%(PROP_NAME8)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML8)s</xml_file>
+</elem>
+
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK1)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK1)s</up_quark>
+        <down_quark>%(DOWN_QUARK1)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE1)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK2)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK2)s</up_quark>
+        <down_quark>%(DOWN_QUARK2)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE2)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK3)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK3)s</up_quark>
+        <down_quark>%(DOWN_QUARK3)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE3)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK4)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK4)s</up_quark>
+        <down_quark>%(DOWN_QUARK4)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE4)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK5)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK5)s</up_quark>
+        <down_quark>%(DOWN_QUARK5)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE5)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK6)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK6)s</up_quark>
+        <down_quark>%(DOWN_QUARK6)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE6)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK7)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK7)s</up_quark>
+        <down_quark>%(DOWN_QUARK7)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE7)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK8)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK8)s</up_quark>
+        <down_quark>%(DOWN_QUARK8)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE8)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK1)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK1)s</up_quark>
+        <down_quark>%(DOWN_QUARK1)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE1)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK2)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK2)s</up_quark>
+        <down_quark>%(DOWN_QUARK2)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE2)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK3)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK3)s</up_quark>
+        <down_quark>%(DOWN_QUARK3)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE3)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK4)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK4)s</up_quark>
+        <down_quark>%(DOWN_QUARK4)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE4)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK5)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK5)s</up_quark>
+        <down_quark>%(DOWN_QUARK5)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE5)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK6)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK6)s</up_quark>
+        <down_quark>%(DOWN_QUARK6)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE6)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK7)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK7)s</up_quark>
+        <down_quark>%(DOWN_QUARK7)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE7)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK8)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK8)s</up_quark>
+        <down_quark>%(DOWN_QUARK8)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE8)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+
+<elem>
+<Name>MULTI_PROP_ADD</Name>
+<Frequency>1</Frequency>
+<PropWeights>
+<delete_props>false</delete_props>
+</PropWeights>
+<NamedObject>
+<prop_ids>
+<elem>%(DOWN_SEQSOURCE1)s</elem>
+<elem>%(DOWN_SEQSOURCE2)s</elem>
+<elem>%(DOWN_SEQSOURCE3)s</elem>
+<elem>%(DOWN_SEQSOURCE4)s</elem>
+<elem>%(DOWN_SEQSOURCE5)s</elem>
+<elem>%(DOWN_SEQSOURCE6)s</elem>
+<elem>%(DOWN_SEQSOURCE7)s</elem>
+<elem>%(DOWN_SEQSOURCE8)s</elem>
+</prop_ids>
+<result_prop>%(DOWN_COHERENT_SEQSOURCE)s</result_prop>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MULTI_PROP_ADD</Name>
+<Frequency>1</Frequency>
+<PropWeights>
+<delete_props>false</delete_props>
+</PropWeights>
+<NamedObject>
+<prop_ids>
+<elem>%(UP_SEQSOURCE1)s</elem>
+<elem>%(UP_SEQSOURCE2)s</elem>
+<elem>%(UP_SEQSOURCE3)s</elem>
+<elem>%(UP_SEQSOURCE4)s</elem>
+<elem>%(UP_SEQSOURCE5)s</elem>
+<elem>%(UP_SEQSOURCE6)s</elem>
+<elem>%(UP_SEQSOURCE7)s</elem>
+<elem>%(UP_SEQSOURCE8)s</elem>
+</prop_ids>
+<result_prop>%(UP_COHERENT_SEQSOURCE)s</result_prop>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(DOWN_COHERENT_SEQSOURCE)s</source_id>
+  <prop_id>%(DOWN_COHERENT_SEQPROP)s</prop_id>
+</NamedObject>
+<xml_file>%(DOWN_COHERENT_SEQSOURCE_XML)s</xml_file>
+</elem>
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(UP_COHERENT_SEQSOURCE)s</source_id>
+  <prop_id>%(UP_COHERENT_SEQPROP)s</prop_id>
+</NamedObject>
+<xml_file>%(UP_COHERENT_SEQSOURCE_XML)s</xml_file>
+</elem>
+
+
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(DOWN_COHERENT_SEQPROP)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(DOWN_COHERENT_PROPFILE)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(UP_COHERENT_SEQPROP)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(UP_COHERENT_PROPFILE)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+
+  <elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(BARYON_FILE1)s</h5_file_name>
+     <path>/</path>
+     <is_antiperiodic>true</is_antiperiodic>
+     <p2_max>0</p2_max>
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK1)s</up_quark>
+      <down_quark>%(DOWN_QUARK1)s</down_quark>
+    </NamedObject>
+  </elem>
+
+  <elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(BARYON_FILE2)s</h5_file_name>
+     <path>/</path>
+     <is_antiperiodic>true</is_antiperiodic>
+     <p2_max>0</p2_max>
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK2)s</up_quark>
+      <down_quark>%(DOWN_QUARK2)s</down_quark>
+    </NamedObject>
+  </elem>
+
+  <elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(BARYON_FILE3)s</h5_file_name>
+     <path>/</path>
+     <is_antiperiodic>true</is_antiperiodic>
+     <p2_max>0</p2_max>
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK3)s</up_quark>
+      <down_quark>%(DOWN_QUARK3)s</down_quark>
+    </NamedObject>
+  </elem>
+
+  <elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(BARYON_FILE4)s</h5_file_name>
+     <path>/</path>
+     <is_antiperiodic>true</is_antiperiodic>
+     <p2_max>0</p2_max>
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK4)s</up_quark>
+      <down_quark>%(DOWN_QUARK4)s</down_quark>
+    </NamedObject>
+  </elem>
+
+  <elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(BARYON_FILE5)s</h5_file_name>
+     <path>/</path>
+     <is_antiperiodic>true</is_antiperiodic>
+     <p2_max>0</p2_max>
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK5)s</up_quark>
+      <down_quark>%(DOWN_QUARK5)s</down_quark>
+    </NamedObject>
+  </elem>
+
+  <elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(BARYON_FILE6)s</h5_file_name>
+     <path>/</path>
+     <is_antiperiodic>true</is_antiperiodic>
+     <p2_max>0</p2_max>
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK6)s</up_quark>
+      <down_quark>%(DOWN_QUARK6)s</down_quark>
+    </NamedObject>
+  </elem>
+
+  <elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(BARYON_FILE7)s</h5_file_name>
+     <path>/</path>
+     <is_antiperiodic>true</is_antiperiodic>
+     <p2_max>0</p2_max>
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK7)s</up_quark>
+      <down_quark>%(DOWN_QUARK7)s</down_quark>
+    </NamedObject>
+  </elem>
+
+  <elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(BARYON_FILE8)s</h5_file_name>
+     <path>/</path>
+     <is_antiperiodic>true</is_antiperiodic>
+     <p2_max>0</p2_max>
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK8)s</up_quark>
+      <down_quark>%(DOWN_QUARK8)s</down_quark>
+    </NamedObject>
+  </elem>
+
+    <elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>7</version>
+        <j_decay>3</j_decay>
+       <currents><elem>S</elem><elem>P</elem><elem>V1</elem><elem>V2</elem><elem>V3</elem><elem>V4</elem><elem>A1</elem><elem>A2</elem><elem>A3</elem><elem>A4</elem><elem>T12</elem><elem>T13</elem><elem>T14</elem><elem>T23</elem><elem>T24</elem><elem>T34</elem><elem>CHROMO_MAG</elem></currents>
+       <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE1)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME1)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(DOWN_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+          <elem>
+            <seqprop_id>%(UP_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+
+    <elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>7</version>
+        <j_decay>3</j_decay>
+       <currents><elem>S</elem><elem>P</elem><elem>V1</elem><elem>V2</elem><elem>V3</elem><elem>V4</elem><elem>A1</elem><elem>A2</elem><elem>A3</elem><elem>A4</elem><elem>T12</elem><elem>T13</elem><elem>T14</elem><elem>T23</elem><elem>T24</elem><elem>T34</elem><elem>CHROMO_MAG</elem></currents>
+       <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE2)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME2)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(DOWN_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+          <elem>
+            <seqprop_id>%(UP_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+
+    <elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>7</version>
+        <j_decay>3</j_decay>
+       <currents><elem>S</elem><elem>P</elem><elem>V1</elem><elem>V2</elem><elem>V3</elem><elem>V4</elem><elem>A1</elem><elem>A2</elem><elem>A3</elem><elem>A4</elem><elem>T12</elem><elem>T13</elem><elem>T14</elem><elem>T23</elem><elem>T24</elem><elem>T34</elem><elem>CHROMO_MAG</elem></currents>
+       <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE3)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME3)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(DOWN_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+          <elem>
+            <seqprop_id>%(UP_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+
+
+    <elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>7</version>
+        <j_decay>3</j_decay>
+       <currents>
+       <elem>S</elem>
+       <elem>P</elem>
+       <elem>V1</elem>
+       <elem>V2</elem>
+       <elem>V3</elem>
+       <elem>V4</elem>
+       <elem>A1</elem>
+       <elem>A2</elem>
+       <elem>A3</elem>
+       <elem>A4</elem>
+       <elem>T12</elem>
+       <elem>T13</elem>
+       <elem>T14</elem>
+       <elem>T23</elem>
+       <elem>T24</elem>
+       <elem>T34</elem>
+       <elem>CHROMO_MAG</elem>
+       </currents>
+       <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE4)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME4)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(DOWN_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+          <elem>
+            <seqprop_id>%(UP_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+
+    <elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>7</version>
+        <j_decay>3</j_decay>
+       <currents>
+       <elem>S</elem>
+       <elem>P</elem>
+       <elem>V1</elem>
+       <elem>V2</elem>
+       <elem>V3</elem>
+       <elem>V4</elem>
+       <elem>A1</elem>
+       <elem>A2</elem>
+       <elem>A3</elem>
+       <elem>A4</elem>
+       <elem>T12</elem>
+       <elem>T13</elem>
+       <elem>T14</elem>
+       <elem>T23</elem>
+       <elem>T24</elem>
+       <elem>T34</elem>
+       <elem>CHROMO_MAG</elem>
+       </currents>
+       <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE5)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME5)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(DOWN_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+          <elem>
+            <seqprop_id>%(UP_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+
+
+
+    <elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>7</version>
+        <j_decay>3</j_decay>
+       <currents>
+       <elem>S</elem>
+       <elem>P</elem>
+       <elem>V1</elem>
+       <elem>V2</elem>
+       <elem>V3</elem>
+       <elem>V4</elem>
+       <elem>A1</elem>
+       <elem>A2</elem>
+       <elem>A3</elem>
+       <elem>A4</elem>
+       <elem>T12</elem>
+       <elem>T13</elem>
+       <elem>T14</elem>
+       <elem>T23</elem>
+       <elem>T24</elem>
+       <elem>T34</elem>
+       <elem>CHROMO_MAG</elem>
+       </currents>
+       <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE6)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME6)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(DOWN_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+          <elem>
+            <seqprop_id>%(UP_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+
+
+    <elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>7</version>
+        <j_decay>3</j_decay>
+       <currents>
+       <elem>S</elem>
+       <elem>P</elem>
+       <elem>V1</elem>
+       <elem>V2</elem>
+       <elem>V3</elem>
+       <elem>V4</elem>
+       <elem>A1</elem>
+       <elem>A2</elem>
+       <elem>A3</elem>
+       <elem>A4</elem>
+       <elem>T12</elem>
+       <elem>T13</elem>
+       <elem>T14</elem>
+       <elem>T23</elem>
+       <elem>T24</elem>
+       <elem>T34</elem>
+       <elem>CHROMO_MAG</elem>
+       </currents>
+       <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE7)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME7)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(DOWN_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+          <elem>
+            <seqprop_id>%(UP_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+
+
+    <elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+	<version>7</version>
+        <j_decay>3</j_decay>
+       <currents>
+       <elem>S</elem>
+       <elem>P</elem>
+       <elem>V1</elem>
+       <elem>V2</elem>
+       <elem>V3</elem>
+       <elem>V4</elem>
+       <elem>A1</elem>
+       <elem>A2</elem>
+       <elem>A3</elem>
+       <elem>A4</elem>
+       <elem>T12</elem>
+       <elem>T13</elem>
+       <elem>T14</elem>
+       <elem>T23</elem>
+       <elem>T24</elem>
+       <elem>T34</elem>
+       <elem>CHROMO_MAG</elem>
+       </currents>
+       <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE8)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME8)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(DOWN_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+          <elem>
+            <seqprop_id>%(UP_COHERENT_SEQPROP)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+
+  </InlineMeasurements>
+   <nrow>16 16 16 48</nrow>
+</Param>
+
+<RNG>
+  <Seed>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>0</elem>
+  </Seed>
+</RNG>
+
+<Cfg>
+ <cfg_type>SCIDAC</cfg_type>
+ <cfg_file>%(CFG_FILE)s</cfg_file>
+  <parallel_io>true</parallel_io>
+</Cfg>
+</lalibe>
+'''
+make_props='''<?xml version="1.0"?>
+<lalibe>
+<Param>
+  <InlineMeasurements>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X01)s %(Y01)s %(Z01)s %(T01)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME1)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X02)s %(Y02)s %(Z02)s %(T02)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME2)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X03)s %(Y03)s %(Z03)s %(T03)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME3)s</source_id>
+</NamedObject>
+</elem>
+
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X04)s %(Y04)s %(Z04)s %(T04)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME4)s</source_id>
+</NamedObject>
+</elem>
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME1)s</source_id>
+  <prop_id>%(PROP_NAME1)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML1)s</xml_file>
+</elem>
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME2)s</source_id>
+  <prop_id>%(PROP_NAME2)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML2)s</xml_file>
+</elem>
+
+
+
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME3)s</source_id>
+  <prop_id>%(PROP_NAME3)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML3)s</xml_file>
+</elem>
+
+
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>10000</MaxIter>
+<RsdTarget>1.e-8</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>true</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>12</N5>
+  <b5>1.5</b5>
+  <c5>0.5</c5>
+  <Mass>0.0158</Mass>
+  <clovCoeff>0</clovCoeff>
+  <AnisoParam>
+    <anisoP>false</anisoP>
+    <t_dir>3</t_dir>
+    <xi_0>1</xi_0>
+    <nu>1</nu>
+  </AnisoParam>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME4)s</source_id>
+  <prop_id>%(PROP_NAME4)s</prop_id>
+</NamedObject>
+<xml_file>%(PROP_XML4)s</xml_file>
+</elem>
+
+
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK1)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK1)s</up_quark>
+        <down_quark>%(DOWN_QUARK1)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE1)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK2)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK2)s</up_quark>
+        <down_quark>%(DOWN_QUARK2)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE2)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK3)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK3)s</up_quark>
+        <down_quark>%(DOWN_QUARK3)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE3)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>DD</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK4)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK4)s</up_quark>
+        <down_quark>%(DOWN_QUARK4)s</down_quark>
+        <seqsource_id>%(DOWN_SEQSOURCE4)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK1)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK1)s</up_quark>
+        <down_quark>%(DOWN_QUARK1)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE1)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK2)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK2)s</up_quark>
+        <down_quark>%(DOWN_QUARK2)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE2)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK3)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK3)s</up_quark>
+        <down_quark>%(DOWN_QUARK3)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE3)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>UU</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK4)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK4)s</up_quark>
+        <down_quark>%(DOWN_QUARK4)s</down_quark>
+        <seqsource_id>%(UP_SEQSOURCE4)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+
+
+
+
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(DOWN_SEQPROP1)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(DOWN_SEQPROPFILE1)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(DOWN_SEQPROP2)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(DOWN_SEQPROPFILE2)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(DOWN_SEQPROP3)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(DOWN_SEQPROPFILE3)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(DOWN_SEQPROP4)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(DOWN_SEQPROPFILE4)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(UP_SEQPROP1)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(UP_SEQPROPFILE1)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(UP_SEQPROP2)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(UP_SEQPROPFILE2)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(UP_SEQPROP3)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(UP_SEQPROPFILE3)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(UP_SEQPROP4)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(UP_SEQPROPFILE4)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(PROP_NAME1)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(PROP_FILE1)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(PROP_NAME2)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(PROP_FILE2)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(PROP_NAME3)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(PROP_FILE3)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(PROP_NAME4)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(PROP_FILE4)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(PROP_NAME5)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(PROP_FILE5)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(PROP_NAME6)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(PROP_FILE6)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(PROP_NAME7)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(PROP_FILE7)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+<elem>
+<Name>HDF5_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>%(PROP_NAME8)s</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>%(PROP_FILE8)s</file_name>
+  <path>/</path>
+  <obj_name>propagator</obj_name>
+</File>
+</elem>
+
+
+  </InlineMeasurements>
+   <nrow>24 24 24 64</nrow>
+</Param>
+
+<RNG>
+  <Seed>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>11</elem>
+    <elem>0</elem>
+  </Seed>
+</RNG>
+
+<Cfg>
+ <cfg_type>SCIDAC</cfg_type>
+ <cfg_file>%(CFG_FILE)s</cfg_file>
+  <parallel_io>true</parallel_io>
+</Cfg>
+</lalibe>
+'''
+
+
+
+
+make_src='''
+<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X0)s %(Y0)s %(Z0)s %(T0)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>3.0</wvf_param>
+    <wvfIntPar>30</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME)s</source_id>
+</NamedObject>
+</elem>
+
+'''
+
+
+
+
+
+lalibe_proton_seqsource='''
+<elem>
+    <Name>LALIBE_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SeqSourceParams>
+    <particle>proton</particle>
+    <flavor>%(FLAVOR)s</flavor>
+    <source_spin>%(SOURCE_SPIN)s</source_spin>
+    <sink_spin>%(SINK_SPIN)s</sink_spin>
+    <sink_mom>%(M0)s %(M1)s %(M2)s</sink_mom>
+    <t_sink>%(TSINK)s</t_sink>
+    </SeqSourceParams>
+    <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <up_quark>%(UP_QUARK)s</up_quark>
+        <down_quark>%(DOWN_QUARK)s</down_quark>
+        <seqsource_id>%(SEQSOURCE)s</seqsource_id>
+    </NamedObject>
+</elem>
+
+'''
+
+
+
+
+multiprop_add='''
+<elem>
+<Name>MULTI_PROP_ADD</Name>
+<Frequency>1</Frequency>
+<PropWeights>
+<delete_props>false</delete_props>
+<weights>%(WEIGHTS)s</weights>
+</PropWeights>
+<NamedObject>
+<prop_ids>%(PROPIDS)s</prop_ids>
+<result_prop>%(RESULT_PROP)s</result_prop>
+</NamedObject>
+</elem>
+
+'''
+
+
+lalibe_formfac_test='''<elem>
+      <annotation>
+      ; BAR3PTFN input file.
+      </annotation>
+      <Name>LALIBE_BAR3PTFN</Name>
+      <Frequency>1</Frequency>
+      <Param>
+        <version>7</version>
+        <j_decay>3</j_decay>
+       <currents><elem>S</elem><elem>P</elem><elem>V1</elem><elem>V2</elem><elem>V3</elem><elem>V4</elem><elem>A1</elem><elem>A2</elem><elem>A3</elem><elem>A4</elem><elem>T34</elem><elem>CHROMO_MAG</elem></currents>
+       %(MOMENTUM_TAGS)s
+    <h5_file_name>%(THREE_PT_FILE)s</h5_file_name>
+    <path>/</path>
+      </Param>
+      <NamedObject>
+        <gauge_id>default_gauge_field</gauge_id>
+        <prop_id>%(PROP_NAME)s</prop_id>
+        <seqprops>
+          <elem>
+            <seqprop_id>%(UP_SEQPROP_NAME)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+          </elem>
+       </seqprops>
+      </NamedObject>
+    </elem>
+'''
+
+
+baryon_two_pt='''<elem>
+    <Name>BARYON_CONTRACTIONS</Name>
+    <Frequency>1</Frequency>
+    <BaryonParams>
+     <ng_parity>true</ng_parity>
+     <h5_file_name>%(TWO_POINT_FILE)s</h5_file_name>
+     <path>/sh</path>
+     %(SINK_MOMENTUM)s
+     <particle_list><elem>proton</elem></particle_list>
+    </BaryonParams>
+    <NamedObject>
+      <up_quark>%(UP_QUARK)s</up_quark>
+      <down_quark>%(DOWN_QUARK)s</down_quark>
+    </NamedObject>
+  </elem>
+
+
+'''

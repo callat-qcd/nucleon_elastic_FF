@@ -1,0 +1,51 @@
+#!/bin/bash
+#BSUB -nnodes 1
+#BSUB -cn_cu 'maxcus=1'
+#BSUB -P LGT100
+#BSUB -W 120
+#BSUB -J milc_scidac
+#BSUB -o /gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/a09m310_e/jlog/%J.log
+#BSUB -alloc_flags smt4
+
+email='walkloud@lbl.gov'
+ens_long='l3296f211b630m0074m037m440'
+ens_abbr='a09m310'
+stream='e'
+nl=32
+nt=96
+
+source /ccs/proj/lgt100/software/milc_quda/env.sh
+
+#export QUDA_RESOURCE_PATH=`pwd`/quda_resource
+export QUDA_RESOURCE_PATH=/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}/quda_resource
+if [[ ! -d $QUDA_RESOURCE_PATH ]]; then
+    mkdir $QUDA_RESOURCE_PATH
+fi
+export OMP_NUM_THREADS=4
+export QUDA_MILC_HISQ_RECONSTRUCT=13
+export QUDA_ENABLE_FORCE_MONITOR=1
+
+APP=/ccs/proj/lgt100/software/milc_quda/summit_gpu_bind_v2.sh
+EXE=/ccs/proj/lgt100/software/milc_quda/build/lattice_milc_qcd/ks_spectrum/ks_spectrum_hisq
+milc_in=/ccs/proj/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}/scripts/milc_to_scidac.in
+
+cd /gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}
+if [[ ! -d cfgs_scidac ]]; then
+  mkdir cfgs_scidac
+fi
+
+CFGS_SCIDAC=/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}/cfgs_scidac
+if [[ ! -d $CFGS_SCIDAC ]]; then
+  mkdir $CFGS_SCIDAC
+fi
+LOG=/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}/log
+if [[ ! -d $LOG ]]; then
+  mkdir $LOG
+fi
+
+for no in $(seq 300 6 4998); do
+  if [[ ! -e cfgs_scidac/${ens_long}${stream}.$no.scidac && -e cfgs/${ens_long}${stream}.$no ]]; then
+    sed 's/NL/'"$nl"'/g; s/NT/'"$nt"'/g; s/CFG/'"$no"'/g; s/ENS/'"$ens_long"'/g; s/STREAM/'"$stream"'/g' $milc_in > milc_to_scidac.input
+    jsrun -n 1 -a 6 -r 1 --bind=none $APP $EXE -qmp-geom 1 1 1 6 milc_to_scidac.input > log/${ens_long}${stream}.${no}.log
+  fi
+done
