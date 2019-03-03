@@ -31,7 +31,7 @@ python METAQ_coherent_seqprop.py %(CR)s %(T_SEP)s
 
 seqprop = '''#!/bin/bash
 #METAQ NODES 0
-#METAQ GPUS 4
+#METAQ GPUS 6
 #METAQ MIN_WC_TIME 15:00
 #METAQ LOG %(METAQ_LOG)s
 #METAQ PROJECT seqprop_%(ENS)s

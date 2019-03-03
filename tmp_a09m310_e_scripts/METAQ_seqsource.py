@@ -7,9 +7,9 @@ import metaq_input_ff as metaq_input
 
 #ens = 'a09m310_e'
 try:
-    ens = os.getcwd().split('/')[-2]
+    ens = os.getcwd().split('/')[-3]
 except:
-    ens,junk = os.getcwd().split('/')[-2]
+    ens,junk = os.getcwd().split('/')[-3]
 stream = ens.split('_')[-1]
 ens_long='l3296f211b630m0074m037m440'
 

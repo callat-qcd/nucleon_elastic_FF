@@ -196,7 +196,7 @@ lalibe_seqsource='''<elem>
 
 '''
 
-coherent_seqsource='''<elem>
+coherent_seqsrc='''<elem>
     <Name>COHERENT_SEQSOURCE</Name>
     <Frequency>1</Frequency>
     <SinkParams>

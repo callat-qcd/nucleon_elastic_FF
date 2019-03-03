@@ -7,9 +7,9 @@ import metaq_input_ff as metaq_input
 
 #ens = 'a09m310_e'
 try:
-    ens = os.getcwd().split('/')[-2]
+    ens = os.getcwd().split('/')[-3]
 except:
-    ens,junk = os.getcwd().split('/')[-2]
+    ens,junk = os.getcwd().split('/')[-3]
 stream = ens.split('_')[-1]
 ens_long='l3296f211b630m0074m037m440'
 
@@ -96,16 +96,16 @@ SS_PS = 'SS'
 n_seq=8
 particles = ['proton','proton_np']
 coherent_ff_base  = 'formfac_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
-coherent_ff_base += mom+'_dt%(DT)s_Nsnk'+str(n_seq)+'_'+SS_PS
+coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
 seqprop_base      = 'seqprop_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
-seqprop_base     += mom+'_dt%(DT)s_Nsnk'+str(n_seq)+'_'+SS_PS
+seqprop_base     += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
 seqprop_size      = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
 sp_ext = 'lime'
 seqsrc_base       = 'seqsrc_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
 seqsrc_base      += '%(SRC)s_'+mom+'_'+SS_PS
 seqsrc_size       = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
 coherent_seqsrc   = 'seqsrc_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
-coherent_seqsrc  += 'Nsnk'+n_seq+'_'+mom+'_'+SS_PS
+coherent_seqsrc  += 'Nsnk'+str(n_seq)+'_'+mom+'_'+SS_PS
 
 prop_base = 'prop_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_%(SRC)s'
 
@@ -132,6 +132,7 @@ if args.debug:
 
 for c in cfgs:
     no = c
+    params['CFG'] = c
     if len(srcs[c]) == n_seq:
         all_srcs = True
     else:
@@ -157,7 +158,7 @@ for c in cfgs:
             dt = str(dt_int)
             params['T_SEP'] = dt
             ''' Does the 3pt file exist? '''
-            coherent_formfac_name  = coherent_ff_base %{'CFG':c,'DT':dt}
+            coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt}
             coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name + '.h5'
             coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5')
             if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
@@ -167,13 +168,14 @@ for c in cfgs:
                     params['SOURCE_SPIN']=snk_spin
                     params['SINK_SPIN']=src_spin
                     spin = snk_spin+'_'+src_spin
+                    params['FLAV_SPIN']=fs
                     for particle in particles:
                         params['PARTICLE'] = particle
                         if '_np' in particle:
                             params['QUARK_SPIN'] = 'LOWER'
                         else:
                             params['QUARK_SPIN'] = 'UPPER'
-                        seqprop_name  = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'DT':dt}
+                        seqprop_name  = seqprop_base % params
                         seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
                         ''' check SEQPROP file size
                             delete if small and older than time_delete
