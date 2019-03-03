@@ -196,6 +196,30 @@ lalibe_seqsource='''<elem>
 
 '''
 
+coherent_seqsource='''<elem>
+    <Name>COHERENT_SEQSOURCE</Name>
+    <Frequency>1</Frequency>
+    <SinkParams>
+        <t_sep>%(T_SEP)s</t_sep>
+        <j_decay>3</j_decay>
+    </SinkParams>
+    <NamedObject>
+        <sink_ids>
+            <elem>%(SEQSOURCE_0)s</elem>
+            <elem>%(SEQSOURCE_1)s</elem>
+            <elem>%(SEQSOURCE_2)s</elem>
+            <elem>%(SEQSOURCE_3)s</elem>
+            <elem>%(SEQSOURCE_4)s</elem>
+            <elem>%(SEQSOURCE_5)s</elem>
+            <elem>%(SEQSOURCE_6)s</elem>
+            <elem>%(SEQSOURCE_7)s</elem>
+        </sink_ids>
+        <result_sink>%(COHERENT_SEQSOURCE)s</result_sink>
+    </NamedObject>
+</elem>
+
+'''
+
 add_8_coherent_sinks='''
 <elem>
 <Name>MULTI_PROP_ADD</Name>

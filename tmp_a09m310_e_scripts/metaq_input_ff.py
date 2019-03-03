@@ -21,7 +21,8 @@ stdout=%(STDOUT)s
 export OMP_NUM_THREADS=4
 PROG=$LALIBE_CPU
 APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_bind_cpu.N32.sh
-jsrun -n1 -r1 -a32 -c32 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
+#jsrun -n1 -r1 -a32 -c32 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
+jsrun -n1 -r1 -a32 -c32 $PROG -i $ini -o $out > $stdout 2>&1
 
 cd %(SCRIPT_DIR)s
 python METAQ_coherent_seqprop.py %(CR)s %(T_SEP)s

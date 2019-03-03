@@ -94,19 +94,18 @@ mom = 'px%spy%spz%s' %(m0,m1,m2)
 
 SS_PS = 'SS'
 n_seq=8
-particle = 'proton'
-if '_np' in particle:
-    params['QUARK_SPIN'] = 'LOWER'
-else:
-    params['QUARK_SPIN'] = 'UPPER'
-params['PARTICLE'] = particle
+particles = ['proton','proton_np']
 coherent_ff_base  = 'formfac_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
 coherent_ff_base += mom+'_dt%(DT)s_Nsnk'+str(n_seq)+'_'+SS_PS
-seqprop_base      = 'seqprop_'+particle+'_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+seqprop_base      = 'seqprop_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
 seqprop_base     += mom+'_dt%(DT)s_Nsnk'+str(n_seq)+'_'+SS_PS
-seqprop_size = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
+seqprop_size      = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
 sp_ext = 'lime'
-snk_base          = 'snk_'+particle+'_%(FLAV_SPIN)s_%(CFG)s_%(SRC)s_'+mom+'_dt%(DT)s_'+SS_PS
+seqsrc_base       = 'seqsrc_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+seqsrc_base      += '%(SRC)s_'+mom+'_'+SS_PS
+seqsrc_size       = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
+coherent_seqsrc   = 'seqsrc_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+coherent_seqsrc  += 'Nsnk'+n_seq+'_'+mom+'_'+SS_PS
 
 prop_base = 'prop_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_%(SRC)s'
 
@@ -140,7 +139,7 @@ for c in cfgs:
     cfg_file = cfg_dir+'/'+ens_long+stream+'.'+c+'_wflow1.0.lime'
     if os.path.exists(cfg_file) and all_srcs:
         params.update({'CFG_FILE':cfg_file})
-        print("Making coherent sources for cfg: ",c)
+        print("Making coherent sources and seqprops for cfg: ",c)
 
         if not os.path.exists(base_dir+'/seqprops/'+c):
             os.makedirs(base_dir+'/seqprops/'+c)
@@ -150,12 +149,16 @@ for c in cfgs:
             os.makedirs(base_dir+'/stdout/'+c)
         if not os.path.exists(base_dir+'/corrupt'):
             os.makedirs(base_dir+'/corrupt')
+        if not os.path.exists(base_dir+'/formfac/'+c):
+            os.makedirs(base_dir+'/formfac/'+c)
 
+        have_seqsrc = True
         for dt_int in t_seps:
             dt = str(dt_int)
+            params['T_SEP'] = dt
             ''' Does the 3pt file exist? '''
             coherent_formfac_name  = coherent_ff_base %{'CFG':c,'DT':dt}
-            coherent_formfac_file  = base_dir+'/corrs_3pt/'+c + '/'+coherent_formfac_name + '.h5'
+            coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name + '.h5'
             coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5')
             if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
                 for fs in flav_spin:
@@ -164,92 +167,113 @@ for c in cfgs:
                     params['SOURCE_SPIN']=snk_spin
                     params['SINK_SPIN']=src_spin
                     spin = snk_spin+'_'+src_spin
-                    seqprop_name  = seqprop_base %{'FLAV_SPIN':fs,'CFG':c,'DT':dt}
-                    seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
-                    ''' check SEQPROP file size
-                        delete if small and older than time_delete
-                    '''
-                    seqprop_size = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
-                    if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
-                        now = time.time()
-                        file_time = os.stat(seqprop_file).st_mtime
-                        if (now-prop_time)/60 > time_delete:
-                            print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
-                            shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
-                    seqsrc_name  = seqprop_name.replace('seqprop','snk')
-                    seqsrc_file  = base_dir+'/snks/'+c+'/' +seqsrc_name+'.lime'
-                    if not os.path.exists(seqprop_file):
-                        ''' make sure coherent sink exists '''
-                        if not os.path.exists(seqsrc_file):
-                            print('    missing coherent sink',seqsrc_file)
-                            print('python METAQ_coherent_seqsource.py %s -t %d' %(c,dt_int))
-                            os.system('python METAQ_coherent_seqsource.py %s -t %d' %(c,dt_int))
+                    for particle in particles:
+                        params['PARTICLE'] = particle
+                        if '_np' in particle:
+                            params['QUARK_SPIN'] = 'LOWER'
                         else:
-                            metaq  = seqprop_name+'.sh'
-                            metaq_file = metaq_dir +'/'+args.priority+'/gpu/'+'/'+metaq
-                            task_exist = False
-                            task_working = False
-                            if os.path.exists(metaq_file):
-                                task_exist = True
-                            for m_dir in ['todo/gpu','priority/gpu','hold']:
-                                if os.path.exists(metaq_dir+'/'+m_dir+'/'+metaq):
+                            params['QUARK_SPIN'] = 'UPPER'
+                        seqprop_name  = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'DT':dt}
+                        seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                        ''' check SEQPROP file size
+                            delete if small and older than time_delete
+                        '''
+                        seqprop_size = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
+                        if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
+                            now = time.time()
+                            file_time = os.stat(seqprop_file).st_mtime
+                            if (now-prop_time)/60 > time_delete:
+                                print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
+                                shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
+                        if not os.path.exists(seqprop_file):
+                            ''' make sure all seqsource files exists '''
+                            have_seqsrc_t = True
+                            for s0 in srcs[c]:
+                                params['SRC'] = s0
+                                seqsrc_name = seqsrc_base % params
+                                seqsrc_file = base_dir+'/snks/'+c+'/'+seqsrc_name+'.'+sp_ext
+                                if not os.path.exists(seqsrc_file):
+                                    print('    missing coherent sink',seqsrc_file)
+                                    have_seqsrc_t = False
+                                    have_seqsrc   = False
+                            if have_seqsrc_t:
+                                metaq  = seqprop_name+'.sh'
+                                metaq_file = metaq_dir +'/'+args.priority+'/gpu/'+'/'+metaq
+                                task_exist = False
+                                task_working = False
+                                if os.path.exists(metaq_file):
                                     task_exist = True
-                            task_lst = glob(metaq_dir+'/working/*/*.sh')
-                            task_lst += glob(metaq_dir+'/working/*/*/*.sh')
-                            for task in task_lst:
-                                if metaq == task.split('/')[-1]:
-                                    task_exist = True
-                                    task_working = True
-                            if not task_exist or (args.o and task_exist and not task_working):
-                                xmlini = seqprop_file.replace('seqprops/','xml/').replace('.'+sp_ext,'.ini.xml')
-                                fin = open(xmlini,'w')
-                                fin.write(xml_input.head)
-                                params['OBJ_ID']      = seqsrc_name
-                                params['OBJ_TYPE']    = 'LatticePropagator'
-                                params['LIME_FILE']     = seqsrc_file
-                                fin.write(xml_input.qio_read % params)
+                                for m_dir in ['todo/gpu','priority/gpu','hold']:
+                                    if os.path.exists(metaq_dir+'/'+m_dir+'/'+metaq):
+                                        task_exist = True
+                                task_lst = glob(metaq_dir+'/working/*/*.sh')
+                                task_lst += glob(metaq_dir+'/working/*/*/*.sh')
+                                for task in task_lst:
+                                    if metaq == task.split('/')[-1]:
+                                        task_exist = True
+                                        task_working = True
+                                if not task_exist or (args.o and task_exist and not task_working):
+                                    xmlini = seqprop_file.replace('seqprops/','xml/').replace('.'+sp_ext,'.ini.xml')
+                                    fin = open(xmlini,'w')
+                                    fin.write(xml_input.head)
 
-                                ''' solve seqprop '''
-                                params['SRC_NAME']  = seqsrc_name
-                                params['PROP_NAME'] = seqprop_name
-                                params['PROP_XML']  = ''
-                                fin.write(xml_input.quda_nef % params)
+                                    ''' read all seqsources '''
+                                    for si,s0 in enumerate(srcs[c]):
+                                        params['SRC'] = s0
+                                        seqsrc_name = seqsrc_base % params
+                                        seqsrc_file = base_dir+'/snks/'+c+'/'+seqsrc_name+'.'+sp_ext
+                                        params['OBJ_ID']      = seqsrc_name
+                                        params['OBJ_TYPE']    = 'LatticePropagator'
+                                        params['LIME_FILE']     = seqsrc_file
+                                        fin.write(xml_input.qio_read % params)
+                                        params['SEQSOURCE_'+str(si)] = seqsrc_name
+                                    ''' make coherent_seqsource '''
+                                    coherent_seqsrc_name = coherent_seqsrc % params
+                                    params['COHERENT_SEQSOURCE'] = coherent_seqsrc_name
+                                    fin.write(xml_input.coherent_seqsrc % params)
 
-                                ''' save seqprop '''
-                                params['OBJ_ID']      = seqprop_name
-                                params['OBJ_TYPE']    = 'LatticePropagatorF'
-                                params['LIME_FILE']   = seqprop_file
-                                '''
-                                params['H5_FILE']     = seqprop_file
-                                params['H5_PATH']     = ''
-                                params['H5_OBJ_NAME'] = 'propagator'
-                                '''
-                                fin.write(xml_input.qio_write % params)
+                                    ''' solve seqprop '''
+                                    params['SRC_NAME']  = coherent_seqsrc_name
+                                    params['PROP_NAME'] = seqprop_name
+                                    params['PROP_XML']  = ''
+                                    fin.write(xml_input.quda_nef % params)
 
-                                fin.write(xml_input.tail % params)
-                                fin.close()
+                                    ''' save seqprop '''
+                                    params['OBJ_ID']      = seqprop_name
+                                    params['OBJ_TYPE']    = 'LatticePropagatorF'
+                                    params['LIME_FILE']   = seqprop_file
+                                    '''
+                                    params['H5_FILE']     = seqprop_file
+                                    params['H5_PATH']     = ''
+                                    params['H5_OBJ_NAME'] = 'propagator'
+                                    '''
+                                    fin.write(xml_input.qio_write % params)
 
-                                ''' Make METAQ task '''
-                                params['METAQ_LOG'] = base_dir+'/metaq/log/'+metaq.replace('.sh','.log')
-                                params['XML_IN'] = xmlini
-                                params['XML_OUT'] = xmlini.replace('.ini.xml','.out.xml')
-                                params['STDOUT'] = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                                params['CR'] = c
-                                params['T_SEP'] = dt
+                                    fin.write(xml_input.tail % params)
+                                    fin.close()
 
-                                m_in = open(metaq_file,'w')
-                                m_in.write(metaq_input.seqprop % params)
-                                m_in.close()
-                                os.chmod(metaq_file,0o770)
+                                    ''' Make METAQ task '''
+                                    params['METAQ_LOG'] = base_dir+'/metaq/log/'+metaq.replace('.sh','.log')
+                                    params['XML_IN'] = xmlini
+                                    params['XML_OUT'] = xmlini.replace('.ini.xml','.out.xml')
+                                    params['STDOUT'] = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
+                                    params['CR'] = c
 
-                    else:
-                        print('    seqprop exists: removing coherent sink',seqprop_file)
-                        ''' check SEQPROP file size and remove src '''
-                        if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) >= seqprop_size:
-                            if os.path.exists(seqsrc_file):
-                                shutil.move(seqsrc_file,seqsrc_file.replace('snks/','corrupt/'))
+                                    m_in = open(metaq_file,'w')
+                                    m_in.write(metaq_input.seqprop % params)
+                                    m_in.close()
+                                    os.chmod(metaq_file,0o770)
+                                else:
+                                    print('    task is in use or overwrite is false')
+                        else:
+                            print('seqprop exists')
+                            print('    ',seqprop_file)
             else:
                 print('    3pt corr exists:',coherent_formfac_file)
+        if not have_seqsrc:
+            print('python METAQ_seqsource.py %s' %(c))
+            os.system('python METAQ_seqsource.py %s' %(c))
+
     else:
         if not os.path.exists(cfg_file):
             print('  flowed cfg missing',cfg_file)
