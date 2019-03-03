@@ -6,9 +6,9 @@ import xml_input_ff as xml_input
 import metaq_input_ff as metaq_input
 
 try:
-    ens = os.getcwd().split('/')[-2]
+    ens = os.getcwd().split('/')[-3]
 except:
-    ens,junk = os.getcwd().split('/')[-2]
+    ens,junk = os.getcwd().split('/')[-3]
 stream = ens.split('_')[-1]
 ens_long='l3296f211b630m0074m037m440'
 
@@ -89,12 +89,11 @@ mom = 'px%spy%spz%s' %(m0,m1,m2)
 
 SS_PS = 'SS'
 n_seq=8
-particle = 'proton'
-params['PARTICLE'] = particle
+particles = ['proton','proton_np']
 coherent_ff_base  = 'formfac_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
-coherent_ff_base += mom+'_dt%(DT)s_Nsnk'+str(n_seq)+'_'+SS_PS
-seqprop_base      = 'seqprop_'+particle+'_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
-seqprop_base     += mom+'_dt%(DT)s_Nsnk'+str(n_seq)+'_'+SS_PS
+coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
+seqprop_base      = 'seqprop_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+seqprop_base     += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
 seqprop_size = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
 sp_ext = 'lime'
 
@@ -136,8 +135,8 @@ for c in cfgs:
             os.makedirs(base_dir+'/xml/'+c)
         if not os.path.exists(base_dir+'/stdout/'+c):
             os.makedirs(base_dir+'/stdout/'+c)
-        if not os.path.exists(base_dir+'/corrs_3pt/'+c):
-            os.makedirs(base_dir+'/corrs_3pt/'+c)
+        if not os.path.exists(base_dir+'/formfac/'+c):
+            os.makedirs(base_dir+'/formfac/'+c)
         if not os.path.exists(base_dir+'/corrupt'):
             os.makedirs(base_dir+'/corrupt')
 
@@ -154,8 +153,8 @@ for c in cfgs:
             for dt_int in t_seps:
                 dt = str(dt_int)
                 ''' Does the 3pt file exist? '''
-                coherent_formfac_name  = coherent_ff_base %{'CFG':c,'DT':dt}
-                coherent_formfac_file  = base_dir+'/corrs_3pt/'+c + '/'+coherent_formfac_name+'.h5'
+                coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt}
+                coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name+'.h5'
                 coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5')
                 params['THREE_PT_FILE'] = coherent_formfac_file
                 params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
@@ -164,17 +163,24 @@ for c in cfgs:
                     all_seqprops=True
                     for fs in flav_spin:
                         flav,snk_spin,src_spin=fs.split('_')
-                        seqprop_name  = seqprop_base %{'FLAV_SPIN':fs,'CFG':c,'DT':dt}
-                        seqprop_file  = base_dir+'/props/'+c+'/'+seqprop_name+'.'+sp_ext
-                        if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
-                            now = time.time()
-                            file_time = os.stat(seqprop_file).st_mtime
-                            if (now-prop_time)/60 > time_delete:
-                                print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
-                                shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
-                        if not os.path.exists(seqprop_file):
-                            print('    missing:',seqprop_file)
-                            all_seqprops=False
+                        params['FLAV']=flav
+                        params['SOURCE_SPIN']=snk_spin
+                        params['SINK_SPIN']=src_spin
+                        spin = snk_spin+'_'+src_spin
+                        params['FLAV_SPIN']=fs
+                        for particle in particles:
+                            params['PARTICLE'] = particle
+                            seqprop_name  = seqprop_base % params
+                            seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                            if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
+                                now = time.time()
+                                file_time = os.stat(seqprop_file).st_mtime
+                                if (now-prop_time)/60 > time_delete:
+                                    print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
+                                    shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
+                            if not os.path.exists(seqprop_file):
+                                print('    missing:',seqprop_file)
+                                all_seqprops=False
                     if all_seqprops:
                         metaq  = coherent_formfac_name+'.sh'
                         metaq_file = metaq_dir +'/'+args.priority+'/cpu/'+metaq
@@ -192,30 +198,12 @@ for c in cfgs:
                                 task_exist = True
                                 task_working = True
                         if not task_exist or (args.o and task_exist and not task_working):
-                            xmlini = coherent_formfac_file.replace('/corrs_3pt/','/xml/').replace('.h5','.ini.xml')
+                            xmlini = coherent_formfac_file.replace('/formfac/','/xml/').replace('.h5','.ini.xml')
                             fin = open(xmlini,'w')
                             fin.write(xml_input.head)
-                            ''' read all seq props '''
-                            for fs in flav_spin:
-                                flav,snk_spin,src_spin=fs.split('_')
-                                seqprop_name  = seqprop_base %{'FLAV_SPIN':fs,'CFG':c,'DT':dt}
-                                seqprop_file = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.h5'
-                                params['LIME_FILE'] = seqprop_file
-                                params['OBJ_ID']    = seqprop_name
-                                fin.write(xml_input.qio_read % params)
-                            f_dn_s_up_up_seqprop = seqprop_base %{'FLAV_SPIN':'DD_up_up','CFG':c,'DT':dt}
-                            f_dn_s_dn_dn_seqprop = seqprop_base %{'FLAV_SPIN':'DD_dn_dn','CFG':c,'DT':dt}
-                            f_up_s_dn_dn_seqprop = seqprop_base %{'FLAV_SPIN':'UU_dn_dn','CFG':c,'DT':dt}
-                            f_up_s_up_up_seqprop = seqprop_base %{'FLAV_SPIN':'UU_up_up','CFG':c,'DT':dt}
-                            params.update({
-                                'UU_FLAVOR_UU_SPIN_SEQPROP_NAME':f_up_s_up_up_seqprop,
-                                'DD_FLAVOR_UU_SPIN_SEQPROP_NAME':f_dn_s_up_up_seqprop,
-                                'UU_FLAVOR_DD_SPIN_SEQPROP_NAME':f_up_s_dn_dn_seqprop,
-                                'DD_FLAVOR_DD_SPIN_SEQPROP_NAME':f_dn_s_dn_dn_seqprop
-                                })
                             ''' read all props '''
                             for s0 in srcs[c]:
-                                prop_name = prop_name = prop_base %{'CFG':no,'SRC':s0}
+                                prop_name = prop_base %{'CFG':no,'SRC':s0}
                                 prop_file = base_dir+'/props/'+c+'/'+prop_name+'.h5'
                                 params['H5_FILE']=prop_file
                                 params['H5_PATH']=''
@@ -224,13 +212,44 @@ for c in cfgs:
                                 params['OBJ_ID']    = prop_name
                                 params['OBJ_TYPE']  = 'LatticePropagator'
                                 fin.write(xml_input.qio_read % params)
-                                params['PROP_NAME'] = prop_name
-                                if SS_PS == 'SS':
-                                    params['SMEARED_PROP'] = prop_name+'_SS'
-                                    fin.write(xml_input.shell_smearing % params)
-                                    params['PROP_NAME'] = prop_name+'_SS'
-                                ''' make 3pt contractions '''
-                                fin.write(xml_input.lalibe_formfac % params)
+
+                            ''' read all seq props and do contractions '''
+                            for particle in particles:
+                                params['PARTICLE'] = particle
+                                for fs in flav_spin:
+                                    flav,snk_spin,src_spin=fs.split('_')
+                                    params['FLAV']=flav
+                                    params['SOURCE_SPIN']=snk_spin
+                                    params['SINK_SPIN']=src_spin
+                                    spin = snk_spin+'_'+src_spin
+                                    params['FLAV_SPIN']=fs
+                                    seqprop_name  = seqprop_base % params
+                                    seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                                    params['LIME_FILE'] = seqprop_file
+                                    params['OBJ_ID']    = seqprop_name
+                                    fin.write(xml_input.qio_read % params)
+                                f_dn_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_up_up','CFG':c,'T_SEP':dt}
+                                f_dn_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_dn_dn','CFG':c,'T_SEP':dt}
+                                f_up_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_dn_dn','CFG':c,'T_SEP':dt}
+                                f_up_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_up_up','CFG':c,'T_SEP':dt}
+                                params.update({
+                                    'UU_FLAVOR_UU_SPIN_SEQPROP_NAME':f_up_s_up_up_seqprop,
+                                    'DD_FLAVOR_UU_SPIN_SEQPROP_NAME':f_dn_s_up_up_seqprop,
+                                    'UU_FLAVOR_DD_SPIN_SEQPROP_NAME':f_up_s_dn_dn_seqprop,
+                                    'DD_FLAVOR_DD_SPIN_SEQPROP_NAME':f_dn_s_dn_dn_seqprop
+                                    })
+                                for s0 in srcs[c]:
+                                    prop_name = prop_base %{'CFG':no,'SRC':s0}
+                                    params['PROP_NAME'] = prop_name
+
+                                    ''' make 3pt contractions '''
+                                    fin.write(xml_input.lalibe_formfac % params)
+                                ''' erase seqprops '''
+                                fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_up_up_seqprop})
+                                fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_dn_dn_seqprop})
+                                fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_dn_dn_seqprop})
+                                fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_up_up_seqprop})
+
                             fin.write(xml_input.tail % params)
                             fin.close()
 
