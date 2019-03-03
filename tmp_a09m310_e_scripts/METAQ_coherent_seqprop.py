@@ -156,7 +156,6 @@ for c in cfgs:
         have_seqsrc = True
         for dt_int in t_seps:
             dt = str(dt_int)
-            params['T_SEP'] = dt
             ''' Does the 3pt file exist? '''
             coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt}
             coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name + '.h5'
@@ -173,8 +172,10 @@ for c in cfgs:
                         params['PARTICLE'] = particle
                         if '_np' in particle:
                             params['QUARK_SPIN'] = 'LOWER'
+                            params['T_SEP'] = '-'+dt
                         else:
                             params['QUARK_SPIN'] = 'UPPER'
+                            params['T_SEP'] = dt
                         seqprop_name  = seqprop_base % params
                         seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
                         ''' check SEQPROP file size
