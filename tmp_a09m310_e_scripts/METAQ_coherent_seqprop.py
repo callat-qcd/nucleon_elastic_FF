@@ -266,6 +266,7 @@ for c in cfgs:
                                     m_in.write(metaq_input.seqprop % params)
                                     m_in.close()
                                     os.chmod(metaq_file,0o770)
+                                    print('    making task:',metaq)
                                 else:
                                     print('    task is in use or overwrite is false')
                         else:
