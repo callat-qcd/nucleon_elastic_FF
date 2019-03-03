@@ -183,7 +183,7 @@ for c in cfgs:
                                 task_exist = True
                                 task_working = True
                         if not task_exist or (args.o and task_exist and not task_working):
-                            xmlini = seqsrc_file.replace('snks/','xml/').replace('.lime','.ini.xml')
+                            xmlini = base_dir+'/xml/'+c+'/'+seqsrc_name+'.'+'ini.xml'
                             fin = open(xmlini,'w')
                             fin.write(xml_input.head)
                             ''' read prop '''
