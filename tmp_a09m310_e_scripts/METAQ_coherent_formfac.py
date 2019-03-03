@@ -122,6 +122,7 @@ if args.debug:
 
 for c in cfgs:
     no = c
+    params['CFG'] = no
     if len(srcs[c]) == n_seq:
         all_srcs = True
     else:
@@ -152,6 +153,7 @@ for c in cfgs:
         if all_props:
             for dt_int in t_seps:
                 dt = str(dt_int)
+                params['T_SEP'] = dt
                 ''' Does the 3pt file exist? '''
                 coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt}
                 coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name+'.h5'
@@ -204,7 +206,7 @@ for c in cfgs:
                             ''' read all props '''
                             for s0 in srcs[c]:
                                 prop_name = prop_base %{'CFG':no,'SRC':s0}
-                                prop_file = base_dir+'/props/'+c+'/'+prop_name+'.h5'
+                                prop_file = base_dir+'/props/'+c+'/'+prop_name+'.'+sp_ext
                                 params['H5_FILE']=prop_file
                                 params['H5_PATH']=''
                                 params['H5_OBJ_NAME']='propagator'
@@ -264,6 +266,7 @@ for c in cfgs:
                             m_in.write(metaq_input.formfac_contractions % params)
                             m_in.close()
                             os.chmod(metaq_file,0o770)
+                            print('    making task:',metaq)
                         else:
                             print('  task exists:',metaq)
                     else:

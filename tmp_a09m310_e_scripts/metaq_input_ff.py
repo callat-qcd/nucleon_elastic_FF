@@ -3,7 +3,7 @@ seqsource='''#!/bin/bash
 #METAQ GPUS 0
 #METAQ MIN_WC_TIME 15:00
 #METAQ LOG %(METAQ_LOG)s
-#METAQ PROJECT formfac_a12m310_a
+#METAQ PROJECT seqsource_a12m310_a
 
 #BSUB -nnodes 1
 #BSUB -cn_cu 'maxcus=1'
@@ -87,7 +87,8 @@ stdout=%(STDOUT)s
 export OMP_NUM_THREADS=4
 PROG=$LALIBE_CPU
 APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_bind_cpu.N32.sh
-jsrun -n1 -r1 -a32 -c32 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
+#jsrun -n1 -r1 -a32 -c32 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
+jsrun -n1 -r1 -a32 -c32 $PROG -i $ini -o $out > $stdout 2>&1
 
 '''
 
