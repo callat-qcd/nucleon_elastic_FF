@@ -221,6 +221,10 @@ for c in cfgs:
                             ''' read all seq props and do contractions '''
                             for particle in particles:
                                 params['PARTICLE'] = particle
+                                if '_np' in particle:
+                                    t_sep = '-'+dt
+                                else:
+                                    t_sep = dt
                                 for fs in flav_spin:
                                     flav,snk_spin,src_spin=fs.split('_')
                                     params['FLAV']=flav
@@ -233,10 +237,10 @@ for c in cfgs:
                                     params['LIME_FILE'] = seqprop_file
                                     params['OBJ_ID']    = seqprop_name
                                     fin.write(xml_input.qio_read % params)
-                                f_dn_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_up_up','CFG':c,'T_SEP':dt}
-                                f_dn_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_dn_dn','CFG':c,'T_SEP':dt}
-                                f_up_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_dn_dn','CFG':c,'T_SEP':dt}
-                                f_up_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_up_up','CFG':c,'T_SEP':dt}
+                                f_dn_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_up_up','CFG':c,'T_SEP':t_sep}
+                                f_dn_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_dn_dn','CFG':c,'T_SEP':t_sep}
+                                f_up_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_dn_dn','CFG':c,'T_SEP':t_sep}
+                                f_up_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_up_up','CFG':c,'T_SEP':t_sep}
                                 params.update({
                                     'UU_FLAVOR_UU_SPIN_SEQPROP_NAME':f_up_s_up_up_seqprop,
                                     'DD_FLAVOR_UU_SPIN_SEQPROP_NAME':f_dn_s_up_up_seqprop,
