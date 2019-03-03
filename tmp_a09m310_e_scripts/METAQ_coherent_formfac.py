@@ -225,6 +225,7 @@ for c in cfgs:
                                     t_sep = '-'+dt
                                 else:
                                     t_sep = dt
+                                params['T_SEP'] = t_sep
                                 for fs in flav_spin:
                                     flav,snk_spin,src_spin=fs.split('_')
                                     params['FLAV']=flav
