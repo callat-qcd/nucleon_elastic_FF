@@ -155,42 +155,44 @@ for c in cfgs:
         #if all_props:
         for dt_int in t_seps:
             dt = str(dt_int)
-            ''' Does the 3pt file exist? '''
-            coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt}
-            coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name+'.h5'
-            coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5')
-            params['THREE_PT_FILE'] = coherent_formfac_file
-            params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
-            if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
-                # loop over FLAV and SPIN as all in 1 file
-                all_seqprops=True
-                for fs in flav_spin:
-                    flav,snk_spin,src_spin=fs.split('_')
-                    params['FLAV']=flav
-                    params['SOURCE_SPIN']=snk_spin
-                    params['SINK_SPIN']=src_spin
-                    spin = snk_spin+'_'+src_spin
-                    params['FLAV_SPIN']=fs
-                    for particle in particles:
-                        params['PARTICLE'] = particle
-                        if '_np' in particle:
-                            params['T_SEP'] = '-'+dt
-                        else:
-                            params['T_SEP'] = dt
-                        seqprop_name  = seqprop_base % params
-                        seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
-                        if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
-                            now = time.time()
-                            file_time = os.stat(seqprop_file).st_mtime
-                            if (now-prop_time)/60 > time_delete:
-                                print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
-                                shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
-                        if not os.path.exists(seqprop_file):
-                            print('    missing:',seqprop_file)
-                            all_seqprops=False
-                if all_seqprops:
-                    for s0 in srccs[c]:
-                        params['SRC'] = s0
+            ''' Do all seqprops exist? '''
+            all_seqprops=True
+            for fs in flav_spin:
+                flav,snk_spin,src_spin=fs.split('_')
+                params['FLAV']=flav
+                params['SOURCE_SPIN']=snk_spin
+                params['SINK_SPIN']=src_spin
+                spin = snk_spin+'_'+src_spin
+                params['FLAV_SPIN']=fs
+                for particle in particles:
+                    params['PARTICLE'] = particle
+                    if '_np' in particle:
+                        params['T_SEP'] = '-'+dt
+                    else:
+                        params['T_SEP'] = dt
+                    seqprop_name  = seqprop_base % params
+                    seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                    if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
+                        now = time.time()
+                        file_time = os.stat(seqprop_file).st_mtime
+                        if (now-prop_time)/60 > time_delete:
+                            print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
+                            shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
+                    if not os.path.exists(seqprop_file):
+                        print('    missing:',seqprop_file)
+                        all_seqprops=False
+            if all_seqprops:
+                ''' loop over srcs '''
+                for s0 in srccs[c]:
+                    params['SRC'] = s0
+                    ''' Does the 3pt file exist? '''
+                    coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt,'SRC':s0}
+                    coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name+'.h5'
+                    coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5')
+                    params['THREE_PT_FILE'] = coherent_formfac_file
+                    params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
+                    if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                        # loop over FLAV and SPIN as all in 1 file
                         metaq  = coherent_formfac_name+'.sh'
                         metaq_file = metaq_dir +'/'+args.priority+'/cpu/'+metaq
                         task_exist = False
@@ -284,11 +286,11 @@ for c in cfgs:
                                 print('MISSING prop',prop_file)
                         else:
                             print('  task exists:',metaq)
-                else:
-                    print('    missing FLAV or SPIN seqprops')
-                    os.system('python METAQ_coherent_seqprop.py %s -t %d' %(c,abs(dt_int)))
+                    else:
+                        print('    exists:',coherent_formfac_file)
             else:
-                print('    exists:',coherent_formfac_file)
+                print('    missing FLAV or SPIN seqprops')
+                os.system('python METAQ_coherent_seqprop.py %s -t %d' %(c,abs(dt_int)))
         #else:
         #    print('    missing props')
     else:
