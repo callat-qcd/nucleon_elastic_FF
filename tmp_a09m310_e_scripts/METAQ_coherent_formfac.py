@@ -91,7 +91,7 @@ SS_PS = 'SS'
 n_seq=8
 particles = ['proton','proton_np']
 coherent_ff_base  = 'formfac_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
-coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
+coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_%(SRC)s_'+SS_PS
 seqprop_base      = 'seqprop_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
 seqprop_base     += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
 seqprop_size = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
@@ -142,6 +142,7 @@ for c in cfgs:
             os.makedirs(base_dir+'/corrupt')
 
         # make sure all props are ready
+        '''
         all_props=True
         for s0 in srcs[c]:
             prop_name = prop_base %{'CFG':no,'SRC':s0}
@@ -149,44 +150,47 @@ for c in cfgs:
             if not os.path.exists(prop_file):
                 print('    missing',prop_file)
                 all_props=False
-
-        if all_props:
-            for dt_int in t_seps:
-                dt = str(dt_int)
-                ''' Does the 3pt file exist? '''
-                coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt}
-                coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name+'.h5'
-                coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5')
-                params['THREE_PT_FILE'] = coherent_formfac_file
-                params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
-                if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
-                    # loop over FLAV and SPIN as all in 1 file
-                    all_seqprops=True
-                    for fs in flav_spin:
-                        flav,snk_spin,src_spin=fs.split('_')
-                        params['FLAV']=flav
-                        params['SOURCE_SPIN']=snk_spin
-                        params['SINK_SPIN']=src_spin
-                        spin = snk_spin+'_'+src_spin
-                        params['FLAV_SPIN']=fs
-                        for particle in particles:
-                            params['PARTICLE'] = particle
-                            if '_np' in particle:
-                                params['T_SEP'] = '-'+dt
-                            else:
-                                params['T_SEP'] = dt
-                            seqprop_name  = seqprop_base % params
-                            seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
-                            if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
-                                now = time.time()
-                                file_time = os.stat(seqprop_file).st_mtime
-                                if (now-prop_time)/60 > time_delete:
-                                    print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
-                                    shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
-                            if not os.path.exists(seqprop_file):
-                                print('    missing:',seqprop_file)
-                                all_seqprops=False
-                    if all_seqprops:
+        To improve load balancing of work, we are splitting each src to a different task
+        '''
+        #if all_props:
+        for dt_int in t_seps:
+            dt = str(dt_int)
+            ''' Does the 3pt file exist? '''
+            coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt}
+            coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name+'.h5'
+            coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5')
+            params['THREE_PT_FILE'] = coherent_formfac_file
+            params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
+            if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                # loop over FLAV and SPIN as all in 1 file
+                all_seqprops=True
+                for fs in flav_spin:
+                    flav,snk_spin,src_spin=fs.split('_')
+                    params['FLAV']=flav
+                    params['SOURCE_SPIN']=snk_spin
+                    params['SINK_SPIN']=src_spin
+                    spin = snk_spin+'_'+src_spin
+                    params['FLAV_SPIN']=fs
+                    for particle in particles:
+                        params['PARTICLE'] = particle
+                        if '_np' in particle:
+                            params['T_SEP'] = '-'+dt
+                        else:
+                            params['T_SEP'] = dt
+                        seqprop_name  = seqprop_base % params
+                        seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                        if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
+                            now = time.time()
+                            file_time = os.stat(seqprop_file).st_mtime
+                            if (now-prop_time)/60 > time_delete:
+                                print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
+                                shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
+                        if not os.path.exists(seqprop_file):
+                            print('    missing:',seqprop_file)
+                            all_seqprops=False
+                if all_seqprops:
+                    for s0 in srccs[c]:
+                        params['SRC'] = s0
                         metaq  = coherent_formfac_name+'.sh'
                         metaq_file = metaq_dir +'/'+args.priority+'/cpu/'+metaq
                         task_exist = False
@@ -203,13 +207,14 @@ for c in cfgs:
                                 task_exist = True
                                 task_working = True
                         if not task_exist or (args.o and task_exist and not task_working):
-                            xmlini = coherent_formfac_file.replace('/formfac/','/xml/').replace('.h5','.ini.xml')
-                            fin = open(xmlini,'w')
-                            fin.write(xml_input.head)
-                            ''' read all props '''
-                            for s0 in srcs[c]:
-                                prop_name = prop_base %{'CFG':no,'SRC':s0}
-                                prop_file = base_dir+'/props/'+c+'/'+prop_name+'.'+sp_ext
+                            prop_name = prop_base %{'CFG':no,'SRC':s0}
+                            prop_file = base_dir+'/props/'+c+'/'+prop_name+'.'+sp_ext
+                            if os.path.exists(prop_file):
+                                xmlini = coherent_formfac_file.replace('/formfac/','/xml/').replace('.h5','.ini.xml')
+                                fin = open(xmlini,'w')
+                                fin.write(xml_input.head)
+                                ''' read all props '''
+                                #for s0 in srcs[c]:
                                 params['H5_FILE']=prop_file
                                 params['H5_PATH']=''
                                 params['H5_OBJ_NAME']='propagator'
@@ -218,72 +223,74 @@ for c in cfgs:
                                 params['OBJ_TYPE']  = 'LatticePropagator'
                                 fin.write(xml_input.qio_read % params)
 
-                            ''' read all seq props and do contractions '''
-                            for particle in particles:
-                                params['PARTICLE'] = particle
-                                if '_np' in particle:
-                                    t_sep = '-'+dt
-                                else:
-                                    t_sep = dt
-                                params['T_SEP'] = t_sep
-                                for fs in flav_spin:
-                                    flav,snk_spin,src_spin=fs.split('_')
-                                    params['FLAV']=flav
-                                    params['SOURCE_SPIN']=snk_spin
-                                    params['SINK_SPIN']=src_spin
-                                    spin = snk_spin+'_'+src_spin
-                                    params['FLAV_SPIN']=fs
-                                    seqprop_name  = seqprop_base % params
-                                    seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
-                                    params['LIME_FILE'] = seqprop_file
-                                    params['OBJ_ID']    = seqprop_name
-                                    fin.write(xml_input.qio_read % params)
-                                f_dn_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_up_up','CFG':c,'T_SEP':t_sep}
-                                f_dn_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_dn_dn','CFG':c,'T_SEP':t_sep}
-                                f_up_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_dn_dn','CFG':c,'T_SEP':t_sep}
-                                f_up_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_up_up','CFG':c,'T_SEP':t_sep}
-                                params.update({
-                                    'UU_FLAVOR_UU_SPIN_SEQPROP_NAME':f_up_s_up_up_seqprop,
-                                    'DD_FLAVOR_UU_SPIN_SEQPROP_NAME':f_dn_s_up_up_seqprop,
-                                    'UU_FLAVOR_DD_SPIN_SEQPROP_NAME':f_up_s_dn_dn_seqprop,
-                                    'DD_FLAVOR_DD_SPIN_SEQPROP_NAME':f_dn_s_dn_dn_seqprop
-                                    })
-                                for s0 in srcs[c]:
+                                ''' read all seq props and do contractions '''
+                                for particle in particles:
+                                    params['PARTICLE'] = particle
+                                    if '_np' in particle:
+                                        t_sep = '-'+dt
+                                    else:
+                                        t_sep = dt
+                                    params['T_SEP'] = t_sep
+                                    for fs in flav_spin:
+                                        flav,snk_spin,src_spin=fs.split('_')
+                                        params['FLAV']=flav
+                                        params['SOURCE_SPIN']=snk_spin
+                                        params['SINK_SPIN']=src_spin
+                                        spin = snk_spin+'_'+src_spin
+                                        params['FLAV_SPIN']=fs
+                                        seqprop_name  = seqprop_base % params
+                                        seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                                        params['LIME_FILE'] = seqprop_file
+                                        params['OBJ_ID']    = seqprop_name
+                                        fin.write(xml_input.qio_read % params)
+                                    f_dn_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_up_up','CFG':c,'T_SEP':t_sep}
+                                    f_dn_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_dn_dn','CFG':c,'T_SEP':t_sep}
+                                    f_up_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_dn_dn','CFG':c,'T_SEP':t_sep}
+                                    f_up_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_up_up','CFG':c,'T_SEP':t_sep}
+                                    params.update({
+                                        'UU_FLAVOR_UU_SPIN_SEQPROP_NAME':f_up_s_up_up_seqprop,
+                                        'DD_FLAVOR_UU_SPIN_SEQPROP_NAME':f_dn_s_up_up_seqprop,
+                                        'UU_FLAVOR_DD_SPIN_SEQPROP_NAME':f_up_s_dn_dn_seqprop,
+                                        'DD_FLAVOR_DD_SPIN_SEQPROP_NAME':f_dn_s_dn_dn_seqprop
+                                        })
+                                    #for s0 in srcs[c]:
                                     prop_name = prop_base %{'CFG':no,'SRC':s0}
                                     params['PROP_NAME'] = prop_name
 
                                     ''' make 3pt contractions '''
                                     fin.write(xml_input.lalibe_formfac % params)
-                                ''' erase seqprops '''
-                                fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_up_up_seqprop})
-                                fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_dn_dn_seqprop})
-                                fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_dn_dn_seqprop})
-                                fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_up_up_seqprop})
+                                    #''' erase seqprops '''
+                                    #fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_up_up_seqprop})
+                                    #fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_dn_dn_seqprop})
+                                    #fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_dn_dn_seqprop})
+                                    #fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_up_up_seqprop})
 
-                            fin.write(xml_input.tail % params)
-                            fin.close()
+                                fin.write(xml_input.tail % params)
+                                fin.close()
 
-                            # Make METAQ task
-                            params.update({
-                                'XML_IN':xmlini,'XML_OUT':xmlini.replace('.ini.xml','.out.xml'),
-                                'STDOUT':xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/'),
-                                'METAQ_LOG':metaq_run_dir+'/log/'+metaq.replace('.sh','.log'),
-                                'BASE_DIR':base_dir,'METAQ_RUN':metaq_file,'METAQ_FINISHED':metaq_file.replace('runs','finished')
-                                })
-                            m_in = open(metaq_file,'w')
-                            m_in.write(metaq_input.formfac_contractions % params)
-                            m_in.close()
-                            os.chmod(metaq_file,0o770)
-                            print('    making task:',metaq)
+                                # Make METAQ task
+                                params.update({
+                                    'XML_IN':xmlini,'XML_OUT':xmlini.replace('.ini.xml','.out.xml'),
+                                    'STDOUT':xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/'),
+                                    'METAQ_LOG':metaq_run_dir+'/log/'+metaq.replace('.sh','.log'),
+                                    'BASE_DIR':base_dir,'METAQ_RUN':metaq_file,'METAQ_FINISHED':metaq_file.replace('runs','finished')
+                                    })
+                                m_in = open(metaq_file,'w')
+                                m_in.write(metaq_input.formfac_contractions % params)
+                                m_in.close()
+                                os.chmod(metaq_file,0o770)
+                                print('    making task:',metaq)
+                            else:
+                                print('MISSING prop',prop_file)
                         else:
                             print('  task exists:',metaq)
-                    else:
-                        print('    missing FLAV or SPIN seqprops')
-                        os.system('python METAQ_coherent_seqprop.py %s -t %d' %(c,dt_int))
                 else:
-                    print('    exists:',coherent_formfac_file)
-        else:
-            print('    missing props')
+                    print('    missing FLAV or SPIN seqprops')
+                    os.system('python METAQ_coherent_seqprop.py %s -t %d' %(c,abs(dt_int)))
+            else:
+                print('    exists:',coherent_formfac_file)
+        #else:
+        #    print('    missing props')
     else:
         if not os.path.exists(cfg_file):
             print('  flowed cfg missing',cfg_file)
