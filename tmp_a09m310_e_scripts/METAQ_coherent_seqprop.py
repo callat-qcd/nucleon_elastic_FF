@@ -22,6 +22,8 @@ parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [def
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
     help='run DEBUG? [%(default)s]')
 parser.add_argument('-p','--priority',type=str,default='todo',help='put task in priority? [%(default)s]')
+parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
+    help='run with verbose output? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -196,7 +198,8 @@ for c in cfgs:
                                 seqsrc_name = seqsrc_base % params
                                 seqsrc_file = base_dir+'/snks/'+c+'/'+seqsrc_name+'.'+sp_ext
                                 if not os.path.exists(seqsrc_file):
-                                    print('    missing coherent sink',seqsrc_file)
+                                    if args.verbose:
+                                        print('    missing sink',seqsrc_file)
                                     have_seqsrc_t = False
                                     have_seqsrc   = False
                             if have_seqsrc_t:
@@ -261,6 +264,7 @@ for c in cfgs:
                                     params['XML_OUT'] = xmlini.replace('.ini.xml','.out.xml')
                                     params['STDOUT'] = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                                     params['CR'] = c
+                                    params['T_SEP'] = dt_int
 
                                     m_in = open(metaq_file,'w')
                                     m_in.write(metaq_input.seqprop % params)
@@ -268,15 +272,16 @@ for c in cfgs:
                                     os.chmod(metaq_file,0o770)
                                     print('    making task:',metaq)
                                 else:
-                                    print('    task is in use or overwrite is false')
+                                    if not args.verbose:
+                                        print('    task is in use or overwrite is false')
                         else:
-                            print('seqprop exists')
-                            print('    ',seqprop_file)
+                            print('seqprop exists',seqprop_file)
             else:
-                print('    3pt corr exists:',coherent_formfac_file)
+                if not args.verbose:
+                    print('    3pt corr exists:',coherent_formfac_file)
         if not have_seqsrc:
-            print('python METAQ_seqsource.py %s' %(c))
-            os.system('python METAQ_seqsource.py %s' %(c))
+            print('python METAQ_seqsource.py %s -v' %(c))
+            os.system('python METAQ_seqsource.py %s -v' %(c))
 
     else:
         if not os.path.exists(cfg_file):

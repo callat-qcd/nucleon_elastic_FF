@@ -22,6 +22,8 @@ parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [def
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
     help='run DEBUG? [%(default)s]')
 parser.add_argument('-p','--priority',type=str,default='todo',help='put task in priority? [%(default)s]')
+parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
+    help='run with verbose output? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -236,7 +238,8 @@ for c in cfgs:
                             os.chmod(metaq_file,0o770)
                             print('    making task:',metaq)
                         else:
-                            print('    task exists:',metaq)
+                            if not args.verbose:
+                                print('    task exists:',metaq)
             else:
                 print('    missing',prop_file)
                 ''' TO ADD METAQ_prop.py, need to upgrade those scripts to take in cfg no '''

@@ -21,6 +21,8 @@ parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [def
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
     help='run DEBUG? [%(default)s]')
 parser.add_argument('-p','--priority',type=str,default='todo',help='put task in priority? [%(default)s]')
+parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
+    help='run with verbose output? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -153,6 +155,7 @@ for c in cfgs:
         To improve load balancing of work, we are splitting each src to a different task
         '''
         #if all_props:
+        have_all_seqprops=True
         for dt_int in t_seps:
             dt = str(dt_int)
             ''' Do all seqprops exist? '''
@@ -181,9 +184,10 @@ for c in cfgs:
                     if not os.path.exists(seqprop_file):
                         print('    missing:',seqprop_file)
                         all_seqprops=False
+                        have_all_seqprops=False
             if all_seqprops:
                 ''' loop over srcs '''
-                for s0 in srccs[c]:
+                for s0 in srcs[c]:
                     params['SRC'] = s0
                     ''' Does the 3pt file exist? '''
                     coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt,'SRC':s0}
@@ -261,11 +265,11 @@ for c in cfgs:
 
                                     ''' make 3pt contractions '''
                                     fin.write(xml_input.lalibe_formfac % params)
-                                    #''' erase seqprops '''
-                                    #fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_up_up_seqprop})
-                                    #fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_dn_dn_seqprop})
-                                    #fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_dn_dn_seqprop})
-                                    #fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_up_up_seqprop})
+                                    ''' erase seqprops to reduce memory footprint '''
+                                    fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_up_up_seqprop})
+                                    fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_dn_dn_seqprop})
+                                    fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_dn_dn_seqprop})
+                                    fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_up_up_seqprop})
 
                                 fin.write(xml_input.tail % params)
                                 fin.close()
@@ -285,12 +289,16 @@ for c in cfgs:
                             else:
                                 print('MISSING prop',prop_file)
                         else:
-                            print('  task exists:',metaq)
+                            if not args.verbose:
+                                print('  task exists:',metaq)
                     else:
-                        print('    exists:',coherent_formfac_file)
+                        if not args.verbose:
+                            print('    exists:',coherent_formfac_file)
             else:
-                print('    missing FLAV or SPIN seqprops')
-                os.system('python METAQ_coherent_seqprop.py %s -t %d' %(c,abs(dt_int)))
+                print('    missing FLAV or SPIN seqprops, dt=',dt)
+        if not have_all_seqprops:
+            print('    missing FLAV or SPIN seqprops')
+            os.system('python METAQ_coherent_seqprop.py %s -t %d -v' %(c,abs(dt_int)))
         #else:
         #    print('    missing props')
     else:
