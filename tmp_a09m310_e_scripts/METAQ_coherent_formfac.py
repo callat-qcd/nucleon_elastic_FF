@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, sys, shutil
+import os, sys, shutil, time
 from glob import glob
 import argparse
 import xml_input_ff as xml_input
@@ -27,6 +27,9 @@ args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
 print('')
+
+''' time in minutes to define "old" file '''
+time_delete = 10
 
 ri = args.run[0]
 if len(args.run) == 1:
@@ -178,7 +181,7 @@ for c in cfgs:
                     if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
                         now = time.time()
                         file_time = os.stat(seqprop_file).st_mtime
-                        if (now-prop_time)/60 > time_delete:
+                        if (now-file_time)/60 > time_delete:
                             print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
                             shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
                     if not os.path.exists(seqprop_file):

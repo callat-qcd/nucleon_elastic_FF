@@ -196,7 +196,7 @@ for c in cfgs:
                             for s0 in srcs[c]:
                                 params['SRC'] = s0
                                 seqsrc_name = seqsrc_base % params
-                                seqsrc_file = base_dir+'/snks/'+c+'/'+seqsrc_name+'.'+sp_ext
+                                seqsrc_file = base_dir+'/seqsrc/'+c+'/'+seqsrc_name+'.'+sp_ext
                                 if not os.path.exists(seqsrc_file):
                                     if args.verbose:
                                         print('    missing sink',seqsrc_file)
@@ -227,7 +227,7 @@ for c in cfgs:
                                     for si,s0 in enumerate(srcs[c]):
                                         params['SRC'] = s0
                                         seqsrc_name = seqsrc_base % params
-                                        seqsrc_file = base_dir+'/snks/'+c+'/'+seqsrc_name+'.'+sp_ext
+                                        seqsrc_file = base_dir+'/seqsrc/'+c+'/'+seqsrc_name+'.'+sp_ext
                                         params['OBJ_ID']      = seqsrc_name
                                         params['OBJ_TYPE']    = 'LatticePropagator'
                                         params['LIME_FILE']     = seqsrc_file

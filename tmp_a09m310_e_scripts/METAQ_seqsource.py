@@ -139,8 +139,8 @@ for c in cfgs:
             os.makedirs(base_dir+'/xml/'+c)
         if not os.path.exists(base_dir+'/stdout/'+c):
             os.makedirs(base_dir+'/stdout/'+c)
-        if not os.path.exists(base_dir+'/snks/'+c):
-            os.makedirs(base_dir+'/snks/'+c)
+        if not os.path.exists(base_dir+'/seqsrc/'+c):
+            os.makedirs(base_dir+'/seqsrc/'+c)
         if not os.path.exists(base_dir+'/corrupt'):
             os.makedirs(base_dir+'/corrupt')
 
@@ -158,13 +158,13 @@ for c in cfgs:
                     have_seqsrc = True
                     for particle in particles:
                         seqsrc_name = seqsrc_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
-                        seqsrc_file  = base_dir+'/snks/'+c+'/'+seqsrc_name+'.'+sp_ext
+                        seqsrc_file  = base_dir+'/seqsrc/'+c+'/'+seqsrc_name+'.'+sp_ext
                         if os.path.exists(seqsrc_file) and os.path.getsize(seqsrc_file) < seqsrc_size:
                             now = time.time()
                             file_time = os.stat(seqsrc_file).st_mtime
                             if (now-file_time)/60 > time_delete:
                                 print('DELETING BAD SINK',os.path.getsize(seqsrc_file),seqsrc_file.split('/')[-1])
-                                shutil.move(seqsrc_file,seqsrc_file.replace('snks/'+c,'corrupt'))
+                                shutil.move(seqsrc_file,seqsrc_file.replace('seqsrc/'+c,'corrupt'))
                         if not os.path.exists(seqsrc_file):
                             have_seqsrc = False
                     if not have_seqsrc:
@@ -212,7 +212,7 @@ for c in cfgs:
                             for particle in particles:
                                 params['PARTICLE'] = particle
                                 params['SEQSOURCE'] = seqsrc_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
-                                seqsrc_file  = base_dir+'/snks/'+c+'/'+params['SEQSOURCE']+'.'+sp_ext
+                                seqsrc_file  = base_dir+'/seqsrc/'+c+'/'+params['SEQSOURCE']+'.'+sp_ext
                                 if not os.path.exists(seqsrc_file):
                                     ''' make seqsource '''
                                     fin.write(xml_input.lalibe_seqsource % params)
