@@ -242,7 +242,8 @@ for c in cfgs:
                                 print('    task exists:',metaq)
             else:
                 print('    missing',prop_file)
-                ''' TO ADD METAQ_prop.py, need to upgrade those scripts to take in cfg no '''
+                print('python METAQ_prop.py %s -s %s --force' %(c,s0))
+                sys.exit()
 
     else:
         if not os.path.exists(cfg_file):
