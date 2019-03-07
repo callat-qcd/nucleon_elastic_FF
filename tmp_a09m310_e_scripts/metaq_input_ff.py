@@ -1,3 +1,39 @@
+prop = '''#!/bin/bash
+#METAQ NODES 0
+#METAQ GPUS 6
+#METAQ MIN_WC_TIME 15:00
+#METAQ LOG %(METAQ_LOG)s
+#METAQ PROJECT prop_%(ENS)s
+
+#BSUB -nnodes 1
+#BSUB -cn_cu 'maxcus=1'
+#BSUB -P LGT100
+#BSUB -W 15
+#BSUB -alloc_flags smt4
+
+source /ccs/proj/lgt100/c51/software/summit_smpi/install/env.sh
+cd /gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/a09m310_e
+
+export QUDA_RESOURCE_PATH=`pwd`/quda_no_gdr
+if [[ ! -d $QUDA_RESOURCE_PATH ]]; then
+    mkdir $QUDA_RESOURCE_PATH
+fi
+
+ini=%(XML_IN)s
+out=%(XML_OUT)s
+stdout=%(STDOUT)s
+
+export OMP_NUM_THREADS=4
+PROG="$LALIBE_GPU -geom 1 1 1 6"
+APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_gpu_bind.sh
+#jsrun -n1 -r1 -a6 -g6 -c6 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
+jsrun -n1 -r1 -a6 -g6 -c6 -l gpu-cpu $APP $PROG -i $ini -o $out > $stdout 2>&1
+
+%(CLEANUP)s
+
+'''
+
+
 seqsource='''#!/bin/bash
 #METAQ NODES 1
 #METAQ GPUS 0
@@ -54,7 +90,7 @@ ini=%(XML_IN)s
 out=%(XML_OUT)s
 stdout=%(STDOUT)s
 
-export OMP_NUM_THREADS=8
+export OMP_NUM_THREADS=4
 PROG="$LALIBE_GPU -geom 1 1 1 6"
 APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_gpu_bind.sh
 #jsrun -n1 -r1 -a6 -g6 -c6 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
