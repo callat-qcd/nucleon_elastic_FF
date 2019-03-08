@@ -10,13 +10,15 @@ except:
 stream = ens.split('_')[-1]
 ens_long='l3296f211b630m0074m037m440'
 
-parser = argparse.ArgumentParser(description='delete seqsrcs and seqprops when formfac finished' %sys.argv[0].split('/')[-1])
+parser = argparse.ArgumentParser(description='delete seqsrcs and seqprops when formfac finished')# %sys.argv[0].split('/')[-1])
 parser.add_argument('run',nargs='+',type=int,help='start [stop] run number')
 parser.add_argument('-f',type=str,default=ens+'_src.lst',help='cfg/src file')
 parser.add_argument('--seqsrc',default=False,action='store_const',const=True,\
     help='delete seqsrc files? [%(default)s]')
 parser.add_argument('--seqprop',default=False,action='store_const',const=True,\
     help='delete seqprop files? [%(default)s]')
+parser.add_argument('-v','--verbose',default=False,action='store_const',const=True,\
+    help='verbose? [%(default)s]')
 parser.add_argument('--debug',default=True,action='store_const',const=False,\
     help='debug mode? [%(default)s]')
 args = parser.parse_args()
@@ -118,6 +120,8 @@ for cs in cfg_srcs:
 
 for c in cfgs:
     no = str(c)
+    if args.verbose:
+        print(no)
     params['CFG'] = no
     del_sequential = True
     for dt_int in t_seps:
@@ -148,15 +152,21 @@ for c in cfgs:
                 params['PARTICLE'] = particle
                 ''' SEQSRC '''
                 for s0 in srcs[c]:
+                    params['SRC'] = s0
                     seqsrc_name = seqsrc_base % params
                     seqsrc_file = base_dir+'/seqsrc/'+c+'/'+seqsrc_name+'.'+sp_ext
-                    if args.del_seqsrc:
+                    if args.seqsrc:
                         if args.debug:
                             print('DEBUG: DELETING',seqsrc_name)
                         else:
-                            print('DELETING',seqsrc_name)
+                            if os.path.exists(seqsrc_file):
+                                print('DELETING',seqsrc_name)
+                                os.remove(seqsrc_file)
+                            else:
+                                print('ALREADY DELETED',seqsrc_name)
                     else:
-                        print('ready for deleting',seqsrc_name)
+                        if args.verbose:
+                            print('ready for deleting',seqsrc_name)
                 ''' SEQPROP '''
                 for dt_int in t_seps:
                     dt = str(dt_int)
@@ -166,10 +176,15 @@ for c in cfgs:
                         params['T_SEP'] = dt
                     seqprop_name  = seqprop_base % params
                     seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
-                    if args.del_seqprop:
+                    if args.seqprop:
                         if args.debug:
                             print('DEBUG: DELETING',seqprop_name)
                         else:
-                            print('DELETING',seqprop_name)
+                            if os.path.exists(seqprop_file):
+                                print('DELETING',seqprop_name)
+                                os.remove(seqprop_file)
+                            else:
+                                print('ALREADY DELETED',seqprop_name)
                     else:
-                        print('ready for deleting',seqprop_name)
+                        if args.verbose:
+                            print('ready for deleting',seqprop_name)
