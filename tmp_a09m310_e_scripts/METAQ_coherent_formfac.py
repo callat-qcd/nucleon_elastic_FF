@@ -101,6 +101,8 @@ seqprop_base      = 'seqprop_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'
 seqprop_base     += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
 seqprop_size = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
 sp_ext = 'lime'
+coherent_ff_size_4d = 8*10 *int(nt)*int(nx)**3 * 2*8
+
 
 prop_base = 'prop_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_%(SRC)s'
 
@@ -143,6 +145,8 @@ for c in cfgs:
             os.makedirs(base_dir+'/stdout/'+c)
         if not os.path.exists(base_dir+'/formfac/'+c):
             os.makedirs(base_dir+'/formfac/'+c)
+        if not os.path.exists(base_dir+'/formfac_4D/'+c):
+            os.makedirs(base_dir+'/formfac_4D/'+c)
         if not os.path.exists(base_dir+'/corrupt'):
             os.makedirs(base_dir+'/corrupt')
 
@@ -195,9 +199,17 @@ for c in cfgs:
                     ''' Does the 3pt file exist? '''
                     coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt,'SRC':s0}
                     coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name+'.h5'
-                    coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5')
+                    coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5').replace('/formfac/','/formfac_4D/')
                     params['THREE_PT_FILE'] = coherent_formfac_file
                     params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
+                    if os.path.exists(coherent_formfac_file_4D) and os.path.getsize(coherent_formfac_file_4D) < coherent_ff_size_4d:
+                        now = time.time()
+                        file_time = os.stat(coherent_formfac_file_4D).st_mtime
+                        if (now-file_time)/60 > time_delete:
+                            print('DELETING BAD COHERENT_FF',os.path.getsize(coherent_formfac_file_4D),coherent_formfac_file_4D.split('/')[-1])
+                            shutil.move(coherent_formfac_file_4D,coherent_formfac_file_4D.replace('formfac/'+c+'/','corrupt/'))
+                            shutil.move(coherent_formfac_file,coherent_formfac_file.replace('formfac/'+c+'/','corrupt/'))
+                            #sys.exit()
                     if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
                         # loop over FLAV and SPIN as all in 1 file
                         metaq  = coherent_formfac_name+'.sh'
