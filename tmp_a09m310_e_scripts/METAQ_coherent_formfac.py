@@ -103,7 +103,6 @@ seqprop_size = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
 sp_ext = 'lime'
 coherent_ff_size_4d = 8*10 *int(nt)*int(nx)**3 * 2*8
 
-
 prop_base = 'prop_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_%(SRC)s'
 
 cfg_srcs = open(args.f).readlines()
