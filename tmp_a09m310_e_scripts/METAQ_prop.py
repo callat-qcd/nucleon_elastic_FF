@@ -2,8 +2,8 @@ from __future__ import print_function
 import os, sys
 from glob import glob
 import argparse
-import xml_input
-import metaq_input
+import xml_input_ff as xml_input
+import metaq_input_ff as metaq_input
 
 try:
     ens = os.getcwd().split('/')[-3]
@@ -50,7 +50,7 @@ if args.src:
         print('if a src is passed, only 1 cfg can be specified which is presumably the right one')
         sys.exit(-1)
     else:
-        cfgs = args.cfgs[0]
+        cfgs = args.cfgs
         srcs = {int(args.cfgs[0]):[args.src]}
 else:
     cfg_srcs = open(args.f).readlines()
@@ -68,7 +68,7 @@ else:
         src = 'x'+x0+'y'+y0+'z'+z0+'t'+t0
         if src not in srcs[no]:
             srcs[no].append(src)
-
+print(cfgs)
 print('running ',cfgs[0],'-->',cfgs[-1])
 
 nt = '96'
@@ -121,18 +121,18 @@ else:
     q = 'todo'
 
 for c in cfgs:
-    no = c
+    no = str(c)
     params['CFG'] = c
-    cfg_file = base_dir+'production/'+ens+'/cfgs_flow/l3296f211b630m0074m037m440'+stream+'.'+no+'_wflow1.0.lime'
+    cfg_file = base_dir+'/cfgs_flow/l3296f211b630m0074m037m440'+stream+'.'+no+'_wflow1.0.lime'
     if os.path.exists(cfg_file):
         params.update({'CFG_FILE':cfg_file})
         print('Making props for cfg: ',c)
-        if not os.path.exists(base_dir+'/props/'+c):
-            os.makedirs(base_dir+'/props/'+c)
-        if not os.path.exists(base_dir+'/xml/'+c):
-            os.makedirs(base_dir+'/xml/'+c)
-        if not os.path.exists(base_dir+'/stdout/'+c):
-            os.makedirs(base_dir+'/stdout/'+c)
+        if not os.path.exists(base_dir+'/props/'+no):
+            os.makedirs(base_dir+'/props/'+no)
+        if not os.path.exists(base_dir+'/xml/'+no):
+            os.makedirs(base_dir+'/xml/'+no)
+        if not os.path.exists(base_dir+'/stdout/'+no):
+            os.makedirs(base_dir+'/stdout/'+no)
         if not os.path.exists(base_dir+'/corrupt'):
             os.makedirs(base_dir+'/corrupt')
 
@@ -141,16 +141,16 @@ for c in cfgs:
             if args.verbose:
                 print(c,s0)
             spec_name = spec_base % params
-            spec_file = base_dir+'/spectrum/'+c+'/'+spec_name+'.h5'
+            spec_file = base_dir+'/spectrum/'+no+'/'+spec_name+'.h5'
             if not os.path.exists(spec_file) or args.force:
                 prop_name = prop_base % params
-                prop_file = base_dir+'/props/'+c+'/'+prop_name+'.'+sp_ext
+                prop_file = base_dir+'/props/'+no+'/'+prop_name+'.'+sp_ext
                 if os.path.exists(prop_file) and os.path.getsize(prop_file) < prop_size:
                     now = time.time()
                     file_time = os.stat(prop_file).st_mtime
                     if (now-file_time)/60 > time_delete:
                         print('DELETING BAD PROP',os.path.getsize(prop_file),prop_file.split('/')[-1])
-                        shutil.move(prop_file,prop_file.replace('props/'+c+'/','corrupt/'))
+                        shutil.move(prop_file,prop_file.replace('props/'+no+'/','corrupt/'))
                 if not os.path.exists(prop_file):
                     src_name = src_base % params
                     src_file = base_dir+'/src/'+src_name+'.'+sp_ext
@@ -176,7 +176,7 @@ for c in cfgs:
                                 task_exist = True
                                 task_working = True
                         if not task_exist or (args.o and task_exist and not task_working):
-                            xmlini = base_dir+'/xml/'+c+'/'+(prop_xml_base %params)+'.out.xml'
+                            xmlini = base_dir+'/xml/'+no+'/'+(prop_xml_base %params)+'.ini.xml'
                             fin = open(xmlini,'w')
                             fin.write(xml_input.head)
                             ''' read src '''
@@ -191,12 +191,12 @@ for c in cfgs:
                             params['QUARK_SPIN'] = 'FULL'
                             ''' this xml file contains mres info and is distinct from the chroma .out.xml '''
                             params['PROP_XML']  = '<xml_file>'
-                            params['PROP_XML'] += prop_file.replace('/props/','/xml/').replace(sp_ext,'.out.xml')
+                            params['PROP_XML'] += prop_file.replace('/props/','/xml/').replace(sp_ext,'out.xml')
                             params['PROP_XML'] += '</xml_file>'
                             fin.write(xml_input.quda_nef % params)
 
                             ''' write prop to disk '''
-                            params['OBJ_ID']    = src_name
+                            params['OBJ_ID']    = prop_name
                             params['OBJ_TYPE']  = 'LatticePropagatorF'
                             params['LIME_FILE'] = prop_file
                             fin.write(xml_input.qio_write % params)
@@ -211,6 +211,12 @@ for c in cfgs:
                             params['XML_OUT']   = xmlini.replace('.ini.xml','.out.xml')
                             params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                             params['CR']        = c
+                            if os.path.exists(spec_file):
+                                params['CLEANUP']  = ''
+                            else:
+                                params['CLEANUP']  = 'cd '+params['SCRIPT_DIR']+'\n'
+                                params['CLEANUP'] += 'python METAQ_spec.py %s -s %s'
+
 
                             m_in = open(metaq_file,'w')
                             m_in.write(metaq_input.prop % params)

@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, sys, time
+import os, sys, time, shutil
 from glob import glob
 import argparse
 import xml_input_ff as xml_input
@@ -243,7 +243,8 @@ for c in cfgs:
             else:
                 print('    missing',prop_file)
                 print('python METAQ_prop.py %s -s %s --force' %(c,s0))
-                sys.exit()
+                os.system('python METAQ_prop.py %s -s %s --force' %(c,s0))
+                #sys.exit()
 
     else:
         if not os.path.exists(cfg_file):
