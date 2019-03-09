@@ -108,7 +108,7 @@ metaq_run_dir  = '/ccs/proj/lgt100/c51/x_files/project_2/metaq'
 metaq_dir = metaq_run_dir
 
 src_base      = 'src_'+ens+'_'+smr+'_%(CFG)s_%(SRC)s'
-prop_base     = 'prop_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_%(SRC)s'
+prop_base = 'prop_'+ens+'_%(CFG)s_'+val+'_mq'+mq+'_%(SRC)s'
 ''' the xml generation may incluce multiple quark masses, so no mq info '''
 prop_xml_base = 'prop_'+ens+'_'+val+'_%(CFG)s_%(SRC)s'
 spec_base     = 'spec_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_%(SRC)s'
@@ -127,8 +127,8 @@ for c in cfgs:
     if os.path.exists(cfg_file):
         params.update({'CFG_FILE':cfg_file})
         print('Making props for cfg: ',c)
-        if not os.path.exists(base_dir+'/props/'+no):
-            os.makedirs(base_dir+'/props/'+no)
+        if not os.path.exists(base_dir+'/prop/'+no):
+            os.makedirs(base_dir+'/prop/'+no)
         if not os.path.exists(base_dir+'/xml/'+no):
             os.makedirs(base_dir+'/xml/'+no)
         if not os.path.exists(base_dir+'/stdout/'+no):
@@ -144,13 +144,13 @@ for c in cfgs:
             spec_file = base_dir+'/spectrum/'+no+'/'+spec_name+'.h5'
             if not os.path.exists(spec_file) or args.force:
                 prop_name = prop_base % params
-                prop_file = base_dir+'/props/'+no+'/'+prop_name+'.'+sp_ext
+                prop_file = base_dir+'/prop/'+no+'/'+prop_name+'.'+sp_ext
                 if os.path.exists(prop_file) and os.path.getsize(prop_file) < prop_size:
                     now = time.time()
                     file_time = os.stat(prop_file).st_mtime
                     if (now-file_time)/60 > time_delete:
                         print('DELETING BAD PROP',os.path.getsize(prop_file),prop_file.split('/')[-1])
-                        shutil.move(prop_file,prop_file.replace('props/'+no+'/','corrupt/'))
+                        shutil.move(prop_file,prop_file.replace('prop/'+no+'/','corrupt/'))
                 if not os.path.exists(prop_file):
                     src_name = src_base % params
                     src_file = base_dir+'/src/'+src_name+'.'+sp_ext
@@ -191,7 +191,7 @@ for c in cfgs:
                             params['QUARK_SPIN'] = 'FULL'
                             ''' this xml file contains mres info and is distinct from the chroma .out.xml '''
                             params['PROP_XML']  = '<xml_file>'
-                            params['PROP_XML'] += prop_file.replace('/props/','/xml/').replace(sp_ext,'out.xml')
+                            params['PROP_XML'] += prop_file.replace('/prop/','/xml/').replace(sp_ext,'out.xml')
                             params['PROP_XML'] += '</xml_file>'
                             fin.write(xml_input.quda_nef % params)
 

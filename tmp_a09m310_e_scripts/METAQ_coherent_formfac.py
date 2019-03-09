@@ -95,15 +95,15 @@ mom = 'px%spy%spz%s' %(m0,m1,m2)
 SS_PS = 'SS'
 n_seq=8
 particles = ['proton','proton_np']
-coherent_ff_base  = 'formfac_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+coherent_ff_base  = 'formfac_'+ens+'_%(CFG)s_'+val+'_mq'+mq+'_'
 coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_%(SRC)s_'+SS_PS
-seqprop_base      = 'seqprop_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+seqprop_base      = 'seqprop_'+ens+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq+'_'
 seqprop_base     += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
 seqprop_size = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
 sp_ext = 'lime'
 coherent_ff_size_4d = 8*10 *int(nt)*int(nx)**3 * 2*8
 
-prop_base = 'prop_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_%(SRC)s'
+prop_base = 'prop_'+ens+'_%(CFG)s_'+val+'_mq'+mq+'_%(SRC)s'
 
 cfg_srcs = open(args.f).readlines()
 cfgs = []
@@ -180,13 +180,13 @@ for c in cfgs:
                     else:
                         params['T_SEP'] = dt
                     seqprop_name  = seqprop_base % params
-                    seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                    seqprop_file  = base_dir+'/seqprop/'+c+'/'+seqprop_name+'.'+sp_ext
                     if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
                         now = time.time()
                         file_time = os.stat(seqprop_file).st_mtime
                         if (now-file_time)/60 > time_delete:
                             print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
-                            shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
+                            shutil.move(seqprop_file,seqprop_file.replace('seqprop/'+c+'/','corrupt/'))
                     if not os.path.exists(seqprop_file):
                         print('    missing:',seqprop_file)
                         all_seqprops=False
@@ -198,7 +198,7 @@ for c in cfgs:
                     ''' Does the 3pt file exist? '''
                     coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt,'SRC':s0}
                     coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name+'.h5'
-                    coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5').replace('/formfac/','/formfac_4D/')
+                    coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_').replace('/formfac/','/formfac_4D/')
                     params['THREE_PT_FILE'] = coherent_formfac_file
                     params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
                     if os.path.exists(coherent_formfac_file_4D) and os.path.getsize(coherent_formfac_file_4D) < coherent_ff_size_4d:
@@ -228,7 +228,7 @@ for c in cfgs:
                                 task_working = True
                         if not task_exist or (args.o and task_exist and not task_working):
                             prop_name = prop_base %{'CFG':no,'SRC':s0}
-                            prop_file = base_dir+'/props/'+c+'/'+prop_name+'.'+sp_ext
+                            prop_file = base_dir+'/prop/'+c+'/'+prop_name+'.'+sp_ext
                             if os.path.exists(prop_file):
                                 xmlini = coherent_formfac_file.replace('/formfac/','/xml/').replace('.h5','.ini.xml')
                                 fin = open(xmlini,'w')
@@ -259,7 +259,7 @@ for c in cfgs:
                                         spin = snk_spin+'_'+src_spin
                                         params['FLAV_SPIN']=fs
                                         seqprop_name  = seqprop_base % params
-                                        seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                                        seqprop_file  = base_dir+'/seqprop/'+c+'/'+seqprop_name+'.'+sp_ext
                                         params['LIME_FILE'] = seqprop_file
                                         params['OBJ_ID']    = seqprop_name
                                         fin.write(xml_input.qio_read % params)
@@ -312,7 +312,7 @@ for c in cfgs:
                 print('    missing FLAV or SPIN seqprops, dt=',dt)
         if not have_all_seqprops:
             print('    missing FLAV or SPIN seqprops')
-            os.system('python METAQ_coherent_seqprop.py %s -t %d -v' %(c,abs(dt_int)))
+            os.system('python METAQ_coherent_seqprop.py %s -v' %(c))
         #else:
         #    print('    missing props')
     else:

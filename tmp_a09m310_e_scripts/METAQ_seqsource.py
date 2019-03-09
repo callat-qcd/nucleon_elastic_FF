@@ -96,12 +96,14 @@ mom = 'px%spy%spz%s' %(m0,m1,m2)
 SS_PS = 'SS'
 n_seq=8
 particles = ['proton','proton_np']
-seqsrc_base       = 'seqsrc_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
-seqsrc_base      += '%(SRC)s_'+mom+'_'+SS_PS
+coherent_ff_base  = 'formfac_'+ens+'_%(CFG)s_'+val+'_mq'+mq+'_'
+coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_%(SRC)s_'+SS_PS
+seqsrc_base       = 'seqsrc_'+ens+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq
+seqsrc_base      += '_%(SRC)s_'+mom+'_'+SS_PS
 seqsrc_size       = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
 sp_ext = 'lime'
 
-prop_base = 'prop_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_%(SRC)s'
+prop_base = 'prop_'+ens+'_%(CFG)s_'+val+'_mq'+mq+'_%(SRC)s'
 
 cfg_srcs = open(args.f).readlines()
 cfgs = []
@@ -144,108 +146,121 @@ for c in cfgs:
         if not os.path.exists(base_dir+'/corrupt'):
             os.makedirs(base_dir+'/corrupt')
 
-        # loop over props to make a time-dense seqsource for each prop
-        for s0 in srcs[c]:
-            prop_name = prop_base %{'CFG':no,'SRC':s0}
-            prop_file = base_dir+'/props/'+no + '/' + prop_name+'.'+sp_ext
-            if os.path.exists(prop_file):
-                for fs in flav_spin:
-                    flav,snk_spin,src_spin=fs.split('_')
-                    params['FLAV']=flav
-                    params['SOURCE_SPIN']=snk_spin
-                    params['SINK_SPIN']=src_spin
-                    spin = snk_spin+'_'+src_spin
-                    have_seqsrc = True
-                    for particle in particles:
-                        seqsrc_name = seqsrc_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
-                        seqsrc_file  = base_dir+'/seqsrc/'+c+'/'+seqsrc_name+'.'+sp_ext
-                        if os.path.exists(seqsrc_file) and os.path.getsize(seqsrc_file) < seqsrc_size:
-                            now = time.time()
-                            file_time = os.stat(seqsrc_file).st_mtime
-                            if (now-file_time)/60 > time_delete:
-                                print('DELETING BAD SINK',os.path.getsize(seqsrc_file),seqsrc_file.split('/')[-1])
-                                shutil.move(seqsrc_file,seqsrc_file.replace('seqsrc/'+c,'corrupt'))
-                        if not os.path.exists(seqsrc_file):
-                            have_seqsrc = False
-                    if not have_seqsrc:
-                        seqsrc_name = seqsrc_base %{'PARTICLE':particles[0],'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
-                        metaq  = seqsrc_name+'.sh'
-                        metaq_file = metaq_dir +'/'+args.priority+'/cpu/'+'/'+metaq
-                        task_exist = False
-                        task_working = False
-                        if os.path.exists(metaq_file):
-                            task_exist = True
-                        for m_dir in ['todo/cpu','priority/cpu','hold']:
-                            if os.path.exists(metaq_dir+'/'+m_dir+'/'+metaq):
+        ''' Do the 3pt files exist? '''
+        have_3pts = True
+        for dt_int in t_seps:
+            dt = str(dt_int)
+            for s0 in srcs[c]:
+                coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt,'SRC':s0}
+                coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name + '.h5'
+                coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
+                if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                    have_3pts = False
+
+        if not have_3pts:
+            # loop over props to make a time-dense seqsource for each prop
+            for s0 in srcs[c]:
+                prop_name = prop_base %{'CFG':no,'SRC':s0}
+                prop_file = base_dir+'/prop/'+no + '/' + prop_name+'.'+sp_ext
+                if os.path.exists(prop_file):
+                    for fs in flav_spin:
+                        flav,snk_spin,src_spin=fs.split('_')
+                        params['FLAV']=flav
+                        params['SOURCE_SPIN']=snk_spin
+                        params['SINK_SPIN']=src_spin
+                        spin = snk_spin+'_'+src_spin
+                        have_seqsrc = True
+                        for particle in particles:
+                            seqsrc_name = seqsrc_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
+                            seqsrc_file  = base_dir+'/seqsrc/'+c+'/'+seqsrc_name+'.'+sp_ext
+                            if os.path.exists(seqsrc_file) and os.path.getsize(seqsrc_file) < seqsrc_size:
+                                now = time.time()
+                                file_time = os.stat(seqsrc_file).st_mtime
+                                if (now-file_time)/60 > time_delete:
+                                    print('DELETING BAD SINK',os.path.getsize(seqsrc_file),seqsrc_file.split('/')[-1])
+                                    shutil.move(seqsrc_file,seqsrc_file.replace('seqsrc/'+c,'corrupt'))
+                            if not os.path.exists(seqsrc_file):
+                                have_seqsrc = False
+                        if not have_seqsrc:
+                            seqsrc_name = seqsrc_base %{'PARTICLE':particles[0],'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
+                            metaq  = seqsrc_name+'.sh'
+                            metaq_file = metaq_dir +'/'+args.priority+'/cpu/'+'/'+metaq
+                            task_exist = False
+                            task_working = False
+                            if os.path.exists(metaq_file):
                                 task_exist = True
-                        task_lst = glob(metaq_dir+'/working/*/*.sh')
-                        task_lst += glob(metaq_dir+'/working/*/*/*.sh')
-                        for task in task_lst:
-                            if metaq == task.split('/')[-1]:
-                                task_exist = True
-                                task_working = True
-                        if not task_exist or (args.o and task_exist and not task_working):
-                            xmlini = base_dir+'/xml/'+c+'/'+seqsrc_name+'.'+'ini.xml'
-                            fin = open(xmlini,'w')
-                            fin.write(xml_input.head)
-                            ''' read prop '''
-                            params['OBJ_TYPE']    = 'LatticePropagator'
-                            params['H5_PATH']     = ''
-                            params['H5_OBJ_NAME'] = 'propagator'
-                            t0=int(s0.split('t')[1])
-                            params['OBJ_ID']      = prop_name
-                            ''' ADD SWITCH BASED ON PROP EXTENSION, H5 vs LIME '''
-                            params['H5_FILE']     = prop_file
-                            params['LIME_FILE']   = prop_file
-                            params['PROP_NAME']   = prop_name
-                            fin.write(xml_input.qio_read % params)
-                            ''' do smearing if need be '''
-                            if SS_PS == 'SS':
-                                params['SMEARED_PROP'] = prop_name+'_SS'
-                                fin.write(xml_input.shell_smearing % params)
-                                params['UP_QUARK']=prop_name+'_SS'
-                                params['DOWN_QUARK']=prop_name+'_SS'
+                            for m_dir in ['todo/cpu','priority/cpu','hold']:
+                                if os.path.exists(metaq_dir+'/'+m_dir+'/'+metaq):
+                                    task_exist = True
+                            task_lst = glob(metaq_dir+'/working/*/*.sh')
+                            task_lst += glob(metaq_dir+'/working/*/*/*.sh')
+                            for task in task_lst:
+                                if metaq == task.split('/')[-1]:
+                                    task_exist = True
+                                    task_working = True
+                            if not task_exist or (args.o and task_exist and not task_working):
+                                xmlini = base_dir+'/xml/'+c+'/'+seqsrc_name+'.'+'ini.xml'
+                                fin = open(xmlini,'w')
+                                fin.write(xml_input.head)
+                                ''' read prop '''
+                                params['OBJ_TYPE']    = 'LatticePropagator'
+                                params['H5_PATH']     = ''
+                                params['H5_OBJ_NAME'] = 'propagator'
+                                t0=int(s0.split('t')[1])
+                                params['OBJ_ID']      = prop_name
+                                ''' ADD SWITCH BASED ON PROP EXTENSION, H5 vs LIME '''
+                                params['H5_FILE']     = prop_file
+                                params['LIME_FILE']   = prop_file
+                                params['PROP_NAME']   = prop_name
+                                fin.write(xml_input.qio_read % params)
+                                ''' do smearing if need be '''
+                                if SS_PS == 'SS':
+                                    params['SMEARED_PROP'] = prop_name+'_SS'
+                                    fin.write(xml_input.shell_smearing % params)
+                                    params['UP_QUARK']=prop_name+'_SS'
+                                    params['DOWN_QUARK']=prop_name+'_SS'
+                                else:
+                                    params['UP_QUARK']=prop_name
+                                    params['DOWN_QUARK']=prop_name
+
+                                for particle in particles:
+                                    params['PARTICLE'] = particle
+                                    params['SEQSOURCE'] = seqsrc_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
+                                    seqsrc_file  = base_dir+'/seqsrc/'+c+'/'+params['SEQSOURCE']+'.'+sp_ext
+                                    if not os.path.exists(seqsrc_file):
+                                        ''' make seqsource '''
+                                        fin.write(xml_input.lalibe_seqsource % params)
+                                        params['OBJ_ID']    = params['SEQSOURCE']
+                                        params['OBJ_TYPE']  = 'LatticePropagatorF'
+                                        params['LIME_FILE'] = seqsrc_file
+                                        fin.write(xml_input.qio_write % params)
+                                ''' END '''
+                                fin.write(xml_input.tail % params)
+                                fin.close()
+
+                                ''' Make METAQ task '''
+                                params['METAQ_LOG'] = metaq_run_dir+'/log/'+metaq.replace('.sh','.log')
+                                params['XML_IN'] = xmlini
+                                params['XML_OUT'] = xmlini.replace('.ini.xml','.out.xml')
+                                params['STDOUT'] = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
+                                params['CR'] = c
+                                params['T_SEP'] = ''
+
+                                m_in = open(metaq_file,'w')
+                                m_in.write(metaq_input.seqsource % params)
+                                m_in.close()
+                                os.chmod(metaq_file,0o770)
+                                print('    making task:',metaq)
                             else:
-                                params['UP_QUARK']=prop_name
-                                params['DOWN_QUARK']=prop_name
-
-                            for particle in particles:
-                                params['PARTICLE'] = particle
-                                params['SEQSOURCE'] = seqsrc_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
-                                seqsrc_file  = base_dir+'/seqsrc/'+c+'/'+params['SEQSOURCE']+'.'+sp_ext
-                                if not os.path.exists(seqsrc_file):
-                                    ''' make seqsource '''
-                                    fin.write(xml_input.lalibe_seqsource % params)
-                                    params['OBJ_ID']    = params['SEQSOURCE']
-                                    params['OBJ_TYPE']  = 'LatticePropagatorF'
-                                    params['LIME_FILE'] = seqsrc_file
-                                    fin.write(xml_input.qio_write % params)
-                            ''' END '''
-                            fin.write(xml_input.tail % params)
-                            fin.close()
-
-                            ''' Make METAQ task '''
-                            params['METAQ_LOG'] = metaq_run_dir+'/log/'+metaq.replace('.sh','.log')
-                            params['XML_IN'] = xmlini
-                            params['XML_OUT'] = xmlini.replace('.ini.xml','.out.xml')
-                            params['STDOUT'] = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                            params['CR'] = c
-                            params['T_SEP'] = ''
-
-                            m_in = open(metaq_file,'w')
-                            m_in.write(metaq_input.seqsource % params)
-                            m_in.close()
-                            os.chmod(metaq_file,0o770)
-                            print('    making task:',metaq)
-                        else:
-                            if not args.verbose:
-                                print('    task exists:',metaq)
-            else:
-                print('    missing',prop_file)
-                print('python METAQ_prop.py %s -s %s --force' %(c,s0))
-                os.system('python METAQ_prop.py %s -s %s --force' %(c,s0))
-                #sys.exit()
-
+                                if not args.verbose:
+                                    print('    task exists:',metaq)
+                else:
+                    print('    missing',prop_file)
+                    print('python METAQ_prop.py %s -s %s --force' %(c,s0))
+                    os.system('python METAQ_prop.py %s -s %s --force' %(c,s0))
+                    #sys.exit()
+        else:
+            print('    coherent_formfacs exist')
     else:
         if not os.path.exists(cfg_file):
             print('  flowed cfg missing',cfg_file)

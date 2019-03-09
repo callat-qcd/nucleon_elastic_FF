@@ -175,7 +175,7 @@ for c in cfgs:
                     else:
                         params['T_SEP'] = dt
                     seqprop_name  = seqprop_base % params
-                    seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                    seqprop_file  = base_dir+'/seqprop/'+c+'/'+seqprop_name+'.'+sp_ext
                     if args.seqprop:
                         if args.debug:
                             print('DEBUG: DELETING',seqprop_name)

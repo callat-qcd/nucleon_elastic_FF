@@ -97,19 +97,19 @@ mom = 'px%spy%spz%s' %(m0,m1,m2)
 SS_PS = 'SS'
 n_seq=8
 particles = ['proton','proton_np']
-coherent_ff_base  = 'formfac_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
-coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
-seqprop_base      = 'seqprop_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+coherent_ff_base  = 'formfac_'+ens+'_%(CFG)s_'+val+'_mq'+mq+'_'
+coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_%(SRC)s_'+SS_PS
+seqprop_base      = 'seqprop_'+ens+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq+'_'
 seqprop_base     += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
 seqprop_size      = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
 sp_ext = 'lime'
-seqsrc_base       = 'seqsrc_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+seqsrc_base       = 'seqsrc_'+ens+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq+'_'
 seqsrc_base      += '%(SRC)s_'+mom+'_'+SS_PS
 seqsrc_size       = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
-coherent_seqsrc   = 'seqsrc_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+coherent_seqsrc   = 'seqsrc_'+ens+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq+'_'
 coherent_seqsrc  += 'Nsnk'+str(n_seq)+'_'+mom+'_'+SS_PS
 
-prop_base = 'prop_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_%(SRC)s'
+prop_base = 'prop_'+ens+'_%(CFG)s_'+val+'_mq'+mq+'_%(SRC)s'
 
 cfg_srcs = open(args.f).readlines()
 cfgs = []
@@ -144,8 +144,8 @@ for c in cfgs:
         params.update({'CFG_FILE':cfg_file})
         print("Making coherent sources and seqprops for cfg: ",c)
 
-        if not os.path.exists(base_dir+'/seqprops/'+c):
-            os.makedirs(base_dir+'/seqprops/'+c)
+        if not os.path.exists(base_dir+'/seqprop/'+c):
+            os.makedirs(base_dir+'/seqprop/'+c)
         if not os.path.exists(base_dir+'/xml/'+c):
             os.makedirs(base_dir+'/xml/'+c)
         if not os.path.exists(base_dir+'/stdout/'+c):
@@ -158,11 +158,15 @@ for c in cfgs:
         have_seqsrc = True
         for dt_int in t_seps:
             dt = str(dt_int)
-            ''' Does the 3pt file exist? '''
-            coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt}
-            coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name + '.h5'
-            coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5')
-            if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+            ''' Do the 3pt files exist? '''
+            have_3pts = True
+            for s0 in srcs[c]:
+                coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt,'SRC':s0}
+                coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name + '.h5'
+                coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
+                if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                    have_3pts = False
+            if not have_3pts:
                 for fs in flav_spin:
                     flav,snk_spin,src_spin=fs.split('_')
                     params['FLAV']=flav
@@ -179,7 +183,7 @@ for c in cfgs:
                             params['QUARK_SPIN'] = 'UPPER'
                             params['T_SEP'] = dt
                         seqprop_name  = seqprop_base % params
-                        seqprop_file  = base_dir+'/seqprops/'+c+'/'+seqprop_name+'.'+sp_ext
+                        seqprop_file  = base_dir+'/seqprop/'+c+'/'+seqprop_name+'.'+sp_ext
                         ''' check SEQPROP file size
                             delete if small and older than time_delete
                         '''
@@ -189,7 +193,7 @@ for c in cfgs:
                             file_time = os.stat(seqprop_file).st_mtime
                             if (now-prop_time)/60 > time_delete:
                                 print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
-                                shutil.move(seqprop_file,seqprop_file.replace('seqprops/'+c+'/','corrupt/'))
+                                shutil.move(seqprop_file,seqprop_file.replace('seqprop/'+c+'/','corrupt/'))
                         if not os.path.exists(seqprop_file):
                             ''' make sure all seqsource files exists '''
                             have_seqsrc_t = True
@@ -219,7 +223,7 @@ for c in cfgs:
                                         task_exist = True
                                         task_working = True
                                 if not task_exist or (args.o and task_exist and not task_working):
-                                    xmlini = seqprop_file.replace('seqprops/','xml/').replace('.'+sp_ext,'.ini.xml')
+                                    xmlini = seqprop_file.replace('seqprop/','xml/').replace('.'+sp_ext,'.ini.xml')
                                     fin = open(xmlini,'w')
                                     fin.write(xml_input.head)
 
