@@ -156,6 +156,7 @@ for c in cfgs:
             os.makedirs(base_dir+'/formfac/'+c)
 
         have_seqsrc = True
+        have_all_3pts = True
         for dt_int in t_seps:
             dt = str(dt_int)
             ''' Do the 3pt files exist? '''
@@ -166,6 +167,7 @@ for c in cfgs:
                 coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
                 if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
                     have_3pts = False
+                    have_all_3pts = False
             if not have_3pts:
                 for fs in flav_spin:
                     flav,snk_spin,src_spin=fs.split('_')
@@ -283,7 +285,7 @@ for c in cfgs:
             else:
                 if not args.verbose:
                     print('    3pt corr exists:',coherent_formfac_file)
-        if not have_seqsrc:
+        if not have_seqsrc and not have_all_3pts:
             print('python METAQ_seqsource.py %s -v' %(c))
             os.system('python METAQ_seqsource.py %s -v' %(c))
 
