@@ -193,7 +193,7 @@ for c in cfgs:
                         if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
                             now = time.time()
                             file_time = os.stat(seqprop_file).st_mtime
-                            if (now-prop_time)/60 > time_delete:
+                            if (now-file_time)/60 > time_delete:
                                 print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
                                 shutil.move(seqprop_file,seqprop_file.replace('seqprop/'+c+'/','corrupt/'))
                         if not os.path.exists(seqprop_file):
