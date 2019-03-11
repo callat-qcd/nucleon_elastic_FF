@@ -106,7 +106,7 @@ def slice_file(file_address_in: str, file_address_out: str):
 
 
 def get_t_slices(t0: int, tsep: int, nt: int) -> List[int]:  # pylint: disable=C0103
-    """Returns list [t0, t0 + tsep] where the step is defined by the sign of tsep.
+    """Returns range `[t0, t0 + tsep + step]` where `step` is defined by sign of `tsep`.
 
     List elements are counted modulo the maximal time extend nt.
 
@@ -120,4 +120,5 @@ def get_t_slices(t0: int, tsep: int, nt: int) -> List[int]:  # pylint: disable=C
         nt: int
             Maximum time slice.
     """
-    return [ind % nt for ind in range(t0, t0 + tsep, tsep // abs(tsep))]
+    step = tsep // abs(tsep)
+    return [ind % nt for ind in range(t0, t0 + tsep + step, step)]
