@@ -22,32 +22,56 @@ except ImportError:
     USE_CUPY = False
 
 
-def average_arrays(arrays: List[np.ndarray]):
-    """Avrages arrays
+def average_arrays(arrays: List[np.ndarray], axis: int = 0) -> np.ndarray:
+    """Averages arrays over specified dimension. Input can be a list.
+
+    arrays: List[np.ndarray]
+        The arrays to average.
+
+    axis: int = 0
+        The average dimension index.
     """
     LOGGER.debug("Averaging arrays")
-    return np.average(arrays, axis=0)
+    return np.average(arrays, axis=axis)
 
 
-def slice_array(array: np.ndarray, index: List[int], axis: int = 0):
-    """
+def slice_array(array: np.ndarray, index: List[int], axis: int = 0) -> np.ndarray:
+    """Slices arrays over specified dimension
+
+    array: List[np.ndarray]
+        The arrays to average.
+
+    index: List[int]
+        The indices to keep.
+
+    axis: int = 0
+        The slice dimension index.
     """
     LOGGER.debug("Slicing array with index `%s` and axis `%s`", index, axis)
     index_delete = [ind for ind in np.arange(array.shape[axis]) if ind not in index]
     return np.delete(array, index_delete, axis)
 
 
-def shift_array(array: np.ndarray, shift: int = 0, axis: int = 0):
-    """
+def shift_array(array: np.ndarray, shift: int = 0, axis: int = 0) -> np.ndarray:
+    """Rolls the array in specified dimension by shift: `v[n] -> v[n+shift]`
+
+    array: List[np.ndarray]
+        The arrays to average.
+
+    shift: int
+        The amount to shift.
+
+    axis: int = 0
+        The shift dimension index.
     """
     LOGGER.debug("Shifting array by `%s` in axis `%s`", shift, axis)
     return np.roll(array, shift, axis)
 
 
 def get_fft(
-    array: np.ndarray, cuda: bool = False, axes: Tuple[int] = (1, 2, 3)
+    array: np.ndarray, axes: Tuple[int] = (1, 2, 3), cuda: bool = False
 ) -> np.ndarray:
-    r"""Execute fft for input array over the axes `[1, 2, 3]`.
+    r"""Execute fft for input array over specified axes.
 
     For input $f(t, n_i)$, the transformation is defined by
     $$ f(t, k_i)
@@ -62,6 +86,9 @@ def get_fft(
     **Arguments**
         mean: np.ndarray
             The source averaged input data of shape `[NT, NZ, NY, NX]`
+
+        axes: Tuple[int] = (1, 2, 3)
+            The axes on which the fft is executed.
 
         cuda: bool = False
             Use cupy to do fft transformation.
