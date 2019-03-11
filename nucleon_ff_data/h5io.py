@@ -7,12 +7,12 @@ from typing import List
 from typing import Any
 
 import os
-import re
 
 import numpy as np
 import h5py
 
 from nucleon_ff_data.utilities import set_up_logger
+from nucleon_ff_data.utilities import has_match
 
 LOGGER = set_up_logger(__name__)
 
@@ -55,10 +55,8 @@ def get_dsets(
     for key in container:
         obj = container[key]
 
-        for pattern in ignore_containers:
-            match = re.findall(pattern, key)
-            if match:
-                continue
+        if has_match(key, ignore_containers):
+            continue
 
         address = os.path.join(parent_name, key) if parent_name else key
 
