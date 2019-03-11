@@ -21,7 +21,7 @@ parser.add_argument('-o',default=False,action='store_const',const=True,\
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
     help='run DEBUG? [%(default)s]')
-parser.add_argument('-p','--priority',type=str,default='todo',help='put task in priority? [%(default)s]')
+parser.add_argument('-p','--priority',default=False,action='store_const',const=True,help='put task in priority? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
 args = parser.parse_args()
@@ -69,6 +69,13 @@ params = {
     'MAX_ITER':max_iter,'RSD_TARGET':rsd_target,'Q_DELTA':delta,'RSD_TOL':rsd_tol,
     'WF_S':wf_s,'WF_N':wf_n
     }
+if args.priority:
+    q = 'priority'
+    priority = '-p'
+else:
+    q = 'todo'
+    priority = ''
+params['PRIORITY'] = priority
 
 base_dir = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/'+ens
 params['SCRIPT_DIR'] = '/ccs/proj/lgt100/c51/x_files/project_2/production/'+ens+'/scripts'
@@ -210,7 +217,7 @@ for c in cfgs:
                                     have_seqsrc   = False
                             if have_seqsrc_t:
                                 metaq  = seqprop_name+'.sh'
-                                metaq_file = metaq_dir +'/'+args.priority+'/gpu/'+'/'+metaq
+                                metaq_file = metaq_dir +'/'+q+'/gpu/'+'/'+metaq
                                 task_exist = False
                                 task_working = False
                                 if os.path.exists(metaq_file):
@@ -278,8 +285,9 @@ for c in cfgs:
                                     os.chmod(metaq_file,0o770)
                                     print('    making task:',metaq)
                                 else:
-                                    if not args.verbose:
-                                        print('    task is in use or overwrite is false')
+                                    if args.verbose:
+                                        print('    task is in use or overwrite is false',metaq.split('/')[-1])
+                                        #print('task_exist',task_exist)
                         else:
                             print('seqprop exists',seqprop_file)
             else:

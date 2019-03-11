@@ -86,13 +86,13 @@ mom = 'px%spy%spz%s' %(m0,m1,m2)
 SS_PS = 'SS'
 n_seq=8
 particles = ['proton','proton_np']
-coherent_ff_base  = 'formfac_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+coherent_ff_base  = 'formfac_'+ens+'_%(CFG)s_'+val+'_mq'+mq+'_'
 coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_%(SRC)s_'+SS_PS
 
-seqprop_base      = 'seqprop_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+seqprop_base      = 'seqprop_'+ens+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq+'_'
 seqprop_base     += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
 
-seqsrc_base       = 'seqsrc_%(PARTICLE)s_%(FLAV_SPIN)s_'+ens+'_'+val+'_mq'+mq+'_%(CFG)s_'
+seqsrc_base       = 'seqsrc_'+ens+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq+'_'
 seqsrc_base      += '%(SRC)s_'+mom+'_'+SS_PS
 
 sp_ext = 'lime'
@@ -130,7 +130,7 @@ for c in cfgs:
             params['SRC'] = s0
             coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt,'SRC':s0}
             coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name+'.h5'
-            coherent_formfac_file_4D = coherent_formfac_file.replace('.h5','_4D.h5').replace('/formfac/','/formfac_4D/')
+            coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_').replace('/formfac/','/formfac_4D/')
             if os.path.exists(coherent_formfac_file_4D) and os.path.getsize(coherent_formfac_file_4D) < coherent_ff_size_4d:
                 now = time.time()
                 file_time = os.stat(coherent_formfac_file_4D).st_mtime
