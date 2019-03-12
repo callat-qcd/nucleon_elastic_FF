@@ -22,9 +22,12 @@ LOGGER = set_up_logger("nucleon_elastic_ff")
 
 
 def tslice(
-    root: str, name_input: str = "formfac_4D", name_output: str = "formfac_4D_tslice"
+    root: str,
+    name_input: str = "formfac_4D",
+    name_output: str = "formfac_4D_tslice",
+    overwrite: bool = False,
 ):
-    """Recursivly scans directory for files slices matches in time direction.
+    """Recursively scans directory for files slices matches in time direction.
 
     The input files must be h5 files (ending with ".h5") and must have `name_input`
     in their file name. Files which have `name_output` as name are excluded.
@@ -43,6 +46,9 @@ def tslice(
             Also the sliced output files will have the input name replaced by the output
             name. This also includes directory names.
 
+        overwrite: bool = False
+            Overwrite existing sliced files.
+
     """
     LOGGER.info("Starting slicing of files")
     LOGGER.info("Looking into `%s`", root)
@@ -53,27 +59,30 @@ def tslice(
     )
 
     all_files = find_all_files(root, file_patterns=[name_input + r".*\.h5$"])
-    filtered_files = [
-        file_address
-        for file_address in all_files
-        if not has_match(file_address, [name_output])
-        and not os.path.exists(file_address.replace(name_input, name_output))
-    ]
+    filtered_files = [file for file in all_files if not has_match(file, [name_output])]
+    if not overwrite:
+        filtered_files = [
+            file
+            for file in filtered_files
+            if not os.path.exists(file.replace(name_input, name_output))
+        ]
 
     LOGGER.info(
-        "Found %d files witch match the pattern (and do not exist)", len(filtered_files)
+        "Found %d files which match the pattern%s",
+        len(filtered_files),
+        " " if overwrite else " (and do not exist)",
     )
     for file_address in filtered_files:
         file_address_out = file_address.replace(name_input, name_output)
         if not os.path.exists(os.path.dirname(file_address_out)):
             os.mkdir(os.path.dirname(file_address_out))
         LOGGER.info("-> `%s`", file_address)
-        slice_file(file_address, file_address_out)
+        slice_file(file_address, file_address_out, overwrite=overwrite)
 
     LOGGER.info("Done")
 
 
-def slice_file(file_address_in: str, file_address_out: str):
+def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = False):
     """Reads input file and writes time-sliced data to output file.
 
     This methods scans all datasets within the file.
@@ -89,6 +98,9 @@ def slice_file(file_address_in: str, file_address_out: str):
 
         file_address_out: str
             Address of the output HDF5 file.
+
+        overwrite: bool = False
+            Overwrite existing sliced file.
     """
     with h5py.File(file_address_in, "r") as h5f:
         dsets = get_dsets(h5f, load_dsets=False)
@@ -103,7 +115,12 @@ def slice_file(file_address_in: str, file_address_out: str):
                     meta_name = name.replace("local_current", "meta_info")
                     LOGGER.debug("Extract temporal info `%s`", t_info)
                     for key, val in t_info.items():
-                        create_dset(h5f_out, os.path.join(meta_name, key), val)
+                        create_dset(
+                            h5f_out,
+                            os.path.join(meta_name, key),
+                            val,
+                            overwrite=overwrite,
+                        )
 
                     slice_index = get_t_slices(**t_info)
                     out = slice_array(dset[()], slice_index, axis=0)
@@ -111,7 +128,7 @@ def slice_file(file_address_in: str, file_address_out: str):
                 else:
                     out = dset[()]
 
-                create_dset(h5f_out, name, out)
+                create_dset(h5f_out, name, out, overwrite=overwrite)
 
 
 def get_t_slices(t0: int, tsep: int, nt: int) -> List[int]:  # pylint: disable=C0103
