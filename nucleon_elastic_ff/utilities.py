@@ -2,6 +2,7 @@
 """
 from typing import List
 from typing import Optional
+from typing import Union
 
 import logging
 import re
@@ -21,14 +22,14 @@ def set_up_logger(name: str) -> logging.Logger:
     if not logger.handlers:
         logger.setLevel(logging.DEBUG)
         ch = logging.StreamHandler()
-        ch.setLevel(logging.DEBUG)
+        ch.setLevel(logging.INFO)
         formatter = logging.Formatter("[%(asctime)s|%(name)s@%(levelname)s] %(message)s")
         ch.setFormatter(formatter)
         logger.addHandler(ch)
     return logger
 
 
-def has_match(string: str, patterns: List[str]) -> bool:
+def has_match(string: str, patterns: Union[str, List[str]]) -> bool:
     """Returns True if at least one of the regex patterns is matched by the file.
 
     **Arguments**
@@ -39,6 +40,7 @@ def has_match(string: str, patterns: List[str]) -> bool:
             The regex patterns to match.
     """
     match = False
+    patterns = [patterns] if isinstance(patterns, str) else patterns
     for pattern in patterns:
         match = bool(re.findall(pattern, string))
         if match:
