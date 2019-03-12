@@ -6,19 +6,19 @@ import os
 
 import h5py
 
-from nucleon_ff_data.utilities import set_up_logger
-from nucleon_ff_data.utilities import find_all_files
-from nucleon_ff_data.utilities import has_match
+from nucleon_elastic_ff.utilities import set_up_logger
+from nucleon_elastic_ff.utilities import find_all_files
+from nucleon_elastic_ff.utilities import has_match
 
-from nucleon_ff_data.h5io import get_dsets
-from nucleon_ff_data.h5io import create_dset
+from nucleon_elastic_ff.data.h5io import get_dsets
+from nucleon_elastic_ff.data.h5io import create_dset
 
-from nucleon_ff_data.parsing import parse_t_info
+from nucleon_elastic_ff.data.parsing import parse_t_info
 
-from nucleon_ff_data.arraymanip import slice_array
+from nucleon_elastic_ff.data.arraymanip import slice_array
 
 
-LOGGER = set_up_logger(__name__)
+LOGGER = set_up_logger("nucleon_elastic_ff")
 
 
 def tslice(
@@ -53,16 +53,24 @@ def tslice(
     )
 
     all_files = find_all_files(root, file_patterns=[name_input + r".*\.h5$"])
-    LOGGER.info("Found %d files witch match the pattern", len(all_files))
-    for file_address in all_files:
+    filtered_files = [
+        file_address
+        for file_address in all_files
+        if not has_match(file_address, [name_output])
+        and not os.path.exists(file_address.replace(name_input, name_output))
+    ]
 
+    LOGGER.info(
+        "Found %d files witch match the pattern (and do not exist)", len(filtered_files)
+    )
+    for file_address in filtered_files:
         file_address_out = file_address.replace(name_input, name_output)
-        if not has_match(file_address, name_output) and not os.path.exists(
-            file_address_out
-        ):
-            os.mkdir(os.path.basename(file_address))
-            LOGGER.debug("-> `%s`", file_address)
-            slice_file(file_address, file_address_out)
+        if not os.path.exists(os.path.dirname(file_address_out)):
+            os.mkdir(os.path.dirname(file_address_out))
+        LOGGER.debug("-> `%s`", file_address)
+        slice_file(file_address, file_address_out)
+
+    LOGGER.info("Done")
 
 
 def slice_file(file_address_in: str, file_address_out: str):

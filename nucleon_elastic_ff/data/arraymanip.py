@@ -7,9 +7,9 @@ from typing import Tuple
 
 import numpy as np
 
-from nucleon_ff_data.utilities import set_up_logger
+from nucleon_elastic_ff.utilities import set_up_logger
 
-LOGGER = set_up_logger(__name__)
+LOGGER = set_up_logger("nucleon_elastic_ff")
 
 # Cupy captured becaus can only be installed if GPU is present
 try:

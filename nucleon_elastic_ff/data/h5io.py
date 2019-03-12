@@ -11,10 +11,10 @@ import os
 import numpy as np
 import h5py
 
-from nucleon_ff_data.utilities import set_up_logger
-from nucleon_ff_data.utilities import has_match
+from nucleon_elastic_ff.utilities import set_up_logger
+from nucleon_elastic_ff.utilities import has_match
 
-LOGGER = set_up_logger(__name__)
+LOGGER = set_up_logger("nucleon_elastic_ff")
 
 
 def get_dsets(
@@ -47,7 +47,12 @@ def get_dsets(
             A dictionary containing the full path HDF path (e.g., `groupA/subgroupB`)
             to the data set as keys and the unloaded values of the set as values.
     """
-    name = os.path.join(container.filename, container.name)
+    file_name = (
+        container.file.filename
+        if isinstance(container, h5py.Group)
+        else container.filename
+    )
+    name = os.path.join(file_name, container.name)
     LOGGER.debug("Reading `%s`", name)
 
     dsets = {}

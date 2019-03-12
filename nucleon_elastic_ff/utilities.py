@@ -1,4 +1,4 @@
-"""Utility routines for nucleon_ff_data module
+"""Utility routines for nucleon_elastic_ff.data module
 """
 from typing import List
 from typing import Optional
@@ -11,19 +11,20 @@ import os
 def set_up_logger(name: str) -> logging.Logger:
     """Sets up command line logger
 
-    Loggers default level is WARNING. Only contains stdout logger.
+    Loggers default level is INFO. Only contains stdout logger.
 
     **Arguments**
         name: str
             Name of the logger
     """
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.WARNING)
-    formatter = logging.Formatter("[%(asctime)s|%(name)s@%(levelname)s] %(message)s")
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    if not logger.handlers:
+        logger.setLevel(logging.DEBUG)
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        formatter = logging.Formatter("[%(asctime)s|%(name)s@%(levelname)s] %(message)s")
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
     return logger
 
 
@@ -63,13 +64,11 @@ def find_all_files(
             The regex patterns for directories to match.
     """
     all_files = []
-    file_patterns = [] if file_patterns is None else file_patterns
-    dir_patterns = [] if dir_patterns is None else dir_patterns
 
     for file_root, _, files in os.walk(root):
-        if has_match(file_root, dir_patterns):
+        if dir_patterns is None or has_match(file_root, dir_patterns):
             for file in files:
-                if has_match(file, file_patterns):
+                if file_patterns is None or has_match(file, file_patterns):
                     all_files.append(os.path.join(file_root, file))
 
     return all_files
