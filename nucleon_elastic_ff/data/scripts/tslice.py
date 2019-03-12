@@ -27,7 +27,7 @@ def tslice(
     name_output: str = "formfac_4D_tslice",
     overwrite: bool = False,
 ):
-    """Recursively scans directory for files slices matches in time direction.
+    """Recursively scans directory for files and slices matches in time direction.
 
     The input files must be h5 files (ending with ".h5") and must have `name_input`
     in their file name. Files which have `name_output` as name are excluded.
