@@ -67,7 +67,7 @@ def tslice(
         file_address_out = file_address.replace(name_input, name_output)
         if not os.path.exists(os.path.dirname(file_address_out)):
             os.mkdir(os.path.dirname(file_address_out))
-        LOGGER.debug("-> `%s`", file_address)
+        LOGGER.info("-> `%s`", file_address)
         slice_file(file_address, file_address_out)
 
     LOGGER.info("Done")
@@ -96,11 +96,12 @@ def slice_file(file_address_in: str, file_address_out: str):
         with h5py.File(file_address_out) as h5f_out:
             for name, dset in dsets.items():
 
-                if has_match(name, "local_current"):
-
+                if has_match(name, ["local_current"]):
+                    LOGGER.debug("Start slicing `%s`", name)
                     t_info = parse_t_info(name)
                     t_info["nt"] = dset.shape[0]
                     meta_name = name.replace("local_current", "meta_info")
+                    LOGGER.debug("Extract temporal info `%s`", t_info)
                     for key, val in t_info.items():
                         create_dset(h5f_out, os.path.join(meta_name, key), val)
 

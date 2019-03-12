@@ -23,7 +23,7 @@ def parse_t_info(string: str) -> Dict[str, int]:
 
     match = re.search(r"_t0_(?P<t0>[0-9]+)_tsep_(?P<tsep>[\-0-9]+)_", string)
     if match:
-        for key in result:
-            result[key] = int(match.group(key))
+        for key, val in match.groupdict().items():
+            result[key] = int(val)
 
     return result
