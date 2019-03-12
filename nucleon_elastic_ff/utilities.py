@@ -52,6 +52,7 @@ def find_all_files(
     root: str,
     file_patterns: Optional[List[str]] = None,
     dir_patterns: Optional[List[str]] = None,
+    exclude_file_patterns: Optional[List[str]] = None,
 ) -> List[str]:
     """Recursivly iterates directory to all files which match the patterns.
 
@@ -64,13 +65,20 @@ def find_all_files(
 
         dir_patterns: Optional[List[str]] = None
             The regex patterns for directories to match.
+
+        exclude_file_patterns: Optional[List[str]] = None
+            The regex patterns for files to not match.
     """
     all_files = []
 
     for file_root, _, files in os.walk(root):
         if dir_patterns is None or has_match(file_root, dir_patterns):
             for file in files:
-                if file_patterns is None or has_match(file, file_patterns):
+                file_match = file_patterns is None or has_match(file, file_patterns)
+                file_match &= exclude_file_patterns is None or not has_match(
+                    file, exclude_file_patterns
+                )
+                if file_match:
                     all_files.append(os.path.join(file_root, file))
 
     return all_files
