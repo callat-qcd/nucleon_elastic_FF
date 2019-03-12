@@ -58,21 +58,24 @@ def tslice(
         name_output,
     )
 
-    all_files = find_all_files(root, file_patterns=[name_input + r".*\.h5$"])
-    filtered_files = [file for file in all_files if not has_match(file, [name_output])]
+    all_files = find_all_files(
+        root,
+        file_patterns=[name_input + r".*\.h5$"],
+        exclude_file_patterns=[name_output],
+    )
     if not overwrite:
-        filtered_files = [
+        all_files = [
             file
-            for file in filtered_files
+            for file in all_files
             if not os.path.exists(file.replace(name_input, name_output))
         ]
-
     LOGGER.info(
         "Found %d files which match the pattern%s",
-        len(filtered_files),
+        len(all_files),
         " " if overwrite else " (and do not exist)",
     )
-    for file_address in filtered_files:
+
+    for file_address in all_files:
         file_address_out = file_address.replace(name_input, name_output)
         if not os.path.exists(os.path.dirname(file_address_out)):
             os.mkdir(os.path.dirname(file_address_out))
