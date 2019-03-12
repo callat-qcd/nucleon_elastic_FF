@@ -84,7 +84,7 @@ metaq_run_dir  = '/ccs/proj/lgt100/c51/x_files/project_2/metaq'
 metaq_dir = metaq_run_dir
 
 if args.t_sep == None:
-    t_seps  = [3,4,5,6,7,8,9,10,11,12]
+    t_seps  = [3,4,5,6,7,8,9,10,11,12,13,14]
 else:
     t_seps = args.t_sep
 flavs = ['UU','DD']
@@ -277,7 +277,7 @@ for c in cfgs:
                                     params['XML_OUT'] = xmlini.replace('.ini.xml','.out.xml')
                                     params['STDOUT'] = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                                     params['CR'] = c
-                                    params['T_SEP'] = dt_int
+                                    params['M_T_SEP'] = '-t '+str(dt_int)
 
                                     m_in = open(metaq_file,'w')
                                     m_in.write(metaq_input.seqprop % params)
@@ -294,8 +294,8 @@ for c in cfgs:
                 if not args.verbose:
                     print('    3pt corr exists:',coherent_formfac_file)
         if not have_seqsrc and not have_all_3pts:
-            print('python METAQ_seqsource.py %s -v' %(c))
-            os.system('python METAQ_seqsource.py %s -v' %(c))
+            print('python METAQ_seqsource.py %s -v %s' %(c,priority))
+            os.system('python METAQ_seqsource.py %s -v %s' %(c,priority))
 
     else:
         if not os.path.exists(cfg_file):

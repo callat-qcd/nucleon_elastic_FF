@@ -61,7 +61,7 @@ APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_bi
 jsrun --nrs 2 -r2 -a16 -c16 -l cpu-cpu -b packed:smt:4 $PROG -i $ini -o $out > $stdout 2>&1
 
 cd %(SCRIPT_DIR)s
-python METAQ_coherent_seqprop.py %(CR)s %(T_SEP)s
+python METAQ_coherent_seqprop.py %(CR)s %(M_T_SEP)s %(PRIORITY)s
 
 '''
 
@@ -97,7 +97,7 @@ APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_gp
 jsrun -n1 -r1 -a6 -g6 -c6 -l gpu-cpu -b packed:smt:4 $APP $PROG -i $ini -o $out > $stdout 2>&1
 
 cd %(SCRIPT_DIR)s
-python METAQ_coherent_formfac.py %(CR)s -t %(T_SEP)s
+python METAQ_coherent_formfac.py %(CR)s %(M_T_SEP)s %(PRIORITY)s
 
 '''
 
