@@ -69,7 +69,7 @@ def get_dsets(
             LOGGER.debug("Found dataset: `%s`", address)
             dsets[address] = obj[()] if load_dsets else obj
         elif isinstance(obj, h5py.Group):
-            dsets.update(get_dsets(obj, parent_name=address))
+            dsets.update(get_dsets(obj, parent_name=address, load_dsets=load_dsets))
 
     return dsets
 
