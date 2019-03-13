@@ -99,3 +99,50 @@ def create_dset(h5f: h5py.File, key: str, data: Any, overwrite: bool = False):
             LOGGER.info("Skipping dataset because exists:`%s`", key)
     else:
         h5f.create_dataset(key, data=data)
+
+
+def assert_h5files_equal(
+    actual: str, expected: str, atol: float = 1.0e-7, rtol: float = 1.0e-7
+):
+    """Reads to HDF5 files, compares if they have equal datasets.
+
+    **Arguments**
+        actual: str
+            File name for actual input data.
+
+        expected: str
+            File name for expected input data.
+
+        atol: float = 1.0e-7
+            Absolute error tolarance. See numpy `assert_allcolse`.
+
+        rtol: float = 1.0e-7
+            Relative error tolarance. See numpy `assert_allcolse`.
+
+    **Raises**
+        AssertionError:
+            If datasets are different (e.g., not present or actual data is different.)
+    """
+    with h5py.File(actual, "r") as h5f_a:
+        dsets_a = get_dsets(h5f_a, load_dsets=False)
+
+        with h5py.File(expected, "r") as h5f_e:
+            dsets_e = get_dsets(h5f_e, load_dsets=False)
+
+            actual_keys = set(dsets_a.keys())
+            expected_keys = set(dsets_e.keys())
+
+            if actual_keys != expected_keys:
+                raise AssertionError(
+                    "Files have different datasets: `%s` vs `%s`"
+                    % (actual_keys, expected_keys)
+                )
+
+            for key in actual_keys:
+                np.testing.assert_allclose(
+                    dsets_a[key],
+                    dsets_e[key],
+                    atol=atol,
+                    rtol=rtol,
+                    err_msg="Dataset `%s` has unequal values." % key,
+                )

@@ -28,7 +28,7 @@ setup(
     keywords=["HDF5", "LQCD", "FFT", "CUDA"],
     packages=find_packages(exclude=["docs", "tests", "tmp_a09m310_e_scripts"]),
     install_requires=REQUIREMENTS,
-    # entry_points={"console_scripts": ["splith5=currents.splith5:main"]},
+    entry_points={"console_scripts": ["h5eq=nucleon_elastic_ff.data.scripts.h5eq:main"]},
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
 )
