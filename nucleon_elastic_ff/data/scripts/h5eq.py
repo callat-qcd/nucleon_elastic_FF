@@ -16,7 +16,7 @@ PARSER.add_argument(
 )
 PARSER.add_argument(
     "--rtol",
-    "-a",
+    "-r",
     type=float,
     default=1.0e-7,
     help="Absolute comparison difference (default = [%(default)s]).",
