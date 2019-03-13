@@ -50,7 +50,7 @@ def parse_file_info(
             If one key is not specified.
     """
     pattern = (
-        r"(?P<type>formfac_4D)"
+        r"(?P<type>formfac_4D[_a-z]*)"
         "_"
         r"a(?P<a>[0-9\.]+)"
         r"m(?P<mpi>[0-9\.]+)"
@@ -81,7 +81,7 @@ def parse_file_info(
         r"_"
         r"x(?P<x>[0-9]+)+y(?P<y>[0-9]+)z(?P<z>[0-9]+)t(?P<t>[0-9]+)"
         r"_"
-        r"(?P<stype>[a-zA-Z])"
+        r"(?P<stype>[a-zA-Z]+)"
         r".h5"
     )
     match = re.search(pattern, filename)
@@ -90,7 +90,7 @@ def parse_file_info(
 
     info = {}
     for key, val in match.groupdict().items():
-        if key in ["stype", "type"]:
+        if key in ["stype", "type", "stream"]:
             info[key] = val
         elif key in [
             "cfg",
@@ -109,4 +109,8 @@ def parse_file_info(
             info[key] = int(val) if convert_numeric else val
         else:
             info[key] = float(val) if convert_numeric else val
+
+    if convert_numeric:
+        info["a"] /= 1000
+
     return info
