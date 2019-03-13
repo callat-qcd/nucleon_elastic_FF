@@ -35,21 +35,26 @@ def average_arrays(arrays: List[np.ndarray], axis: int = 0) -> np.ndarray:
     return np.average(arrays, axis=axis)
 
 
-def slice_array(array: np.ndarray, index: List[int], axis: int = 0) -> np.ndarray:
-    """Slices arrays over specified dimension
+def slice_array(array: np.ndarray, index: List[int]) -> np.ndarray:
+    """Slices arrays over first (zero) dimension.
+
+    If index is decreasin from element to another, the "another" element is multiplied
+    by minus one.
 
     array: List[np.ndarray]
         The arrays to average.
 
     index: List[int]
         The indices to keep.
-
-    axis: int = 0
-        The slice dimension index.
     """
-    LOGGER.debug("Slicing array with index `%s` and axis `%s`", index, axis)
-    index_delete = [ind for ind in np.arange(array.shape[axis]) if ind not in index]
-    return np.delete(array, index_delete, axis)
+    LOGGER.debug("Slicing array with index `%s`", index)
+    fact = np.ones(len(index))
+    if len(index) > 1:
+        for n, i in enumerate(index[1:]):
+            if index[n] > i:
+                fact[n + 1] = -1
+    fact = fact.reshape([len(index)] + [1] * (len(array.shape) - 1))
+    return array[index]
 
 
 def shift_array(array: np.ndarray, shift: int = 0, axis: int = 0) -> np.ndarray:

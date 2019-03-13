@@ -126,7 +126,7 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
                         )
 
                     slice_index = get_t_slices(**t_info)
-                    out = slice_array(dset[()], slice_index, axis=0)
+                    out = slice_array(dset[()], slice_index)
 
                 else:
                     out = dset[()]
