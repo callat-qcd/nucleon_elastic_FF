@@ -29,8 +29,10 @@ def set_up_logger(name: str) -> logging.Logger:
     return logger
 
 
-def has_match(string: str, patterns: Union[str, List[str]]) -> bool:
-    """Returns True if at least one of the regex patterns is matched by the file.
+def has_match(
+    string: str, patterns: Union[str, List[str]], match_all: bool = False
+) -> bool:
+    """Returns if at least one (`match_all = False`) of the regex patterns is matched.
 
     **Arguments**
         string: str
@@ -38,14 +40,16 @@ def has_match(string: str, patterns: Union[str, List[str]]) -> bool:
 
         patterns: List[str]
             The regex patterns to match.
+
+        match_all: bool = False
+            If true, all pattern must have a match.
+
     """
-    match = False
+    match = []
     patterns = [patterns] if isinstance(patterns, str) else patterns
     for pattern in patterns:
-        match = bool(re.findall(pattern, string))
-        if match:
-            continue
-    return match
+        match.append(bool(re.findall(pattern, string)))
+    return all(match) if match_all else any(match)
 
 
 def find_all_files(
@@ -53,6 +57,7 @@ def find_all_files(
     file_patterns: Optional[List[str]] = None,
     dir_patterns: Optional[List[str]] = None,
     exclude_file_patterns: Optional[List[str]] = None,
+    match_all: bool = False,
 ) -> List[str]:
     """Recursivly iterates directory to all files which match the patterns.
 
@@ -68,13 +73,20 @@ def find_all_files(
 
         exclude_file_patterns: Optional[List[str]] = None
             The regex patterns for files to not match.
+
+        match_all: bool = False
+            If true, all pattern must have a match.
     """
     all_files = []
 
     for file_root, _, files in os.walk(root):
-        if dir_patterns is None or has_match(file_root, dir_patterns):
+        if dir_patterns is None or has_match(
+            file_root, dir_patterns, match_all=match_all
+        ):
             for file in files:
-                file_match = file_patterns is None or has_match(file, file_patterns)
+                file_match = file_patterns is None or has_match(
+                    file, file_patterns, match_all=match_all
+                )
                 file_match &= exclude_file_patterns is None or not has_match(
                     file, exclude_file_patterns
                 )
