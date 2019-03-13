@@ -30,17 +30,19 @@ def get_groups(
 ) -> Dict[Dict[str, Union[int, float, str]], str]:
     """Collects files by properties which are not allowed to differ.
     """
-
+    LOGGER.debug("Collecting groups")
     groups = {}
     for file in all_files:
         info = parse_file_info(file, convert_numeric=False)
         for key in keys:
             info.pop(key)
 
-        if info in groups:
-            groups[info].append(file)
+        info_str = "&".join([f"{key}={val}" for key, val in info.items()])
+        if info_str in groups:
+            groups[info_str].append(file)
         else:
-            groups[info] = [file]
+            LOGGER.debug("Found group %s", info_str)
+            groups[info_str] = [file]
 
     return groups
 
@@ -51,7 +53,7 @@ def average_group(
     group_replace_pattern: Tuple[str, str],
     overwrite: bool = False,
 ):
-    """
+    """Reads h5 files and exports the average of datasets across files.
     """
     dsets = {}
     for file in files:
@@ -75,7 +77,7 @@ def average_group(
                 avg = average_arrays(val)
                 create_dset(h5f, avg_address, avg, overwrite=overwrite)
                 for n, file in enumerate(files):
-                    h5f[avg_address].attr[f"avg_file_{n}"] = file
+                    h5f[avg_address].attrs[f"avg_file_{n}"] = file
 
 
 def average(  # pylint: disable=R0913
@@ -116,7 +118,7 @@ def average(  # pylint: disable=R0913
     LOGGER.info("Starting averaging files")
     LOGGER.info("Looking into `%s`", root)
     LOGGER.info(
-        "Locating files matchine pattern `%s` and `%s` but ignoring files matching `%s`",
+        "Locating files matching pattern `%s` and `%s` but ignoring files matching `%s`",
         file_locate_pattern,
         file_replace_pattern[0],
         file_replace_pattern[1],
@@ -126,6 +128,7 @@ def average(  # pylint: disable=R0913
         root,
         file_patterns=[file_locate_pattern + r".*\.h5$", file_replace_pattern[0]],
         exclude_file_patterns=[file_replace_pattern[1]],
+        match_all=True,
     )
     if not overwrite:
         all_files = [
@@ -141,7 +144,10 @@ def average(  # pylint: disable=R0913
         " " if overwrite else " (and do not exist)",
     )
 
-    LOGGER.info("Now joining groups defined by the values for `%s`", avg_over_keys)
+    LOGGER.info(
+        "Now averaging over files which have same pars besides their values for `%s`",
+        avg_over_keys,
+    )
 
     groups = get_groups(all_files, avg_over_keys)
     LOGGER.info("Found %d groups", len(groups))
@@ -154,7 +160,7 @@ def average(  # pylint: disable=R0913
     LOGGER.info("Done")
 
 
-def source_average(
+def source_average(  # pylint: disable=R0913
     root: str,
     avg_over_keys: Tuple[str] = ("x", "y", "z", "t"),
     file_locate_pattern: str = "formfac_4D_tslice",
