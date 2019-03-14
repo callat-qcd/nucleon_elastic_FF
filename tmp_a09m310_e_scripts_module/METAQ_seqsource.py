@@ -22,6 +22,7 @@ params['ENS_S'] = ens_s
 
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
 parser.add_argument('run',nargs='+',type=int,help='start [stop] run cfg number')
+parser.add_argument('-s','--src',type=str)
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
@@ -80,7 +81,7 @@ smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 params['MQ'] = params['MV_L']
 
-if args.p:
+if args.priority:
     priority = '-p'
     q = 'priority'
 else:
@@ -88,12 +89,17 @@ else:
     q = 'todo'
 params['PRIORITY'] = priority
 
+base_dir = management.base_dir % params
+params['SCRIPT_DIR'] = management.script_dir % params
+cfg_dir = base_dir+'/cfgs_flow'
+metaq_dir  = management.metaq_dir
+
 if args.t_sep == None:
     t_seps  = params['t_seps']
 else:
     t_seps = args.t_sep
 flavs = params['flavs']
-params['spins']
+spins = params['spins']
 flav_spin = []
 for f in flavs:
     for s in spins:
@@ -104,34 +110,35 @@ m0,m1,m2 = snk_mom.split()
 params['M0']=m0
 params['M1']=m1
 params['M2']=m2
-params['S_MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
+params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
 particles = params['particles']
 
 coherent_ff_base = management.coherent_ff_base
 seqsrc_base      = management.seqsrc_base
-seqsrc_size      = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
+seqsrc_size      = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
 sp_ext           = params['SP_EXTENSION']
 
 prop_base        = management.prop_base
 
-for c in cfgs:
-    no = c
-    if len(srcs[c]) == n_seq:
+for c in cfgs_run:
+    no = str(c)
+    params['CFG'] = c
+    if len(srcs[c]) == params['N_SEQ']:
         all_srcs = True
     else:
         all_srcs = False
-    cfg_file = cfg_dir+'/'+ens_long+stream+'.'+c+'_wflow1.0.lime'
+    cfg_file = cfg_dir+'/'+ens_long+stream+'.'+no+'_wflow1.0.lime'
     if os.path.exists(cfg_file) and all_srcs:
         params.update({'CFG_FILE':cfg_file})
-        print("Making coherent sources for cfg: ",c)
+        print("Making coherent sources for cfg: ",no)
 
-        if not os.path.exists(base_dir+'/xml/'+c):
-            os.makedirs(base_dir+'/xml/'+c)
-        if not os.path.exists(base_dir+'/stdout/'+c):
-            os.makedirs(base_dir+'/stdout/'+c)
-        if not os.path.exists(base_dir+'/seqsrc/'+c):
-            os.makedirs(base_dir+'/seqsrc/'+c)
+        if not os.path.exists(base_dir+'/xml/'+no):
+            os.makedirs(base_dir+'/xml/'+no)
+        if not os.path.exists(base_dir+'/stdout/'+no):
+            os.makedirs(base_dir+'/stdout/'++no)
+        if not os.path.exists(base_dir+'/seqsrc/'+no):
+            os.makedirs(base_dir+'/seqsrc/'+no)
         if not os.path.exists(base_dir+'/corrupt'):
             os.makedirs(base_dir+'/corrupt')
 
@@ -139,9 +146,11 @@ for c in cfgs:
         have_3pts = True
         for dt_int in t_seps:
             dt = str(dt_int)
+            params['T_SEP'] = dt
             for s0 in srcs[c]:
-                coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt,'SRC':s0}
-                coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name + '.h5'
+                params['SRC'] = s0
+                coherent_formfac_name  = coherent_ff_base % params
+                coherent_formfac_file  = base_dir+'/formfac/' +no+ '/'+coherent_formfac_name + '.h5'
                 coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
                 if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
                     have_3pts = False
