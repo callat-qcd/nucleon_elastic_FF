@@ -5,7 +5,6 @@ import argparse
 import xml_input
 import metaq_input
 import importlib
-#import area51
 import management
 import sources
 
@@ -24,7 +23,6 @@ params['ENS_S'] = ens_s
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
 parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] cfg numbers')
 parser.add_argument('-s','--src',type=str)
-parser.add_argument('-f',type=str,default='a09m310_e_src.lst',help='cfg/src file')
 parser.add_argument('-p',default=False,action='store_const',const=True,\
     help='put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-o',default=False,action='store_const',const=True,\
@@ -39,7 +37,7 @@ print(args)
 print('')
 
 ''' time in minutes to define "old" file '''
-time_delete = 10
+time_delete = params['prop_time_delete']
 
 ri = args.cfgs[0]
 if len(args.cfgs) == 1:
@@ -52,7 +50,6 @@ else:
     rf = args.cfgs[1]+1
     dr = args.cfgs[2]
 cfgs_run = range(ri,rf,dr)
-print(args.cfgs)
 
 ''' BUILD SRC DICTIONARY '''
 nt = int(params['NT'])

@@ -95,6 +95,15 @@ v4_r_bs = np.real(v4_sum_bs) / np.real(proton_bs)
 
 fig2 = plt.figure(2)
 ax2  = plt.axes([.12, .12, .85, .85])
+np.set_printoptions(precision=4)
+print('gA summed/subtracted')
+print((np.roll(a3_r,-1)-a3_r)[3:14])
+print((np.roll(a3_r_bs,-1,axis=1)-a3_r_bs).std(axis=0)[3:14])
+print('gV summed/subtracted')
+print((np.roll(v4_r,-1)-v4_r)[3:14])
+print((np.roll(v4_r_bs,-1,axis=1)-v4_r_bs).std(axis=0)[3:14])
+
+np.set_printoptions(precision=8)
 for t in range(3,14):
     if t == 3:
         label=r'$g_A$'

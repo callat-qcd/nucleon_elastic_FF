@@ -16,6 +16,13 @@ spec_base      = 'spec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 spec_base     += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
 sp_ext = 'lime'
 
+coherent_ff_base  = 'formfac_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+coherent_ff_base += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(MOM)s_dt%(T_SEP)s'
+coherent_ff_base += '_Nsnk%(N_SEQ)s_%(SRC)s_%(SS_PS)s'
+
+seqsrc_base  = 'seqsrc_%(ENS_S)s_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'
+seqsrc_base += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
+seqsrc_base += '_%(MOM)s_%(SRC)s_%(SS_PS)s'
 
 
 

@@ -37,3 +37,14 @@ params['seed']['e'] = '1a' #this should have been 1e,
 '''                               0, nt/2, nt/4, 3 nt/4 '''
 params['t_shifts'] = [ 0, 48  , 24  , 72     ]
 params['generator'] = sources.oa(int(params['NL']))
+params['N_SEQ'] = 2*len(params['t_shifts']) #2 * t_shifts
+
+''' minutes after last file modification time when deletion of small files is OK '''
+params['prop_time_delete'] = 10
+
+params['t_seps']  = [3,4,5,6,7,8,9,10,11,12]
+params['flavs']   = ['UU','DD']
+params['spins']   = ['up_up','dn_dn']
+params['snk_mom'] = ['0 0 0']
+params['SS_PS']   = 'SS'
+params['particles'] = ['proton','proton_np']
