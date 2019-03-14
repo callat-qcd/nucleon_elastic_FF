@@ -4,7 +4,8 @@ from glob import glob
 import argparse
 import xml_input
 import metaq_input
-import area51
+import importlib
+#import area51
 import management
 import sources
 
@@ -14,7 +15,9 @@ except:
     ens_s,junk = os.getcwd().split('/')[-3]
 ens,stream = ens_s.split('_')
 
-params = area51.params[ens]
+sys.path.append('area51_files')
+area51 = importlib.import_module(ens)
+params = area51.params
 ens_long=params['ENS_LONG']
 params['ENS_S'] = ens_s
 
@@ -67,27 +70,26 @@ else:
         no = str(c)
         srcs_cfg = sources.make(no, nl=nl, nt=nt, t_shifts=params['t_shifts'],
             generator=params['generator'], seed=params['seed'][stream])
-        srcs[no] = []
+        srcs[c] = []
         for origin in srcs_cfg:
             try:
                 src_gen = srcs_cfg[origin].iteritems()
             except AttributeError: # Python 3 automatically creates a generator
                 src_gen = srcs_cfg[origin].items()
             for src_type, src in src_gen:
-                srcs[no].append(sources.xXyYzZtT(src))
+                srcs[c].append(sources.xXyYzZtT(src))
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
-print(srcs[str(cfgs_run[0])])
-sys.exit()
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
-
 params['MQ'] = params['MV_L']
 
 if args.p:
     priority = '-p'
+    q = 'priority'
 else:
     priority = ''
+    q = 'todo'
 params['PRIORITY'] = priority
 
 base_dir = management.base_dir % params
@@ -95,17 +97,12 @@ params['SCRIPT_DIR'] = management.script_dir % params
 cfg_dir = base_dir+'/cfgs_flow'
 metaq_dir  = management.metaq_dir
 
-src_base      = management.src_base % params
-prop_base     = management.prop_base % params
-prop_xml_base = management.prop_xml_base % params
-spec_base     = management.spec_base % params
+src_base      = management.src_base
+prop_base     = management.prop_base
+prop_xml_base = management.prop_xml_base
+spec_base     = management.spec_base
 sp_ext        = params['SP_EXTENSION']
 prop_size     = nt* nl**3 * 3**2 * 4**2 * 2 * 4
-
-if args.p:
-    q = 'priority'
-else:
-    q = 'todo'
 
 for c in cfgs_run:
     no = str(c)
