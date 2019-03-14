@@ -40,4 +40,4 @@ params['a09m310']['seed'] = dict()
 params['a09m310']['seed']['e'] = '1a' #this should have been 1e,
 '''                               0, nt/2, nt/4, 3 nt/4 '''
 params['a09m310']['t_shifts'] = [ 0, 48  , 24  , 72     ]
-params['a09m310']['generator'] = sources.oa(int(params['NL']))
+params['a09m310']['generator'] = sources.oa(int(params['a09m310']['NL']))

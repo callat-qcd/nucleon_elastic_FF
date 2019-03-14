@@ -19,7 +19,7 @@ def xXyYzZtT(posn):
     if len(posn) is 4:
         return 'x%dy%dz%dt%d' %(int(posn[0]),int(posn[1]),int(posn[2]),int(posn[3]))
     else:
-        print("Position must be a four dimensional array to be stringified.")
+        print(sys.argv[0],": Position must be a four dimensional array to be stringified.")
         exit()
 
 def modByLattice(nx, ny=None, nz=None):

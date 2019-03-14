@@ -2,8 +2,8 @@ from __future__ import print_function
 import os, sys
 from glob import glob
 import argparse
-import xml_input_ff as xml_input
-import metaq_input_ff as metaq_input
+import xml_input
+import metaq_input
 import area51
 import management
 import sources
@@ -53,7 +53,7 @@ print(args.cfgs)
 
 ''' BUILD SRC DICTIONARY '''
 nt = int(params['NT'])
-nx = int(params['NL'])
+nl = int(params['NL'])
 if args.src:
     if len(args.cfgs) > 1:
         print('if a src is passed, only 1 cfg can be specified which is presumably the right one')
@@ -68,10 +68,15 @@ else:
         srcs_cfg = sources.make(no, nl=nl, nt=nt, t_shifts=params['t_shifts'],
             generator=params['generator'], seed=params['seed'][stream])
         srcs[no] = []
-        for src in srcs_cfg:
-            srcs[no].append(sources.xXyYzZtT(src))
+        for origin in srcs_cfg:
+            try:
+                src_gen = srcs_cfg[origin].iteritems()
+            except AttributeError: # Python 3 automatically creates a generator
+                src_gen = srcs_cfg[origin].items()
+            for src_type, src in src_gen:
+                srcs[no].append(sources.xXyYzZtT(src))
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
-print(srcs[cfgs_run[0]])
+print(srcs[str(cfgs_run[0])])
 sys.exit()
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
@@ -95,7 +100,7 @@ prop_base     = management.prop_base % params
 prop_xml_base = management.prop_xml_base % params
 spec_base     = management.spec_base % params
 sp_ext        = params['SP_EXTENSION']
-prop_size     = nt* nx**3 * 3**2 * 4**2 * 2 * 4
+prop_size     = nt* nl**3 * 3**2 * 4**2 * 2 * 4
 
 if args.p:
     q = 'priority'
@@ -105,7 +110,7 @@ else:
 for c in cfgs_run:
     no = str(c)
     params['CFG'] = c
-    cfg_file = base_dir+'/cfgs_flow/'ens_long+stream+'.'+no+'_wflow1.0.lime'
+    cfg_file = base_dir+'/cfgs_flow/'+ens_long+stream+'.'+no+'_wflow1.0.lime'
     if os.path.exists(cfg_file):
         params.update({'CFG_FILE':cfg_file})
         print('Making props for cfg: ',c)
