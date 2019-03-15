@@ -48,3 +48,4 @@ params['spins']   = ['up_up','dn_dn']
 params['snk_mom'] = ['0 0 0']
 params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
+params['4d_curr'] = ['A3','V4','A1','A2','A4','V2','V2','V3','P']

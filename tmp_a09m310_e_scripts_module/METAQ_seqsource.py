@@ -158,7 +158,7 @@ for c in cfgs_run:
         if not have_3pts:
             # loop over props to make a time-dense seqsource for each prop
             for s0 in srcs[c]:
-                prop_name = prop_base %{'CFG':no,'SRC':s0}
+                prop_name = prop_base % params
                 prop_file = base_dir+'/prop/'+no + '/' + prop_name+'.'+sp_ext
                 if os.path.exists(prop_file):
                     for fs in flav_spin:
