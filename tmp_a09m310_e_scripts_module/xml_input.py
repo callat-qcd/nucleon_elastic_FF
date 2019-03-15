@@ -301,19 +301,19 @@ lalibe_formfac='''<elem>
     <prop_id>%(PROP_NAME)s</prop_id>
     <seqprops>
         <elem>
-            <seqprop_id>%(UU_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_UU_up_up)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
         <elem>
-            <seqprop_id>%(UU_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_UU_dn_dn)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
         <elem>
-            <seqprop_id>%(DD_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_DD_up_up)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
         <elem>
-            <seqprop_id>%(DD_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_DD_dn_dn)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
     </seqprops>
@@ -349,19 +349,19 @@ lalibe_formfac='''<elem>
     <prop_id>%(PROP_NAME)s</prop_id>
     <seqprops>
         <elem>
-            <seqprop_id>%(UU_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_UU_up_up)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
         <elem>
-            <seqprop_id>%(UU_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_UU_dn_dn)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
         <elem>
-            <seqprop_id>%(DD_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_DD_up_up)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
         <elem>
-            <seqprop_id>%(DD_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_DD_dn_dn)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
     </seqprops>
@@ -391,19 +391,19 @@ lalibe_formfac='''<elem>
     <prop_id>%(PROP_NAME)s</prop_id>
     <seqprops>
         <elem>
-            <seqprop_id>%(UU_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_UU_up_up)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
         <elem>
-            <seqprop_id>%(UU_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_UU_dn_dn)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
         <elem>
-            <seqprop_id>%(DD_FLAVOR_UU_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_DD_up_up)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
         <elem>
-            <seqprop_id>%(DD_FLAVOR_DD_SPIN_SEQPROP_NAME)s</seqprop_id>
+            <seqprop_id>%(SEQPROP_DD_dn_dn)s</seqprop_id>
             <gamma_insertion>0</gamma_insertion>
         </elem>
     </seqprops>

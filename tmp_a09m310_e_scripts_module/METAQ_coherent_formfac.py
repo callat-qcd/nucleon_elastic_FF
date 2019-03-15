@@ -123,7 +123,7 @@ n_curr = len(params['4d_curr'])
 n_flav = len(params['flavs'])
 n_spin = len(params['spins'])
 n_par  = len(params['particles'])
-coherent_ff_size_4d = n_curr * n_flav * n_spin * n_par *int(nt)*int(nx)**3 * 2*8
+coherent_ff_size_4d = n_curr * n_flav * n_spin * n_par *int(nt)*int(nl)**3 * 2*8
 
 for c in cfgs_run:
     no = str(c)
@@ -195,6 +195,8 @@ for c in cfgs_run:
                 for s0 in srcs[c]:
                     params['SRC'] = s0
                     ''' Does the 3pt file exist? '''
+                    ''' dt and -dt in same file, labled by dt '''
+                    params['T_SEP'] = dt
                     coherent_formfac_name  = coherent_ff_base % params
                     coherent_formfac_file  = base_dir+'/formfac/'+no + '/'+coherent_formfac_name+'.h5'
                     coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_').replace('/formfac/','/formfac_4D/')
@@ -261,28 +263,17 @@ for c in cfgs_run:
                                         seqprop_file  = base_dir+'/seqprop/'+no+'/'+seqprop_name+'.'+sp_ext
                                         params['LIME_FILE'] = seqprop_file
                                         params['OBJ_ID']    = seqprop_name
+                                        params['SEQPROP_'+fs] = seqprop_base % params
                                         fin.write(xml_input.qio_read % params)
-                                    f_dn_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_up_up','CFG':c,'T_SEP':t_sep}
-                                    f_dn_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'DD_dn_dn','CFG':c,'T_SEP':t_sep}
-                                    f_up_s_dn_dn_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_dn_dn','CFG':c,'T_SEP':t_sep}
-                                    f_up_s_up_up_seqprop = seqprop_base %{'PARTICLE':particle,'FLAV_SPIN':'UU_up_up','CFG':c,'T_SEP':t_sep}
-                                    params.update({
-                                        'UU_FLAVOR_UU_SPIN_SEQPROP_NAME':f_up_s_up_up_seqprop,
-                                        'DD_FLAVOR_UU_SPIN_SEQPROP_NAME':f_dn_s_up_up_seqprop,
-                                        'UU_FLAVOR_DD_SPIN_SEQPROP_NAME':f_up_s_dn_dn_seqprop,
-                                        'DD_FLAVOR_DD_SPIN_SEQPROP_NAME':f_dn_s_dn_dn_seqprop
-                                        })
                                     #for s0 in srcs[c]:
-                                    prop_name = prop_base %{'CFG':no,'SRC':s0}
+                                    prop_name = prop_base % params
                                     params['PROP_NAME'] = prop_name
 
                                     ''' make 3pt contractions '''
                                     fin.write(xml_input.lalibe_formfac % params)
                                     ''' erase seqprops to reduce memory footprint '''
-                                    fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_up_up_seqprop})
-                                    fin.write(xml_input.qio_erase %{'OBJ_ID':f_dn_s_dn_dn_seqprop})
-                                    fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_dn_dn_seqprop})
-                                    fin.write(xml_input.qio_erase %{'OBJ_ID':f_up_s_up_up_seqprop})
+                                    for fs in flav_spin:
+                                        fin.write(xml_input.qio_erase %{'OBJ_ID':params['SEQPROP_'+fs]})
 
                                 fin.write(xml_input.tail % params)
                                 fin.close()
@@ -291,7 +282,7 @@ for c in cfgs_run:
                                 params.update({
                                     'XML_IN':xmlini,'XML_OUT':xmlini.replace('.ini.xml','.out.xml'),
                                     'STDOUT':xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/'),
-                                    'METAQ_LOG':metaq_run_dir+'/log/'+metaq.replace('.sh','.log'),
+                                    'METAQ_LOG':metaq_dir+'/log/'+metaq.replace('.sh','.log'),
                                     'BASE_DIR':base_dir,'METAQ_RUN':metaq_file,'METAQ_FINISHED':metaq_file.replace('runs','finished')
                                     })
                                 m_in = open(metaq_file,'w')
@@ -302,10 +293,10 @@ for c in cfgs_run:
                             else:
                                 print('MISSING prop',prop_file)
                         else:
-                            if not args.verbose:
+                            if args.verbose:
                                 print('  task exists:',metaq)
                     else:
-                        if not args.verbose:
+                        if args.verbose:
                             print('    exists:',coherent_formfac_file)
             else:
                 print('    missing FLAV or SPIN seqprops, dt=',dt)
