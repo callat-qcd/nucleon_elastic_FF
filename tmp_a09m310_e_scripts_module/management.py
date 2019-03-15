@@ -24,7 +24,9 @@ seqsrc_base  = 'seqsrc_%(ENS_S)s_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'
 seqsrc_base += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
 seqsrc_base += '_%(MOM)s_%(SRC)s_%(SS_PS)s'
 
-
+coherent_seqsrc  = 'seqsrc_%(ENS_S)s_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'
+coherent_seqsrc += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
+coherent_seqsrc += '_Nsnk%(N_SEQ)s_%(MOM)s_%(SS_PS)s'
 
 def check_file(f_name,f_size,time_delete,bad_file_dir):
     if os.path.exists(f_name) and os.path.getsize(f_name) < f_size:

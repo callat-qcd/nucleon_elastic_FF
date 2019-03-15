@@ -2,22 +2,26 @@ from __future__ import print_function
 import os, sys, time, shutil
 from glob import glob
 import argparse
-import xml_input_ff as xml_input
-import metaq_input_ff as metaq_input
+import xml_input
+import metaq_input
+import importlib
+import management
+import sources
 
-#ens = 'a09m310_e'
 try:
     ens_s = os.getcwd().split('/')[-3]
 except:
     ens_s,junk = os.getcwd().split('/')[-3]
 ens,stream = ens_s.split('_')
 
-params = area51.params[ens]
+sys.path.append('area51_files')
+area51 = importlib.import_module(ens)
+params = area51.params
 ens_long=params['ENS_LONG']
+params['ENS_S'] = ens_s
 
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
 parser.add_argument('run',nargs='+',type=int,help='start [stop] run cfg number')
-parser.add_argument('-f',type=str,default=ens_s+'_src.lst',help='cfg/src file')
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
@@ -32,7 +36,7 @@ print(args)
 print('')
 
 ''' time in minutes to define "old" file '''
-time_delete = 10
+time_delete = params['prop_time_delete']
 
 ri = args.run[0]
 if len(args.run) == 1:
@@ -46,92 +50,77 @@ else:
     dr = args.run[2]
 cfgs_run = range(ri,rf,dr)
 
-print(args.run)
-nt = '96'
-nx = '32'
-M5 = '1.1'
-L5 = '6'
-b5 = '1.25'
-c5 = '0.25'
-alpha5 = '1.5'
-wf_s='3.5'
-wf_n='45'
-smr = 'gf1.0_w'+wf_s+'_n'+wf_n
-val = smr+'_M5'+M5+'_L5'+L5+'_a'+alpha5
-mq = '0.00951'
-max_iter = '12000'
-rsd_target = '1.e-7'
-delta = '0.1'
-rsd_tol = '80'
+''' BUILD SRC DICTIONARY '''
+nt = int(params['NT'])
+nl = int(params['NL'])
+if args.src:
+    if len(args.cfgs) > 1:
+        print('if a src is passed, only 1 cfg can be specified which is presumably the right one')
+        sys.exit(-1)
+    else:
+        cfgs = args.cfgs
+        srcs = {int(args.cfgs[0]):[args.src]}
+else:
+    srcs = {}
+    for c in cfgs_run:
+        no = str(c)
+        srcs_cfg = sources.make(no, nl=nl, nt=nt, t_shifts=params['t_shifts'],
+            generator=params['generator'], seed=params['seed'][stream])
+        srcs[c] = []
+        for origin in srcs_cfg:
+            try:
+                src_gen = srcs_cfg[origin].iteritems()
+            except AttributeError: # Python 3 automatically creates a generator
+                src_gen = srcs_cfg[origin].items()
+            for src_type, src in src_gen:
+                srcs[c].append(sources.xXyYzZtT(src))
+print('running ',cfgs_run[0],'-->',cfgs_run[-1])
 
-params = {
-    'NL':nx,'NT':nt,
-    'M5':M5,'L5':L5,'B5':b5,'C5':c5,'MQ':mq,
-    'MAX_ITER':max_iter,'RSD_TARGET':rsd_target,'Q_DELTA':delta,'RSD_TOL':rsd_tol,
-    'WF_S':wf_s,'WF_N':wf_n
-    }
+if args.priority:
+    priority = '-p'
+    q = 'priority'
+else:
+    priority = ''
+    q = 'todo'
+params['PRIORITY'] = priority
 
-base_dir = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/'+ens_s
-params['SCRIPT_DIR'] = '/ccs/proj/lgt100/c51/x_files/project_2/production/'+ens_s+'/scripts'
-cfg_dir = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/'+ens_s+'/cfgs_flow'
-metaq_run_dir  = '/ccs/proj/lgt100/c51/x_files/project_2/metaq'
-metaq_dir = metaq_run_dir
+smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
+val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
+params['MQ'] = params['MV_L']
+
+base_dir = management.base_dir % params
+params['SCRIPT_DIR'] = management.script_dir % params
+cfg_dir = base_dir+'/cfgs_flow'
+metaq_dir  = management.metaq_dir
 
 if args.t_sep == None:
-    t_seps  = [3,4,5,6,7,8,9,10,11,12]
+    t_seps  = params['t_seps']
 else:
     t_seps = args.t_sep
-flavs = ['UU','DD']
-spins = ['up_up','dn_dn']
+flavs = params['flavs']
+spins = params['spins']
 flav_spin = []
 for f in flavs:
     for s in spins:
         flav_spin.append(f+'_'+s)
 ''' ONLY doing snk_mom 0 0 0 now '''
-snk_mom = '0 0 0'
+snk_mom = params['snk_mom'][0]
 m0,m1,m2 = snk_mom.split()
 params['M0']=m0
 params['M1']=m1
 params['M2']=m2
-mom = 'px%spy%spz%s' %(m0,m1,m2)
+params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
-SS_PS = 'SS'
-n_seq=8
-particles = ['proton','proton_np']
-coherent_ff_base  = 'formfac_'+ens_s+'_%(CFG)s_'+val+'_mq'+mq+'_'
-coherent_ff_base += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_%(SRC)s_'+SS_PS
-seqprop_base      = 'seqprop_'+ens_s+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq+'_'
-seqprop_base     += mom+'_dt%(T_SEP)s_Nsnk'+str(n_seq)+'_'+SS_PS
-seqprop_size      = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
-sp_ext = 'lime'
-seqsrc_base       = 'seqsrc_'+ens_s+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq+'_'
-seqsrc_base      += '%(SRC)s_'+mom+'_'+SS_PS
-seqsrc_size       = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
-coherent_seqsrc   = 'seqsrc_'+ens_s+'_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s_'+val+'_mq'+mq+'_'
-coherent_seqsrc  += 'Nsnk'+str(n_seq)+'_'+mom+'_'+SS_PS
+particles = params['particles']
 
-prop_base = 'prop_'+ens_s+'_%(CFG)s_'+val+'_mq'+mq+'_%(SRC)s'
+coherent_ff_base = management.coherent_ff_base
+seqprop_base     = management.seqprop_base
+coherent_seqsrc  = management.coherent_seqsrc
+seqsrc_base      = management.seqsrc_base
+seqprop_size     = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+sp_ext           = params['SP_EXTENSION']
 
-cfg_srcs = open(args.f).readlines()
-cfgs = []
-srcs = {}
-for c in cfg_srcs:
-    no = c.split()[0]
-    cfg = int(no)
-    if no not in cfgs and cfg in cfgs_run:
-        cfgs.append(c.split()[0])
-    if no not in srcs:
-        srcs[no] = []
-print('running ',cfgs[0],'-->',cfgs[-1])
-
-for cs in cfg_srcs:
-    no,x0,y0,z0,t0 = cs.split()
-    src = 'x'+x0+'y'+y0+'z'+z0+'t'+t0
-    if src not in srcs[no]:
-        srcs[no].append(src)
-if args.debug:
-    for c in cfgs:
-        print(c,srcs[c])
+prop_base        = management.prop_base
 
 for c in cfgs:
     no = c
@@ -140,31 +129,33 @@ for c in cfgs:
         all_srcs = True
     else:
         all_srcs = False
-    cfg_file = cfg_dir+'/'+ens_long+stream+'.'+c+'_wflow1.0.lime'
+    cfg_file = cfg_dir+'/'+ens_long+stream+'.'+no+'_wflow1.0.lime'
     if os.path.exists(cfg_file) and all_srcs:
         params.update({'CFG_FILE':cfg_file})
         print("Making coherent sources and seqprops for cfg: ",c)
 
-        if not os.path.exists(base_dir+'/seqprop/'+c):
-            os.makedirs(base_dir+'/seqprop/'+c)
-        if not os.path.exists(base_dir+'/xml/'+c):
-            os.makedirs(base_dir+'/xml/'+c)
-        if not os.path.exists(base_dir+'/stdout/'+c):
-            os.makedirs(base_dir+'/stdout/'+c)
+        if not os.path.exists(base_dir+'/seqprop/'+no):
+            os.makedirs(base_dir+'/seqprop/'+no)
+        if not os.path.exists(base_dir+'/xml/'+no):
+            os.makedirs(base_dir+'/xml/'+no)
+        if not os.path.exists(base_dir+'/stdout/'+no):
+            os.makedirs(base_dir+'/stdout/'+no)
         if not os.path.exists(base_dir+'/corrupt'):
             os.makedirs(base_dir+'/corrupt')
-        if not os.path.exists(base_dir+'/formfac/'+c):
-            os.makedirs(base_dir+'/formfac/'+c)
+        if not os.path.exists(base_dir+'/formfac/'+no):
+            os.makedirs(base_dir+'/formfac/'+no)
 
         have_seqsrc = True
         have_all_3pts = True
         for dt_int in t_seps:
             dt = str(dt_int)
+            params['T_SEP'] = dt
             ''' Do the 3pt files exist? '''
             have_3pts = True
             for s0 in srcs[c]:
-                coherent_formfac_name  = coherent_ff_base %{'CFG':c,'T_SEP':dt,'SRC':s0}
-                coherent_formfac_file  = base_dir+'/formfac/'+c + '/'+coherent_formfac_name + '.h5'
+                params['SRC'] = s0
+                coherent_formfac_name  = coherent_ff_base % params
+                coherent_formfac_file  = base_dir+'/formfac/'+no + '/'+coherent_formfac_name + '.h5'
                 coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
                 if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
                     have_3pts = False
@@ -186,24 +177,23 @@ for c in cfgs:
                             params['QUARK_SPIN'] = 'UPPER'
                             params['T_SEP'] = dt
                         seqprop_name  = seqprop_base % params
-                        seqprop_file  = base_dir+'/seqprop/'+c+'/'+seqprop_name+'.'+sp_ext
+                        seqprop_file  = base_dir+'/seqprop/'+no+'/'+seqprop_name+'.'+sp_ext
                         ''' check SEQPROP file size
                             delete if small and older than time_delete
                         '''
-                        seqprop_size = int(nt)* int(nx)**3 * 3**2 * 4**2 * 2 * 4
                         if os.path.exists(seqprop_file) and os.path.getsize(seqprop_file) < seqprop_size:
                             now = time.time()
                             file_time = os.stat(seqprop_file).st_mtime
                             if (now-file_time)/60 > time_delete:
                                 print('DELETING BAD PROP',os.path.getsize(seqprop_file),seqprop_file.split('/')[-1])
-                                shutil.move(seqprop_file,seqprop_file.replace('seqprop/'+c+'/','corrupt/'))
+                                shutil.move(seqprop_file,seqprop_file.replace('seqprop/'+no+'/','corrupt/'))
                         if not os.path.exists(seqprop_file):
                             ''' make sure all seqsource files exists '''
                             have_seqsrc_t = True
                             for s0 in srcs[c]:
                                 params['SRC'] = s0
                                 seqsrc_name = seqsrc_base % params
-                                seqsrc_file = base_dir+'/seqsrc/'+c+'/'+seqsrc_name+'.'+sp_ext
+                                seqsrc_file = base_dir+'/seqsrc/'+no+'/'+seqsrc_name+'.'+sp_ext
                                 if not os.path.exists(seqsrc_file):
                                     if args.verbose:
                                         print('    missing sink',seqsrc_file)
@@ -234,7 +224,7 @@ for c in cfgs:
                                     for si,s0 in enumerate(srcs[c]):
                                         params['SRC'] = s0
                                         seqsrc_name = seqsrc_base % params
-                                        seqsrc_file = base_dir+'/seqsrc/'+c+'/'+seqsrc_name+'.'+sp_ext
+                                        seqsrc_file = base_dir+'/seqsrc/'+no+'/'+seqsrc_name+'.'+sp_ext
                                         params['OBJ_ID']      = seqsrc_name
                                         params['OBJ_TYPE']    = 'LatticePropagator'
                                         params['LIME_FILE']     = seqsrc_file

@@ -77,10 +77,6 @@ else:
                 srcs[c].append(sources.xXyYzZtT(src))
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
 
-smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
-val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
-params['MQ'] = params['MV_L']
-
 if args.priority:
     priority = '-p'
     q = 'priority'
@@ -88,6 +84,10 @@ else:
     priority = ''
     q = 'todo'
 params['PRIORITY'] = priority
+
+smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
+val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
+params['MQ'] = params['MV_L']
 
 base_dir = management.base_dir % params
 params['SCRIPT_DIR'] = management.script_dir % params
