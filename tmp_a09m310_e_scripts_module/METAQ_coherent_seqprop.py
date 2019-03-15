@@ -53,27 +53,20 @@ cfgs_run = range(ri,rf,dr)
 ''' BUILD SRC DICTIONARY '''
 nt = int(params['NT'])
 nl = int(params['NL'])
-if args.src:
-    if len(args.cfgs) > 1:
-        print('if a src is passed, only 1 cfg can be specified which is presumably the right one')
-        sys.exit(-1)
-    else:
-        cfgs = args.cfgs
-        srcs = {int(args.cfgs[0]):[args.src]}
-else:
-    srcs = {}
-    for c in cfgs_run:
-        no = str(c)
-        srcs_cfg = sources.make(no, nl=nl, nt=nt, t_shifts=params['t_shifts'],
-            generator=params['generator'], seed=params['seed'][stream])
-        srcs[c] = []
-        for origin in srcs_cfg:
-            try:
-                src_gen = srcs_cfg[origin].iteritems()
-            except AttributeError: # Python 3 automatically creates a generator
-                src_gen = srcs_cfg[origin].items()
-            for src_type, src in src_gen:
-                srcs[c].append(sources.xXyYzZtT(src))
+''' the COHERENT SEQPROP needs all srcs, so the option of passing a src does not make sense '''
+srcs = {}
+for c in cfgs_run:
+    no = str(c)
+    srcs_cfg = sources.make(no, nl=nl, nt=nt, t_shifts=params['t_shifts'],
+        generator=params['generator'], seed=params['seed'][stream])
+    srcs[c] = []
+    for origin in srcs_cfg:
+        try:
+            src_gen = srcs_cfg[origin].iteritems()
+        except AttributeError: # Python 3 automatically creates a generator
+            src_gen = srcs_cfg[origin].items()
+        for src_type, src in src_gen:
+            srcs[c].append(sources.xXyYzZtT(src))
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
 
 if args.priority:
@@ -122,10 +115,10 @@ sp_ext           = params['SP_EXTENSION']
 
 prop_base        = management.prop_base
 
-for c in cfgs:
-    no = c
+for c in cfgs_run:
+    no = str(c)
     params['CFG'] = c
-    if len(srcs[c]) == n_seq:
+    if len(srcs[c]) == params['N_SEQ']:
         all_srcs = True
     else:
         all_srcs = False
@@ -274,7 +267,7 @@ for c in cfgs:
                         else:
                             print('seqprop exists',seqprop_file)
             else:
-                if not args.verbose:
+                if args.verbose:
                     print('    3pt corr exists:',coherent_formfac_file)
         if not have_seqsrc and not have_all_3pts:
             print('python METAQ_seqsource.py %s -v' %(c))
