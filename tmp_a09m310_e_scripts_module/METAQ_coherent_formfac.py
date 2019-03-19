@@ -28,7 +28,7 @@ parser.add_argument('-o',default=False,action='store_const',const=True,\
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
     help='run DEBUG? [%(default)s]')
-parser.add_argument('-p','--priority',type=str,default='todo',help='put task in priority? [%(default)s]')
+parser.add_argument('-p','--priority',default=False,action='store_const',const=True,help='put task in priority? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
 args = parser.parse_args()
@@ -213,7 +213,7 @@ for c in cfgs_run:
                     if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
                         # loop over FLAV and SPIN as all in 1 file
                         metaq  = coherent_formfac_name+'.sh'
-                        metaq_file = metaq_dir +'/'+args.priority+'/cpu/'+metaq
+                        metaq_file = metaq_dir +'/'+q+'/cpu/'+metaq
                         task_exist = False
                         task_working = False
                         if os.path.exists(metaq_file):
@@ -302,7 +302,7 @@ for c in cfgs_run:
                 print('    missing FLAV or SPIN seqprops, dt=',dt)
         if not have_all_seqprops:
             print('    missing FLAV or SPIN seqprops')
-            os.system('python METAQ_coherent_seqprop.py %s -v' %(c))
+            os.system('python METAQ_coherent_seqprop.py %s %s -v' %(c,priority))
         #else:
         #    print('    missing props')
     else:

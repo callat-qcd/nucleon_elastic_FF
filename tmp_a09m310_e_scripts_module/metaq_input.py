@@ -3,7 +3,7 @@ prop = '''#!/bin/bash
 #METAQ GPUS 6
 #METAQ MIN_WC_TIME 15:00
 #METAQ LOG %(METAQ_LOG)s
-#METAQ PROJECT prop_%(ENS)s
+#METAQ PROJECT prop_%(ENS_S)s
 
 #BSUB -nnodes 1
 #BSUB -cn_cu 'maxcus=1'
@@ -39,7 +39,7 @@ seqsource='''#!/bin/bash
 #METAQ GPUS 0
 #METAQ MIN_WC_TIME 15:00
 #METAQ LOG %(METAQ_LOG)s
-#METAQ PROJECT seqsource_a12m310_a
+#METAQ PROJECT seqsource_%(ENS_S)s
 
 #BSUB -nnodes 1
 #BSUB -cn_cu 'maxcus=1'
@@ -70,7 +70,7 @@ seqprop = '''#!/bin/bash
 #METAQ GPUS 6
 #METAQ MIN_WC_TIME 15:00
 #METAQ LOG %(METAQ_LOG)s
-#METAQ PROJECT seqprop_%(ENS)s
+#METAQ PROJECT seqprop_%(ENS_S)s
 
 #BSUB -nnodes 1
 #BSUB -cn_cu 'maxcus=1'
@@ -106,7 +106,7 @@ formfac_contractions='''#!/bin/bash
 #METAQ GPUS 0
 #METAQ MIN_WC_TIME 15:00
 #METAQ LOG %(METAQ_LOG)s
-#METAQ PROJECT formfac_a12m310_a
+#METAQ PROJECT formfac_%(ENS_S)s
 
 #BSUB -nnodes 1
 #BSUB -cn_cu 'maxcus=1'

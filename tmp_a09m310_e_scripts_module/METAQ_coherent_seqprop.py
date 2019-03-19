@@ -27,7 +27,7 @@ parser.add_argument('-o',default=False,action='store_const',const=True,\
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
     help='run DEBUG? [%(default)s]')
-parser.add_argument('-p','--priority',type=str,default='todo',help='put task in priority? [%(default)s]')
+parser.add_argument('-p','--priority',default=False,action='store_const',const=True,help='put task in priority? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
 args = parser.parse_args()
@@ -194,7 +194,7 @@ for c in cfgs_run:
                                     have_seqsrc   = False
                             if have_seqsrc_t:
                                 metaq  = seqprop_name+'.sh'
-                                metaq_file = metaq_dir +'/'+args.priority+'/gpu/'+'/'+metaq
+                                metaq_file = metaq_dir +'/'+q+'/gpu/'+'/'+metaq
                                 task_exist = False
                                 task_working = False
                                 if os.path.exists(metaq_file):
@@ -271,7 +271,7 @@ for c in cfgs_run:
                     print('    3pt corr exists:',coherent_formfac_file)
         if not have_seqsrc and not have_all_3pts:
             print('python METAQ_seqsource.py %s -v' %(c))
-            os.system('python METAQ_seqsource.py %s -v' %(c))
+            os.system('python METAQ_seqsource.py %s %s -v' %(c,priority))
 
     else:
         if not os.path.exists(cfg_file):

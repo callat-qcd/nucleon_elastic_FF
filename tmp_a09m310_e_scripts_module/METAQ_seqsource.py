@@ -28,7 +28,7 @@ parser.add_argument('-o',default=False,action='store_const',const=True,\
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
     help='run DEBUG? [%(default)s]')
-parser.add_argument('-p','--priority',type=str,default='todo',help='put task in priority? [%(default)s]')
+parser.add_argument('-p','--priority',default=False,action='store_const',const=True,help='put task in priority? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
 args = parser.parse_args()
@@ -182,7 +182,7 @@ for c in cfgs_run:
                         if not have_seqsrc:
                             seqsrc_name = seqsrc_base %{'PARTICLE':particles[0],'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
                             metaq  = seqsrc_name+'.sh'
-                            metaq_file = metaq_dir +'/'+args.priority+'/cpu/'+'/'+metaq
+                            metaq_file = metaq_dir +'/'+q+'/cpu/'+'/'+metaq
                             task_exist = False
                             task_working = False
                             if os.path.exists(metaq_file):
