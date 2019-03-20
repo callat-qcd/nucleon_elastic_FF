@@ -270,6 +270,15 @@ for c in cfgs_run:
                                     params['PROP_NAME'] = prop_name
 
                                     ''' make 3pt contractions '''
+                                    params['CURR_P'] = ''
+                                    for curr in params['curr_p']:
+                                        params['CURR_P'] += '        <elem>'+curr+'<elem>\n'
+                                    params['CURR_4D'] = ''
+                                    for curr in params['curr_4d']:
+                                        params['CURR_4D'] += '        <elem>'+curr+'<elem>\n'
+                                    params['CURR_0P'] = ''
+                                    for curr in params['curr_0p']:
+                                        params['CURR_0P'] += '        <elem>'+curr+'<elem>\n'
                                     fin.write(xml_input.lalibe_formfac % params)
                                     ''' erase seqprops to reduce memory footprint '''
                                     for fs in flav_spin:

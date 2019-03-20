@@ -218,9 +218,9 @@ for c in cfgs_run:
                                         params['SRC'] = s0
                                         seqsrc_name = seqsrc_base % params
                                         seqsrc_file = base_dir+'/seqsrc/'+no+'/'+seqsrc_name+'.'+sp_ext
-                                        params['OBJ_ID']      = seqsrc_name
-                                        params['OBJ_TYPE']    = 'LatticePropagator'
-                                        params['LIME_FILE']     = seqsrc_file
+                                        params['OBJ_ID']    = seqsrc_name
+                                        params['OBJ_TYPE']  = 'LatticePropagator'
+                                        params['LIME_FILE'] = seqsrc_file
                                         fin.write(xml_input.qio_read % params)
                                         params['SEQSOURCE_'+str(si)] = seqsrc_name
                                     ''' make coherent_seqsource '''

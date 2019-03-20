@@ -18,6 +18,23 @@ tail='''
 </lalibe>
 '''
 
+wflow_cfg = """<elem>
+<Name>WILSON_FLOW</Name>
+<Frequency>1</Frequency>
+<Param>
+  <version>1</version>
+  <nstep>%(FLOW_STEP)s</nstep>
+  <wtime>%(FLOW_TIME)s</wtime>
+  <t_dir>-1</t_dir>
+</Param>
+<NamedObject>
+  <gauge_in>%(CFG_PREFLOW)s</gauge_in>
+  <gauge_out>%(CFG_FLOW)s</gauge_out>
+</NamedObject>
+</elem>
+
+"""
+
 hdf5_read='''<elem>
 <Name>HDF5_READ_NAMED_OBJECT</Name>
 <Frequency>1</Frequency>
@@ -255,6 +272,8 @@ lalibe_formfac='''<elem>
     <version>7</version>
     <j_decay>3</j_decay>
     <currents>
+%(CURR_P)s
+<annotation>
         <elem>S</elem>
         <elem>P</elem>
         <elem>V1</elem>
@@ -265,6 +284,7 @@ lalibe_formfac='''<elem>
         <elem>A2</elem>
         <elem>A3</elem>
         <elem>A4</elem>
+</annotation>
     </currents>
     <mom_list>
         <elem>0 0 0</elem>
@@ -330,6 +350,8 @@ lalibe_formfac='''<elem>
     <version>7</version>
     <j_decay>3</j_decay>
     <currents>
+%(CURR_4D)s
+<annotation>
         <elem>S</elem>
         <elem>P</elem>
         <elem>V1</elem>
@@ -340,6 +362,7 @@ lalibe_formfac='''<elem>
         <elem>A2</elem>
         <elem>A3</elem>
         <elem>A4</elem>
+</annotation>
     </currents>
     <h5_file_name>%(THREE_PT_FILE_4D)s</h5_file_name>
     <path>/</path>
@@ -378,9 +401,12 @@ lalibe_formfac='''<elem>
     <version>7</version>
     <j_decay>3</j_decay>
     <currents>
+%(CURR_0P)s
+<annotation>
       <elem>T12</elem>
       <elem>T34</elem>
       <elem>CHROMO_MAG</elem>
+</annotation>
     </currents>
     <p2_max>0</p2_max>
     <h5_file_name>%(THREE_PT_FILE)s</h5_file_name>
