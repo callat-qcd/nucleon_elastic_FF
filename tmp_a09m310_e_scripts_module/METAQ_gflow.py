@@ -77,10 +77,10 @@ for c in cfgs_run:
     if not os.path.exists(base_dir+'/corrupt'):
         os.makedirs(base_dir+'/corrupt')
 
-    milc_cfg = base_dir+'/production/'+ens+'/cfgs_scidac/'+params['ENS_LONG']+stream+'.'+no+'.scidac'
+    milc_cfg = base_dir+'/cfgs_scidac/'+params['ENS_LONG']+stream+'.'+no+'.scidac'
     cfg_flow = params['ENS_LONG']+stream+'.'+no+'_wflow'+params['FLOW_TIME']
-    cfg_file = base_dir+'/production/'+ens+'/cfgs_flow/'+cfg_flow+'.lime'
-    if not os.path.exists(cfg_file):
+    cfg_file = base_dir+'/cfgs_flow/'+cfg_flow+'.lime'
+    if not os.path.exists(cfg_file) or (os.path.exists(cfg_file) and args.o):
         if os.path.exists(milc_cfg):
             print('making flowed cfg input xml')
             metaq = 'cfg_flow_'+cfg_flow+'.sh'
@@ -110,60 +110,12 @@ for c in cfgs_run:
                 params['OBJ_ID']    = cfg_flow
                 params['OBJ_TYPE']  = 'LatticeColorMatrix'
                 params['LIME_FILE'] = cfg_file
-                fin.write(xml_input.qio_read % params)
+                fin.write(xml_input.qio_write % params)
                 ''' close xml file '''
+                params['CFG_FILE'] = milc_cfg
                 fin.write(xml_input.tail % params)
                 fin.close()
         else:
             print('missing MILC.scidac cfg',milc_cfg)
     else:
         print('flowed cfg exists',cfg_file)
-
-for cs in cfg_srcs:
-    no = cs.split()[0]
-    print(no)
-    #print(no,'x%sy%sz%st%s' %(x0,y0,z0,t0))
-    for d in ['xml','stdout']:
-        if not os.path.exists(base_dir+'/production/'+ens+'/'+d+'/'+no):
-            os.makedirs(base_dir+'/production/'+ens+'/'+d+'/'+no)
-    milc     = base_dir+'/production/'+ens+'/cfgs_scidac/'+milc_case+'.'+no+'.scidac'
-    cfg      = milc_case+'.'+no+'_wflow1.0.lime'
-    cfg_file = base_dir+'/production/'+ens+'/cfgs_flow/'+cfg
-    if not os.path.exists(cfg_file) and os.path.exists(milc):
-        print('  making ',cfg_file)
-        if 'cfgs_scidac' in milc:
-                cfg_type='SCIDAC'
-        else:
-                cfg_type='MILC'
-        params = {'CFG_FLOW':cfg,'CFG_FLOW_FILE':cfg_file,'CFG_FILE':milc,'CFG_TYPE':cfg_type}
-
-        xmlini = base_dir+'/production/'+ens+'/xml/'+no+'/gflow_'+ens+'_gf1.0_'+no+'.ini.xml'
-        metaq  = 'gflow_'+ens+'_'+no+'.sh'
-        metaq_file = metaq_dir+'/'+q+'/cpu/'+metaq
-        task_exist = False
-        task_working = False
-        for m_dir in ['todo/cpu','priority/cpu','hold']:
-            if os.path.exists(metaq_dir+'/'+m_dir+'/'+metaq):
-                task_exist = True
-        task_lst = glob(metaq_dir+'/working/*/*.sh')
-        task_lst += glob(metaq_dir+'/working/*/*/*.sh')
-        for task in task_lst:
-            if metaq == task.split('/')[-1]:
-                task_exist = True
-                task_working = True
-        if not task_exist or (args.o and not task_working):
-            fin = open(xmlini,'w')
-            fin.write(xml_input.gflow % params)
-            fin.close()
-            params = {'XML_IN':xmlini,'XML_OUT':xmlini.replace('.ini.xml','.out.xml'),
-                      'STDOUT':xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/'),
-                      'METAQ_LOG':metaq_dir+'/log/'+metaq.replace('.sh','.log')}
-            m_in = open(metaq_file,'w')
-            m_in.write(metaq_input.gflow % params)
-            m_in.close()
-            os.chmod(metaq_file,0o770)
-    else:
-        if os.path.exists(milc):
-            print('  cfgs_flow exists')
-        elif not os.path.exists(milc):
-            print('  missing ',milc)
