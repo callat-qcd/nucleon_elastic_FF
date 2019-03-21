@@ -55,3 +55,6 @@ params['curr_0p'] = ['T34','T12','CHROMO_MAG']
 params['gflow_time']  = 15
 params['gflow_nodes'] = 1
 params['gflow_gpus']  = 0
+params['src_time']  = 5
+params['src_nodes'] = 1
+params['src_gpus']  = 0

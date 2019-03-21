@@ -24,6 +24,7 @@ params['ENS_S'] = ens_s
 
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
 parser.add_argument('run',nargs='+',type=int,help='start [stop] run number')
+parser.add_argument('-s','--src',type=str)
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('-p',default=False,action='store_const',const=True,\
@@ -116,11 +117,12 @@ for c in cfgs_run:
             if not os.path.exists(base_dir+'/'+d+'/'+no):
                 os.makedirs(base_dir+'/'+d+'/'+no)
         for s0 in srcs[c]:
+            params['SRC'] = s0
             prop_name = prop_base % params
             prop_file = base_dir+'/prop/'+no + '/' + prop_name+'.'+sp_ext
             if not os.path.exists(prop_file):
                 src_name = src_base % params
-                src_file = base_dir+'/src/'+src_file+'.'+sp_ext
+                src_file = base_dir+'/src/'+src_name+'.'+sp_ext
                 if os.path.exists(src_file) and os.path.getsize(src_file) < src_size:
                     now = time.time()
                     file_time = os.stat(src_file).st_mtime
@@ -144,7 +146,7 @@ for c in cfgs_run:
                             task_exist = True
                             task_working = True
                     if not task_exist or (args.o and not task_working):
-                        xmlini = base_dir+'/xml/'+c+'/'+src_name+'.'+'ini.xml'
+                        xmlini = base_dir+'/xml/'+no+'/'+src_name+'.'+'ini.xml'
                         fin = open(xmlini,'w')
                         fin.write(xml_input.head)
                         ''' create source '''
@@ -161,7 +163,6 @@ for c in cfgs_run:
                         params['LIME_FILE'] = src_file
                         fin.write(xml_input.qio_write % params)
                         ''' close xml file '''
-                        params['CFG_FILE'] = milc_cfg
                         fin.write(xml_input.tail % params)
                         fin.close()
                 else:
@@ -171,7 +172,7 @@ for c in cfgs_run:
             else:
                 if args.verbose:
                     print('prop exists',prop_file)
-
+"""
 ''' OLD BELOW '''
 
     s0 = 'x%sy%sz%st%s' %(x0,y0,z0,t0)
@@ -225,3 +226,4 @@ for c in cfgs_run:
             print('  exists:',src_file)
     else:
         print('  prop exists')
+"""
