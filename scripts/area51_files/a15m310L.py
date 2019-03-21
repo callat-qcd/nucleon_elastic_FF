@@ -51,3 +51,7 @@ params['particles'] = ['proton','proton_np']
 params['curr_4d'] = ['A3','V4','A1','A2','A4','V2','V2','V3','P']
 params['curr_p']  = ['A3','V4','A1','A2','A4','V2','V2','V3','P','S']
 params['curr_0p'] = ['T34','T12','CHROMO_MAG']
+
+params['gflow_time']  = 15
+params['gflow_nodes'] = 1
+params['gflow_gpus']  = 0
