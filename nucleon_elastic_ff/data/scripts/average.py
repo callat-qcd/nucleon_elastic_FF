@@ -47,13 +47,15 @@ def get_groups(
     return groups
 
 
-def average_group(
+def average_groups_over_files(
     files: List[str],
     file_replace_pattern: Tuple[str, str],
     group_replace_pattern: Tuple[str, str],
     overwrite: bool = False,
 ):
     """Reads h5 files and exports the average of datasets across files.
+
+    Each group in the file list will be averaged over files.
     """
     dsets = {}
     for file in files:
@@ -80,7 +82,43 @@ def average_group(
                     h5f[avg_address].attrs[f"avg_file_{n}"] = file
 
 
-def average(  # pylint: disable=R0913
+def average_group(
+    file: str,
+    file_replace_pattern: Tuple[str, str],
+    group_replace_pattern: Tuple[str, str],
+    overwrite: bool = False,
+):
+    """Averages over different groups within a file and exports to a new file
+    """
+    avg_dsets = {}
+    avg_meta = {}
+    with h5py.File(file, "r") as h5f:
+        file_dsets = get_dsets(h5f, load_dsets=True)
+
+        for key, val in file_dsets.items():
+            if has_match(key, group_replace_pattern[0]):
+                avg_key = re.sub(group_replace_pattern[0], group_replace_pattern[1], key)
+                if avg_key in avg_dsets:
+                    avg_dsets[avg_key].append(val)
+                    avg_meta[avg_key].append(
+                        re.findall(group_replace_pattern[0], key)[0]
+                    )
+                else:
+                    avg_dsets[avg_key] = [val]
+                    avg_meta[avg_key] = [re.findall(group_replace_pattern[0], key)[0]]
+
+    with h5py.File(
+        re.sub(file_replace_pattern[0], file_replace_pattern[1], file)
+    ) as h5f:
+        for key, val in avg_dsets.items():
+            if has_match(key, ["local_current"]):
+                avg = average_arrays(val)
+                create_dset(h5f, key, avg, overwrite=overwrite)
+                for n, match_string in enumerate(avg_meta[key]):
+                    h5f[key].attrs[f"avg_group_{n}"] = match_string
+
+
+def average_files(  # pylint: disable=R0913
     root: str,
     avg_over_keys: List[str],
     file_locate_pattern: str,
@@ -153,7 +191,7 @@ def average(  # pylint: disable=R0913
     LOGGER.info("Found %d groups", len(groups))
     for group, files in groups.items():
         LOGGER.debug("Averaging over group %s", group)
-        average_group(
+        average_groups_over_files(
             files, file_replace_pattern, group_replace_pattern, overwrite=overwrite
         )
 
@@ -191,7 +229,7 @@ def source_average(  # pylint: disable=R0913
             Overwrite existing sliced files.
 
     """
-    average(
+    average_files(
         root,
         avg_over_keys,
         file_locate_pattern,
@@ -203,7 +241,6 @@ def source_average(  # pylint: disable=R0913
 
 def t0_average(  # pylint: disable=R0913
     root: str,
-    avg_over_keys: Tuple[str] = ("t0",),
     file_locate_pattern: str = "formfac_4D_tslice.*src_avg",
     file_replace_pattern: str = ("src_avg", "src_t0_avg"),
     group_replace_pattern: str = (r"t0_[\+\-0-9]+", "t0_avg"),
@@ -232,11 +269,13 @@ def t0_average(  # pylint: disable=R0913
             Overwrite existing sliced files.
 
     """
-    average(
+    all_files = find_all_files(
         root,
-        avg_over_keys,
-        file_locate_pattern,
-        file_replace_pattern,
-        group_replace_pattern,
-        overwrite=overwrite,
+        file_patterns=[file_locate_pattern + r".*\.h5$", file_replace_pattern[0]],
+        exclude_file_patterns=[file_replace_pattern[1]],
+        match_all=True,
     )
+    for file in all_files:
+        average_group(
+            file, file_replace_pattern, group_replace_pattern, overwrite=overwrite
+        )
