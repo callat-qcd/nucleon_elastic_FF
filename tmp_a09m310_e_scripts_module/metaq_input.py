@@ -1,3 +1,36 @@
+gflow='''#!/bin/bash
+#METAQ NODES %(NODES)s
+#METAQ GPUS %(GPUS)s
+#METAQ MIN_WC_TIME %(WALL_TIME)s
+#METAQ LOG %(METAQ_LOG)s
+#METAQ PROJECT seqsource_%(ENS_S)s
+
+#BSUB -nnodes %(NODES)s
+#BSUB -cn_cu 'maxcus=1'
+#BSUB -P LGT100
+#BSUB -W %(WALL_TIME)s
+#BSUB -alloc_flags smt4
+
+source /ccs/proj/lgt100/c51/software/summit_smpi/install/env.sh
+cd /gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/a09m310_e
+
+ini=%(XML_IN)s
+out=%(XML_OUT)s
+stdout=%(STDOUT)s
+
+export OMP_NUM_THREADS=4
+PROG=$LALIBE_CPU
+APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_bind_cpu.N32.sh
+#jsrun -n1 -r1 -a32 -c32 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
+jsrun --nrs 2 -r2 -a16 -c16 -l cpu-cpu -b packed:smt:4 $PROG -i $ini -o $out > $stdout 2>&1
+
+cd %(SCRIPT_DIR)s
+python METAQ_src.py %(CR)s
+
+sleep 5
+
+'''
+
 prop = '''#!/bin/bash
 #METAQ NODES 0
 #METAQ GPUS 6

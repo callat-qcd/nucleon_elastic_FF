@@ -60,7 +60,12 @@ val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 params['MQ'] = params['MV_L']
 
 base_dir = management.base_dir % params
+
+params['NODES']     = params['gflow_nodes']
+params['GPUS']      = params['gflow_gpus']
+params['WALL_TIME'] = params['gflow_time']
 params['SCRIPT_DIR'] = management.script_dir % params
+
 cfg_dir = base_dir+'/cfgs_flow'
 metaq_dir  = management.metaq_dir
 
@@ -115,6 +120,17 @@ for c in cfgs_run:
                 params['CFG_FILE'] = milc_cfg
                 fin.write(xml_input.tail % params)
                 fin.close()
+
+                ''' Make METAQ task '''
+                params['METAQ_LOG'] = base_dir+'/metaq/log/'+metaq.replace('.sh','.log')
+                params['XML_IN']    = xmlini
+                params['XML_OUT']   = xmlini.replace('.ini.xml','.out.xml')
+                params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
+                params['CR']        = c
+                m_in = open(metaq_file,'w')
+                m_in.write(metaq_input.gflow % params)
+                m_in.close()
+                os.chmod(metaq_file,0o770)
         else:
             print('missing MILC.scidac cfg',milc_cfg)
     else:
