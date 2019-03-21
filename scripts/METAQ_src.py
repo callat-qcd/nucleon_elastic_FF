@@ -80,8 +80,10 @@ print('running ',cfgs_run[0],'-->',cfgs_run[-1])
 
 if args.p:
     q = 'priority'
+    params['PRIORITY'] = '-p'
 else:
     q = 'todo'
+    params['PRIORITY'] = ''
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -165,6 +167,19 @@ for c in cfgs_run:
                         ''' close xml file '''
                         fin.write(xml_input.tail % params)
                         fin.close()
+
+                        ''' Make METAQ task '''
+                        params['METAQ_LOG'] = base_dir+'/metaq/log/'+metaq.replace('.sh','.log')
+                        params['XML_IN']    = xmlini
+                        params['XML_OUT']   = xmlini.replace('.ini.xml','.out.xml')
+                        params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
+                        params['CR']        = c
+
+                        m_in = open(metaq_file,'w')
+                        m_in.write(metaq_input.src % params)
+                        m_in.close()
+                        os.chmod(metaq_file,0o770)
+                        print('    making task:',metaq)
                 else:
                     if args.verbose:
                         print('src exists',src_file)
