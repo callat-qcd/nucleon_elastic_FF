@@ -79,7 +79,7 @@ def parse_file_info(
         r"_"
         r"Nsnk(?P<Nsnk>[0-9]+)"
         r"_"
-        r"x(?P<x>[0-9]+)+y(?P<y>[0-9]+)z(?P<z>[0-9]+)t(?P<t>[0-9]+)"
+        r"(?:x(?P<x>[0-9]+)+y(?P<y>[0-9]+)z(?P<z>[0-9]+)t(?P<t>[0-9]+))|(?P<avg>src_avg)"
         r"_"
         r"(?P<stype>[a-zA-Z]+)"
         r".h5"
