@@ -166,6 +166,33 @@ quda_nef='''<elem>
 
 '''
 
+shell_source='''<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+    <version>1</version>
+    <SourceType>SHELL_SOURCE</SourceType>
+    <j_decay>3</j_decay>
+    <t_srce>%(X0)s %(Y0)s %(Z0)s %(T0)s</t_srce>
+    <SmearingParam>
+        <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+        <wvf_param>%(WF_S)s</wvf_param>
+        <wvfIntPar>%(WF_N)s</wvfIntPar>
+        <no_smear_dir>3</no_smear_dir>
+    </SmearingParam>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>%(SRC_NAME)s</source_id>
+</NamedObject>
+</elem>
+
+'''
+
+
 shell_smearing='''
 <elem>
 <Name>SINK_SMEAR</Name>

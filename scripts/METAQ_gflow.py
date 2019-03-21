@@ -17,7 +17,6 @@ except:
     ens_s,junk = os.getcwd().split('/')[-2]
 ens,stream = ens_s.split('_')
 
-sys.path.append('area51_files')
 area51 = importlib.import_module(ens)
 params = area51.params
 ens_long=params['ENS_LONG']

@@ -196,7 +196,7 @@ for c in cfgs_run:
                                 if metaq == task.split('/')[-1]:
                                     task_exist = True
                                     task_working = True
-                            if not task_exist or (args.o and task_exist and not task_working):
+                            if not task_exist or (args.o and not task_working):
                                 xmlini = base_dir+'/xml/'+c+'/'+seqsrc_name+'.'+'ini.xml'
                                 fin = open(xmlini,'w')
                                 fin.write(xml_input.head)
