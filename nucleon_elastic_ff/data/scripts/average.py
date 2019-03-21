@@ -199,3 +199,44 @@ def source_average(  # pylint: disable=R0913
         group_replace_pattern,
         overwrite=overwrite,
     )
+
+
+def t0_average(  # pylint: disable=R0913
+    root: str,
+    avg_over_keys: Tuple[str] = ("t0",),
+    file_locate_pattern: str = "formfac_4D_tslice.*src_avg",
+    file_replace_pattern: str = ("src_avg", "src_t0_avg"),
+    group_replace_pattern: str = (r"t0_[\+\-0-9]+", "t0_avg"),
+    overwrite: bool = False,
+):
+    """Recursively scans directory for files and averages matches which over specified
+    component.
+
+    The input files must be h5 files (ending with ".h5") and must have `name_input`
+    in their file name. Files which have `name_output` as name are excluded.
+    Also, this routine ignores exporting to files which already exist.
+
+    **Arguments**
+        root: str
+            The directory to look for files.
+
+        file_locate_pattern: str = "formfac_4D_tslice.*src_avg"
+            Files must match this pattern to be submitted for slicing.
+
+        name_output: str = "src_t0_avg"
+            Files must not match this pattern to be submitted for slicing.
+            Also the sliced output files will have the input name replaced by the output
+            name. This also includes directory names.
+
+        overwrite: bool = False
+            Overwrite existing sliced files.
+
+    """
+    average(
+        root,
+        avg_over_keys,
+        file_locate_pattern,
+        file_replace_pattern,
+        group_replace_pattern,
+        overwrite=overwrite,
+    )
