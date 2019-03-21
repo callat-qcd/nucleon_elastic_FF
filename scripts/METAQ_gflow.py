@@ -62,10 +62,11 @@ params['MQ'] = params['MV_L']
 
 base_dir = management.base_dir % params
 
-params['NODES']     = params['gflow_nodes']
-params['GPUS']      = params['gflow_gpus']
-params['WALL_TIME'] = params['gflow_time']
-params['SCRIPT_DIR'] = management.script_dir % params
+params['NODES']      = params['gflow_nodes']
+params['GPUS']       = params['gflow_gpus']
+params['WALL_TIME']  = params['gflow_time']
+params['ENS_DIR']    = management.ens_dir % params
+params['SCRIPT_DIR'] = management.script_dir
 
 cfg_dir = base_dir+'/cfgs_flow'
 metaq_dir  = management.metaq_dir

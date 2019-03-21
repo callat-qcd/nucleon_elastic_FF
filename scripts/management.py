@@ -3,7 +3,8 @@ import time
 
 
 base_dir   = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/%(ENS_S)s'
-script_dir = '/ccs/proj/lgt100/c51/x_files/project_2/production/%(ENS_S)s/scripts'
+ens_dir    = '/ccs/proj/lgt100/c51/x_files/project_2/production/%(ENS_S)s/scripts'
+script_dir = '/ccs/proj/lgt100/c51/x_files/project_2/production/nucleon_elastic_FF/scripts'
 metaq_dir  = '/ccs/proj/lgt100/c51/x_files/project_2/metaq'
 
 src_base       = 'src_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_%(SRC)s'

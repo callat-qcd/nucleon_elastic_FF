@@ -99,7 +99,8 @@ sp_ext    = params['SP_EXTENSION']
 params['NODES']     = params['src_nodes']
 params['GPUS']      = params['src_gpus']
 params['WALL_TIME'] = params['src_time']
-params['SCRIPT_DIR'] = management.script_dir % params
+params['ENS_DIR']    = management.ens_dir % params
+params['SCRIPT_DIR'] = management.script_dir
 
 cfg_dir = base_dir+'/cfgs_flow'
 metaq_dir  = management.metaq_dir

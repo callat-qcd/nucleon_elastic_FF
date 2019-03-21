@@ -82,7 +82,8 @@ val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 params['MQ'] = params['MV_L']
 
 base_dir = management.base_dir % params
-params['SCRIPT_DIR'] = management.script_dir % params
+params['ENS_DIR']    = management.ens_dir % params
+params['SCRIPT_DIR'] = management.script_dir
 cfg_dir = base_dir+'/cfgs_flow'
 metaq_dir  = management.metaq_dir
 

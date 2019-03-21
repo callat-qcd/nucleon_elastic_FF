@@ -24,8 +24,8 @@ APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_bi
 #jsrun -n1 -r1 -a32 -c32 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
 jsrun --nrs 2 -r2 -a16 -c16 -l cpu-cpu -b packed:smt:4 $PROG -i $ini -o $out > $stdout 2>&1
 
-cd %(SCRIPT_DIR)s
-python METAQ_src.py %(CR)s %(PRIORITY)s
+cd %(ENS_DIR)s
+python %(SCRIPT_DIR)s/METAQ_src.py %(CR)s %(PRIORITY)s
 
 sleep 5
 
@@ -57,8 +57,8 @@ APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_bi
 #jsrun -n1 -r1 -a32 -c32 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
 jsrun --nrs 2 -r2 -a16 -c16 -l cpu-cpu -b packed:smt:4 $PROG -i $ini -o $out > $stdout 2>&1
 
-cd %(SCRIPT_DIR)s
-python METAQ_prop.py %(CR)s -s %(SRC)s %(PRIORITY)s
+cd %(ENS_DIR)s
+python %(SCRIPT_DIR)s/METAQ_prop.py %(CR)s -s %(SRC)s %(PRIORITY)s
 
 sleep 5
 
@@ -127,8 +127,8 @@ APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_bi
 #jsrun -n1 -r1 -a32 -c32 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
 jsrun --nrs 2 -r2 -a16 -c16 -l cpu-cpu -b packed:smt:4 $PROG -i $ini -o $out > $stdout 2>&1
 
-cd %(SCRIPT_DIR)s
-python METAQ_coherent_seqprop.py %(CR)s %(T_SEP)s %(PRIORITY)s
+cd %(ENS_DIR)s
+python %(SCRIPT_DIR)s/METAQ_coherent_seqprop.py %(CR)s %(T_SEP)s %(PRIORITY)s
 
 '''
 
@@ -163,8 +163,8 @@ APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_gp
 #jsrun -n1 -r1 -a6 -g6 -c6 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
 jsrun -n1 -r1 -a6 -g6 -c6 -l gpu-cpu -b packed:smt:4 $APP $PROG -i $ini -o $out > $stdout 2>&1
 
-cd %(SCRIPT_DIR)s
-python METAQ_coherent_formfac.py %(CR)s -t %(T_SEP)s %(PRIORITY)s
+cd %(ENS_DIR)s
+python %(SCRIPT_DIR)s/METAQ_coherent_formfac.py %(CR)s -t %(T_SEP)s %(PRIORITY)s
 
 '''
 

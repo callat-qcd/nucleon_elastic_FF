@@ -2,6 +2,9 @@ from __future__ import print_function
 import os, sys
 from glob import glob
 import argparse
+
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 import xml_input
 import metaq_input
 import importlib
@@ -9,9 +12,9 @@ import management
 import sources
 
 try:
-    ens_s = os.getcwd().split('/')[-3]
+    ens_s = os.getcwd().split('/')[-2]
 except:
-    ens_s,junk = os.getcwd().split('/')[-3]
+    ens_s,junk = os.getcwd().split('/')[-2]
 ens,stream = ens_s.split('_')
 
 sys.path.append('area51_files')
@@ -90,7 +93,8 @@ else:
 params['PRIORITY'] = priority
 
 base_dir = management.base_dir % params
-params['SCRIPT_DIR'] = management.script_dir % params
+params['ENS_DIR']    = management.ens_dir % params
+params['SCRIPT_DIR'] = management.script_dir
 cfg_dir = base_dir+'/cfgs_flow'
 metaq_dir  = management.metaq_dir
 
