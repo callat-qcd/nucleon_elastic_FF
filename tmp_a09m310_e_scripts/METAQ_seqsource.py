@@ -21,7 +21,7 @@ parser.add_argument('-o',default=False,action='store_const',const=True,\
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
     help='run DEBUG? [%(default)s]')
-parser.add_argument('-p','--priority',type=str,default='todo',help='put task in priority? [%(default)s]')
+parser.add_argument('-p','--priority',default=False,action='store_const',const=True,help='put task in priority? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
 args = parser.parse_args()
@@ -68,6 +68,13 @@ params = {
     'M5':M5,'L5':L5,'B5':b5,'C5':c5,'MQ':mq,
     'MAX_ITER':max_iter,'RSD_TARGET':rsd_target,'Q_DELTA':delta,'RSD_TOL':rsd_tol,
     'WF_S':wf_s,'WF_N':wf_n}
+if args.priority:
+    q = 'priority'
+    priority = '-p'
+else:
+    q = 'todo'
+    priority = ''
+params['PRIORITY'] = priority
 
 base_dir = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/'+ens
 params['SCRIPT_DIR'] = '/ccs/proj/lgt100/c51/x_files/project_2/production/'+ens+'/scripts'
@@ -76,7 +83,7 @@ metaq_run_dir  = '/ccs/proj/lgt100/c51/x_files/project_2/metaq'
 metaq_dir = metaq_run_dir
 
 if args.t_sep == None:
-    t_seps  = [3,4,5,6,7,8,9,10,11,12]
+    t_seps  = [3,4,5,6,7,8,9,10,11,12,13,14]
 else:
     t_seps = args.t_sep
 flavs = ['UU','DD']
@@ -184,7 +191,7 @@ for c in cfgs:
                         if not have_seqsrc:
                             seqsrc_name = seqsrc_base %{'PARTICLE':particles[0],'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
                             metaq  = seqsrc_name+'.sh'
-                            metaq_file = metaq_dir +'/'+args.priority+'/cpu/'+'/'+metaq
+                            metaq_file = metaq_dir +'/'+q+'/cpu/'+'/'+metaq
                             task_exist = False
                             task_working = False
                             if os.path.exists(metaq_file):
@@ -244,7 +251,7 @@ for c in cfgs:
                                 params['XML_OUT'] = xmlini.replace('.ini.xml','.out.xml')
                                 params['STDOUT'] = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                                 params['CR'] = c
-                                params['T_SEP'] = ''
+                                params['M_T_SEP'] = ''#'-t '+str(dt_int)
 
                                 m_in = open(metaq_file,'w')
                                 m_in.write(metaq_input.seqsource % params)

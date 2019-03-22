@@ -82,7 +82,7 @@ metaq_run_dir  = '/ccs/proj/lgt100/c51/x_files/project_2/metaq'
 metaq_dir = metaq_run_dir
 
 if args.t_sep == None:
-    t_seps  = [3,4,5,6,7,8,9,10,11,12]
+    t_seps  = [3,4,5,6,7,8,9,10,11,12,13,14]
 else:
     t_seps = args.t_sep
 flavs = ['UU','DD']
@@ -198,6 +198,7 @@ for c in cfgs:
                         print('    missing:',seqprop_file)
                         all_seqprops=False
                         have_all_seqprops=False
+            #print('all_seqprops',all_seqprops)
             if all_seqprops:
                 ''' loop over srcs '''
                 for s0 in srcs[c]:
