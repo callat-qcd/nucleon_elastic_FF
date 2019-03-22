@@ -107,6 +107,8 @@ prop_xml_base = management.prop_xml_base
 spec_base     = management.spec_base
 sp_ext        = params['SP_EXTENSION']
 prop_size     = nt* nl**3 * 3**2 * 4**2 * 2 * 4
+'''            spin*par* vol       * comp * dbl '''
+spec_size_4D  = 2 * 2 * nt * nl**3 * 2 * 8
 
 for c in cfgs_run:
     no = str(c)
@@ -133,7 +135,15 @@ for c in cfgs_run:
             spec_name = spec_base % params
             spec_file = base_dir+'/spec/'+no+'/'+spec_name+'.h5'
             spec_file_4D = spec_file.replace('spec_','spec_4D_').replace('/spec/','/spec_4D/')
-            if not os.path.exists(spec_file):
+            if os.path.exists(spec_file_4D) and os.path.getsize(spec_file_4D) < spec_size_4D:
+                now = time.time()
+                file_time = os.stat(spec_file_4D).st_mtime
+                if (now-file_time)/60 > time_delete:
+                    print('DELETING BAD SPEC',os.path.getsize(spec_file_4D),spec_file_4D.split('/')[-1])
+                    shutil.move(spec_file_4D,spec_file_4D.replace('spec_4D/'+no+'/','corrupt/'))
+                    if os.path.exists(spec_file):
+                        shutil.move(spec_file,spec_file.replace('spec/'+no+'/','corrupt/'))
+            if not os.path.exists(spec_file) and not os.path.exists(spec_file_4D):
                 prop_name = prop_base % params
                 prop_file = base_dir+'/prop/'+no + '/' + prop_name+'.'+sp_ext
                 if os.path.exists(prop_file) and os.path.getsize(prop_file) < prop_size:

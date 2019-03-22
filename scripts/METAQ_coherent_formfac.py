@@ -208,7 +208,7 @@ for c in cfgs_run:
                         file_time = os.stat(coherent_formfac_file_4D).st_mtime
                         if (now-file_time)/60 > time_delete:
                             print('DELETING BAD COHERENT_FF',os.path.getsize(coherent_formfac_file_4D),coherent_formfac_file_4D.split('/')[-1])
-                            shutil.move(coherent_formfac_file_4D,coherent_formfac_file_4D.replace('formfac/'+no+'/','corrupt/'))
+                            shutil.move(coherent_formfac_file_4D,coherent_formfac_file_4D.replace('formfac_4D/'+no+'/','corrupt/'))
                             shutil.move(coherent_formfac_file,coherent_formfac_file.replace('formfac/'+no+'/','corrupt/'))
                             #sys.exit()
                     if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
