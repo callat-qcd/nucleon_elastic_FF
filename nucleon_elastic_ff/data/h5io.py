@@ -102,7 +102,12 @@ def create_dset(h5f: h5py.File, key: str, data: Any, overwrite: bool = False):
 
 
 def assert_h5files_equal(
-    actual: str, expected: str, atol: float = 1.0e-7, rtol: float = 1.0e-7
+    actual: str,
+    expected: str,
+    atol: float = 1.0e-7,
+    rtol: float = 1.0e-7,
+    group_actual: Optional[str] = None,
+    group_expected: Optional[str] = None,
 ):
     """Reads to HDF5 files, compares if they have equal datasets.
 
@@ -124,10 +129,18 @@ def assert_h5files_equal(
             If datasets are different (e.g., not present or actual data is different.)
     """
     with h5py.File(actual, "r") as h5f_a:
-        dsets_a = get_dsets(h5f_a, load_dsets=False)
+        dsets_a = (
+            get_dsets(h5f_a, load_dsets=False)
+            if group_actual is None
+            else {group_actual: h5f_a[group_actual]}
+        )
 
         with h5py.File(expected, "r") as h5f_e:
-            dsets_e = get_dsets(h5f_e, load_dsets=False)
+            dsets_e = (
+                get_dsets(h5f_e, load_dsets=False)
+                if group_expected is None
+                else {group_expected: h5f_e[group_expected]}
+            )
 
             actual_keys = set(dsets_a.keys())
             expected_keys = set(dsets_e.keys())

@@ -21,6 +21,18 @@ PARSER.add_argument(
     default=1.0e-7,
     help="Absolute comparison difference (default = [%(default)s]).",
 )
+PARSER.add_argument(
+    "--group-actual",
+    type=str,
+    default=None,
+    help="Group of actual file to use for comparison (if None compare all).",
+)
+PARSER.add_argument(
+    "--group-expected",
+    type=str,
+    default=None,
+    help="Group of expected file to use for comparison (if None compare all).",
+)
 
 
 def main():
@@ -28,7 +40,14 @@ def main():
     """
     args = PARSER.parse_args()
 
-    assert_h5files_equal(args.actual, args.expected, atol=args.atol, rtol=args.rtol)
+    assert_h5files_equal(
+        args.actual,
+        args.expected,
+        atol=args.atol,
+        rtol=args.rtol,
+        group_actual=args.group_actual,
+        group_expected=args.group_expected,
+    )
     print("[+] Files are equal!")
 
 
