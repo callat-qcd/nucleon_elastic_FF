@@ -338,18 +338,6 @@ lalibe_formfac='''<elem>
     <j_decay>3</j_decay>
     <currents>
 %(CURR_P)s
-<annotation>
-        <elem>S</elem>
-        <elem>P</elem>
-        <elem>V1</elem>
-        <elem>V2</elem>
-        <elem>V3</elem>
-        <elem>V4</elem>
-        <elem>A1</elem>
-        <elem>A2</elem>
-        <elem>A3</elem>
-        <elem>A4</elem>
-</annotation>
     </currents>
     <mom_list>
         <elem>0 0 0</elem>
@@ -416,18 +404,6 @@ lalibe_formfac='''<elem>
     <j_decay>3</j_decay>
     <currents>
 %(CURR_4D)s
-<annotation>
-        <elem>S</elem>
-        <elem>P</elem>
-        <elem>V1</elem>
-        <elem>V2</elem>
-        <elem>V3</elem>
-        <elem>V4</elem>
-        <elem>A1</elem>
-        <elem>A2</elem>
-        <elem>A3</elem>
-        <elem>A4</elem>
-</annotation>
     </currents>
     <h5_file_name>%(THREE_PT_FILE_4D)s</h5_file_name>
     <path>/</path>
@@ -467,11 +443,6 @@ lalibe_formfac='''<elem>
     <j_decay>3</j_decay>
     <currents>
 %(CURR_0P)s
-<annotation>
-      <elem>T12</elem>
-      <elem>T34</elem>
-      <elem>CHROMO_MAG</elem>
-</annotation>
     </currents>
     <p2_max>0</p2_max>
     <h5_file_name>%(THREE_PT_FILE)s</h5_file_name>
