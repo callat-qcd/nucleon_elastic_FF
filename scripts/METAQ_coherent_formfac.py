@@ -9,9 +9,9 @@ import management
 import sources
 
 try:
-    ens_s = os.getcwd().split('/')[-3]
+    ens_s = os.getcwd().split('/')[-2]
 except:
-    ens_s,junk = os.getcwd().split('/')[-3]
+    ens_s,junk = os.getcwd().split('/')[-2]
 ens,stream = ens_s.split('_')
 
 sys.path.append('area51_files')
