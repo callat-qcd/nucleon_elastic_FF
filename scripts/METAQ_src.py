@@ -96,8 +96,8 @@ src_size  = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
 prop_base = management.prop_base
 sp_ext    = params['SP_EXTENSION']
 
-params['NODES']     = params['src_nodes']
-params['GPUS']      = params['src_gpus']
+params['NODES']     = params['cpu_nodes']
+params['GPUS']      = params['cpu_gpus']
 params['WALL_TIME'] = params['src_time']
 params['ENS_DIR']    = management.ens_dir % params
 params['SCRIPT_DIR'] = management.script_dir
