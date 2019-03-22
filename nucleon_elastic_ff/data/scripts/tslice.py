@@ -14,9 +14,10 @@ from nucleon_elastic_ff.data.h5io import get_dsets
 from nucleon_elastic_ff.data.h5io import create_dset
 
 from nucleon_elastic_ff.data.parsing import parse_t_info
+from nucleon_elastic_ff.data.parsing import parse_file_info
 
 from nucleon_elastic_ff.data.arraymanip import slice_array
-
+from nucleon_elastic_ff.data.arraymanip import shift_array
 
 LOGGER = set_up_logger("nucleon_elastic_ff")
 
@@ -27,7 +28,7 @@ def tslice(
     name_output: str = "formfac_4D_tslice",
     overwrite: bool = False,
 ):
-    """Recursively scans directory for files and slices matches in time direction.
+    """Recursively scans dir for files, slices in time and shifts in all directions.
 
     The input files must be h5 files (ending with ".h5") and must have `name_input`
     in their file name. Files which have `name_output` as name are excluded.
@@ -127,6 +128,10 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
 
                     slice_index = get_t_slices(**t_info)
                     out = slice_array(dset[()], slice_index)
+
+                    info = parse_file_info(file_address_in, convert_numeric=True)
+                    for axis, key in enumerate(["x", "y", "z"]):
+                        out = shift_array(out, -info[key], axis=axis + 1)
 
                 else:
                     out = dset[()]
