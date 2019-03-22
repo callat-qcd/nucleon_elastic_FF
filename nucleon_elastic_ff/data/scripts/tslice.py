@@ -130,7 +130,7 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
                     out = slice_array(dset[()], slice_index)
 
                     info = parse_file_info(file_address_in, convert_numeric=True)
-                    for axis, key in enumerate(["x", "y", "z"]):
+                    for axis, key in enumerate(["z", "y", "x"]):
                         out = shift_array(out, -info[key], axis=axis + 1)
 
                 else:
