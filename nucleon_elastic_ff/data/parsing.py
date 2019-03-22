@@ -6,6 +6,9 @@ from typing import Dict
 
 import re
 
+from nucleon_elastic_ff.utilities import set_up_logger
+
+LOGGER = set_up_logger("nucleon_elastic_ff")
 
 def parse_t_info(string: str) -> Dict[str, int]:
     """Extract `t0` and `tsep` info from string.
@@ -89,8 +92,10 @@ def parse_file_info(
         raise ValueError("Was not able to parse file name `%s`." % filename)
 
     info = {}
+    LOGGER.debug("Parsing info of `%s`", filename)
     for key, val in match.groupdict().items():
-        if key in ["stype", "type", "stream"]:
+        LOGGER.debug("%s == %s", key, val)
+        if key in ["stype", "type", "stream", "avg"]:
             info[key] = val
         elif key in [
             "cfg",
