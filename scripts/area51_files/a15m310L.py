@@ -42,6 +42,9 @@ params['N_SEQ'] = 2*len(params['t_shifts']) #2 * t_shifts
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['prop_time_delete'] = 10
 
+params['MESONS_PSQ_MAX']  = 5
+params['BARYONS_PSQ_MAX'] = 5
+
 params['t_seps']  = [2,3,4,5,6,7,8,9,10]
 params['flavs']   = ['UU','DD']
 params['spins']   = ['up_up','dn_dn']
@@ -52,9 +55,12 @@ params['curr_4d'] = ['A3','V4','A1','A2','A4','V2','V2','V3','P']
 params['curr_p']  = ['A3','V4','A1','A2','A4','V2','V2','V3','P','S']
 params['curr_0p'] = ['T34','T12','CHROMO_MAG']
 
+params['cpu_nodes'] = 1
+params['cpu_gpus']  = 0
 params['gflow_time']  = 15
-params['gflow_nodes'] = 1
-params['gflow_gpus']  = 0
 params['src_time']  = 5
-params['src_nodes'] = 1
-params['src_gpus']  = 0
+params['spec_time'] = 10
+
+params['gpu_nodes'] = 0
+params['gpu_gpus']  = 6
+params['prop_time'] = 10

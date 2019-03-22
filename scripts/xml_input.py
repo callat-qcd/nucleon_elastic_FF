@@ -220,6 +220,44 @@ shell_smearing='''
 
 '''
 
+meson_spec='''<elem>
+<Name>MESON_CONTRACTIONS</Name>
+<MesonParams>
+<p2_max>%(MESONS_PSQ_MAX)s</p2_max>
+<particle_list>
+    <elem>piplus</elem>
+</particle_list>
+<h5_file_name>%(SPEC_FILE)s</h5_file_name>
+<obj_path>/%(H5_PATH)s</obj_path>
+</MesonParams>
+  <NamedObject>
+   <up_quark>%(UP_QUARK)s</up_quark>
+   <down_quark>%(DN_QUARK)s</down_quark>
+  </NamedObject>
+</elem>
+
+'''
+
+baryon_spec = '''  <elem>
+<Name>BARYON_CONTRACTIONS</Name>
+<Frequency>1</Frequency>
+<BaryonParams>
+    <ng_parity>true</ng_parity>
+    <h5_file_name>%(SPEC_FILE)s</h5_file_name>
+    <path>/%(H5_PATH)s</path>
+%(MOM)s
+    <particle_list>
+        <elem>proton</elem>
+    </particle_list>
+</BaryonParams>
+<NamedObject>
+    <up_quark>%(UP_QUARK)s</up_quark>
+    <down_quark>%(DN_QUARK)s</down_quark>
+</NamedObject>
+</elem>
+
+'''
+
 lalibe_seqsource='''<elem>
     <Name>LALIBE_SEQSOURCE</Name>
     <Frequency>1</Frequency>

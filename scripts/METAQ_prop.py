@@ -93,6 +93,9 @@ else:
 params['PRIORITY'] = priority
 
 base_dir = management.base_dir % params
+params['NODES']      = params['gpu_nodes']
+params['GPUS']       = params['gpu_gpus']
+params['WALL_TIME']  = params['prop_time']
 params['ENS_DIR']    = management.ens_dir % params
 params['SCRIPT_DIR'] = management.script_dir
 cfg_dir = base_dir+'/cfgs_flow'
@@ -160,7 +163,7 @@ for c in cfgs_run:
                             if metaq == task.split('/')[-1]:
                                 task_exist = True
                                 task_working = True
-                        if not task_exist or (args.o and task_exist and not task_working):
+                        if not task_exist or (args.o and not task_working):
                             xmlini = base_dir+'/xml/'+no+'/'+(prop_xml_base %params)+'.ini.xml'
                             fin = open(xmlini,'w')
                             fin.write(xml_input.head)
