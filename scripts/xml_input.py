@@ -245,7 +245,7 @@ baryon_spec = '''  <elem>
     <ng_parity>true</ng_parity>
     <h5_file_name>%(SPEC_FILE)s</h5_file_name>
     <path>/%(H5_PATH)s</path>
-%(MOM)s
+%(BARYON_MOM)s
     <particle_list>
         <elem>proton</elem>
     </particle_list>

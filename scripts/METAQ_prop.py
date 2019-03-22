@@ -129,7 +129,7 @@ for c in cfgs_run:
             if args.verbose:
                 print(c,s0)
             spec_name = spec_base % params
-            spec_file = base_dir+'/spectrum/'+no+'/'+spec_name+'.h5'
+            spec_file = base_dir+'/spec/'+no+'/'+spec_name+'.h5'
             if not os.path.exists(spec_file) or args.force:
                 prop_name = prop_base % params
                 prop_file = base_dir+'/prop/'+no+'/'+prop_name+'.'+sp_ext
@@ -203,7 +203,7 @@ for c in cfgs_run:
                             if os.path.exists(spec_file):
                                 params['CLEANUP'] += ''
                             else:
-                                params['CLEANUP'] += 'python %s/METAQ_spec.py %s -s %s' %(params['SCRIPT_DIR'],no,priority)
+                                params['CLEANUP'] += 'python %s/METAQ_spec.py %s -s %s %s' %(params['SCRIPT_DIR'],no,s0,priority)
 
                             m_in = open(metaq_file,'w')
                             m_in.write(metaq_input.prop % params)
