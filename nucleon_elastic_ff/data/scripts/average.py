@@ -181,6 +181,8 @@ def average_files(  # pylint: disable=R0913
         len(all_files),
         " " if overwrite else " (and do not exist)",
     )
+    for file in all_files:
+        LOGGER.info("-> %s", file)
 
     LOGGER.info(
         "Now averaging over files which have same pars besides their values for `%s`",
@@ -190,7 +192,7 @@ def average_files(  # pylint: disable=R0913
     groups = get_groups(all_files, avg_over_keys)
     LOGGER.info("Found %d groups", len(groups))
     for group, files in groups.items():
-        LOGGER.debug("Averaging over group %s", group)
+        LOGGER.info("Averaging over group %s", group)
         average_groups_over_files(
             files, file_replace_pattern, group_replace_pattern, overwrite=overwrite
         )
