@@ -196,12 +196,11 @@ for c in cfgs_run:
                             params['XML_OUT']   = xmlini.replace('.ini.xml','.out.xml')
                             params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                             params['CR']        = c
+                            params['CLEANUP']  = 'cd '+params['ENS_DIR']+'\n'
                             if os.path.exists(spec_file):
-                                params['CLEANUP']  = ''
+                                params['CLEANUP'] += ''
                             else:
-                                params['CLEANUP']  = 'cd '+params['SCRIPT_DIR']+'\n'
-                                params['CLEANUP'] += 'python METAQ_spec.py %s -s %s'
-
+                                params['CLEANUP'] += 'python %s/METAQ_spec.py %s -s %s' %(params['SCRIPT_DIR'],no,priority)
 
                             m_in = open(metaq_file,'w')
                             m_in.write(metaq_input.prop % params)
