@@ -201,9 +201,11 @@ for c in cfgs_run:
                             params['CR']        = c
                             params['CLEANUP']  = 'cd '+params['ENS_DIR']+'\n'
                             if os.path.exists(spec_file):
-                                params['CLEANUP'] += ''
+                                params['CLEANUP'] += '\n'
                             else:
-                                params['CLEANUP'] += 'python %s/METAQ_spec.py %s -s %s %s' %(params['SCRIPT_DIR'],no,s0,priority)
+                                params['CLEANUP'] += 'python %s/METAQ_spec.py %s -s %s %s\n' %(params['SCRIPT_DIR'],no,s0,priority)
+                            if params['run_3pt']:
+                                params['CLEANUP'] += 'python %s/METAQ_seqsource.py %s -s %s %s\n' %(params['SCRIPT_DIR'],no,s0,priority)
 
                             m_in = open(metaq_file,'w')
                             m_in.write(metaq_input.prop % params)
@@ -217,7 +219,7 @@ for c in cfgs_run:
                         if args.verbose:
                             print('    src missing',src_file)
                         print('python METAQ_src.py %s -s %s %s -v' %(c,s0,priority))
-                        #os.system('python METAQ_src.py %s -s %s %s -v' %(c,s0,priority))
+                        os.system('python %s/METAQ_src.py %s -s %s %s -v' %(params['SCRIPT_DIR'],c,s0,priority))
                 else:
                     if args.verbose:
                         print('    prop exists',prop_file)

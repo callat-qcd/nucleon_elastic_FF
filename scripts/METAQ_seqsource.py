@@ -2,6 +2,9 @@ from __future__ import print_function
 import os, sys, time, shutil
 from glob import glob
 import argparse
+
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 import xml_input
 import metaq_input
 import importlib
@@ -21,7 +24,7 @@ ens_long=params['ENS_LONG']
 params['ENS_S'] = ens_s
 
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('run',nargs='+',type=int,help='start [stop] run cfg number')
+parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] run cfg number')
 parser.add_argument('-s','--src',type=str)
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
@@ -39,16 +42,16 @@ print('')
 ''' time in minutes to define "old" file '''
 time_delete = params['prop_time_delete']
 
-ri = args.run[0]
-if len(args.run) == 1:
+ri = args.cfgs[0]
+if len(args.cfgs) == 1:
     rf = ri+1
     dr = 1
-elif len(args.run) == 2:
-    rf = args.run[1]+1
+elif len(args.cfgs) == 2:
+    rf = args.cfgs[1]+1
     dr = 1
 else:
-    rf = args.run[1]+1
-    dr = args.run[2]
+    rf = args.cfgs[1]+1
+    dr = args.cfgs[2]
 cfgs_run = range(ri,rf,dr)
 
 ''' BUILD SRC DICTIONARY '''
@@ -159,6 +162,7 @@ for c in cfgs_run:
         if not have_3pts:
             # loop over props to make a time-dense seqsource for each prop
             for s0 in srcs[c]:
+                params['SRC'] = s0
                 prop_name = prop_base % params
                 prop_file = base_dir+'/prop/'+no + '/' + prop_name+'.'+sp_ext
                 if os.path.exists(prop_file):
@@ -167,21 +171,24 @@ for c in cfgs_run:
                         params['FLAV']=flav
                         params['SOURCE_SPIN']=snk_spin
                         params['SINK_SPIN']=src_spin
+                        params['FLAV_SPIN']=fs
                         spin = snk_spin+'_'+src_spin
                         have_seqsrc = True
                         for particle in particles:
-                            seqsrc_name = seqsrc_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
-                            seqsrc_file  = base_dir+'/seqsrc/'+c+'/'+seqsrc_name+'.'+sp_ext
+                            params['PARTICLE']=particle
+                            seqsrc_name = seqsrc_base %params
+                            seqsrc_file  = base_dir+'/seqsrc/'+no+'/'+seqsrc_name+'.'+sp_ext
                             if os.path.exists(seqsrc_file) and os.path.getsize(seqsrc_file) < seqsrc_size:
                                 now = time.time()
                                 file_time = os.stat(seqsrc_file).st_mtime
                                 if (now-file_time)/60 > time_delete:
                                     print('DELETING BAD SINK',os.path.getsize(seqsrc_file),seqsrc_file.split('/')[-1])
-                                    shutil.move(seqsrc_file,seqsrc_file.replace('seqsrc/'+c,'corrupt'))
+                                    shutil.move(seqsrc_file,seqsrc_file.replace('seqsrc/'+no,'corrupt'))
                             if not os.path.exists(seqsrc_file):
                                 have_seqsrc = False
                         if not have_seqsrc:
-                            seqsrc_name = seqsrc_base %{'PARTICLE':particles[0],'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
+                            params['PARTICLE'] = particles[0]
+                            seqsrc_name = seqsrc_base %params
                             metaq  = seqsrc_name+'.sh'
                             metaq_file = metaq_dir +'/'+q+'/cpu/'+'/'+metaq
                             task_exist = False
@@ -198,7 +205,7 @@ for c in cfgs_run:
                                     task_exist = True
                                     task_working = True
                             if not task_exist or (args.o and not task_working):
-                                xmlini = base_dir+'/xml/'+c+'/'+seqsrc_name+'.'+'ini.xml'
+                                xmlini = base_dir+'/xml/'+no+'/'+seqsrc_name+'.'+'ini.xml'
                                 fin = open(xmlini,'w')
                                 fin.write(xml_input.head)
                                 ''' read prop '''
@@ -213,7 +220,7 @@ for c in cfgs_run:
                                 params['PROP_NAME']   = prop_name
                                 fin.write(xml_input.qio_read % params)
                                 ''' do smearing if need be '''
-                                if SS_PS == 'SS':
+                                if params['SS_PS'] == 'SS':
                                     params['SMEARED_PROP'] = prop_name+'_SS'
                                     fin.write(xml_input.shell_smearing % params)
                                     params['UP_QUARK']=prop_name+'_SS'
@@ -224,8 +231,8 @@ for c in cfgs_run:
 
                                 for particle in particles:
                                     params['PARTICLE'] = particle
-                                    params['SEQSOURCE'] = seqsrc_base %{'PARTICLE':particle,'FLAV_SPIN':fs,'CFG':c,'SRC':s0}
-                                    seqsrc_file  = base_dir+'/seqsrc/'+c+'/'+params['SEQSOURCE']+'.'+sp_ext
+                                    params['SEQSOURCE'] = seqsrc_base %params
+                                    seqsrc_file  = base_dir+'/seqsrc/'+no+'/'+params['SEQSOURCE']+'.'+sp_ext
                                     if not os.path.exists(seqsrc_file):
                                         ''' make seqsource '''
                                         fin.write(xml_input.lalibe_seqsource % params)
@@ -238,7 +245,7 @@ for c in cfgs_run:
                                 fin.close()
 
                                 ''' Make METAQ task '''
-                                params['METAQ_LOG'] = metaq_run_dir+'/log/'+metaq.replace('.sh','.log')
+                                params['METAQ_LOG'] = metaq_dir+'/log/'+metaq.replace('.sh','.log')
                                 params['XML_IN'] = xmlini
                                 params['XML_OUT'] = xmlini.replace('.ini.xml','.out.xml')
                                 params['STDOUT'] = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
@@ -256,7 +263,7 @@ for c in cfgs_run:
                 else:
                     print('    missing',prop_file)
                     print('python METAQ_prop.py %s -s %s --force' %(c,s0))
-                    os.system('python METAQ_prop.py %s -s %s --force' %(c,s0))
+                    os.system('python %s/METAQ_prop.py %s -s %s --force' %(params['SCRIPT_DIR'],c,s0))
                     #sys.exit()
         else:
             print('    coherent_formfacs exist')

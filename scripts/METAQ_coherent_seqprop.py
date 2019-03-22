@@ -2,6 +2,9 @@ from __future__ import print_function
 import os, sys, time, shutil
 from glob import glob
 import argparse
+
+sys.path.append(os.path.join(os.path.dirname(__file__)))
+sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 import xml_input
 import metaq_input
 import importlib
@@ -21,7 +24,7 @@ ens_long=params['ENS_LONG']
 params['ENS_S'] = ens_s
 
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('run',nargs='+',type=int,help='start [stop] run cfg number')
+parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] run cfg number')
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
@@ -38,16 +41,16 @@ print('')
 ''' time in minutes to define "old" file '''
 time_delete = params['prop_time_delete']
 
-ri = args.run[0]
-if len(args.run) == 1:
+ri = args.cfgs[0]
+if len(args.cfgs) == 1:
     rf = ri+1
     dr = 1
-elif len(args.run) == 2:
-    rf = args.run[1]+1
+elif len(args.cfgs) == 2:
+    rf = args.cfgs[1]+1
     dr = 1
 else:
-    rf = args.run[1]+1
-    dr = args.run[2]
+    rf = args.cfgs[1]+1
+    dr = args.cfgs[2]
 cfgs_run = range(ri,rf,dr)
 
 ''' BUILD SRC DICTIONARY '''
@@ -272,7 +275,7 @@ for c in cfgs_run:
                     print('    3pt corr exists:',coherent_formfac_file)
         if not have_seqsrc and not have_all_3pts:
             print('python METAQ_seqsource.py %s -v' %(c))
-            os.system('python METAQ_seqsource.py %s %s -v' %(c,priority))
+            os.system('python %s/METAQ_seqsource.py %s %s -v' %(params['SCRIPT_DIR'],c,priority))
 
     else:
         if not os.path.exists(cfg_file):

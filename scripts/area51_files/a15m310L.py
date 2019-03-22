@@ -45,6 +45,7 @@ params['prop_time_delete'] = 10
 params['MESONS_PSQ_MAX']  = 5
 params['BARYONS_PSQ_MAX'] = 5
 
+params['run_3pt'] = True
 params['t_seps']  = [2,3,4,5,6,7,8,9,10]
 params['flavs']   = ['UU','DD']
 params['spins']   = ['up_up','dn_dn']
