@@ -94,7 +94,7 @@ export OMP_NUM_THREADS=4
 PROG="$LALIBE_GPU -geom 1 1 1 6"
 APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_gpu_bind.sh
 #jsrun -n1 -r1 -a6 -g6 -c6 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
-jsrun -n1 -r1 -a6 -g6 -c6 -l gpu-cpu -b packed:smt:4 $APP $PROG -i $ini -o $out > $stdout 2>&1
+jsrun -n1 -r1 -a6 -g6 -c6 -l gpu-cpu -b packed:smt:4 $PROG -i $ini -o $out > $stdout 2>&1
 
 %(CLEANUP)s
 
@@ -190,7 +190,7 @@ export OMP_NUM_THREADS=4
 PROG="$LALIBE_GPU -geom 1 1 1 6"
 APP=/ccs/proj/lgt100/c51/software/callat_build_scripts/binding_scripts/summit_gpu_bind.sh
 #jsrun -n1 -r1 -a6 -g6 -c6 -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
-jsrun -n1 -r1 -a6 -g6 -c6 -l gpu-cpu -b packed:smt:4 $APP $PROG -i $ini -o $out > $stdout 2>&1
+jsrun -n1 -r1 -a6 -g6 -c6 -l gpu-cpu -b packed:smt:4 $PROG -i $ini -o $out > $stdout 2>&1
 
 cd %(ENS_DIR)s
 python %(SCRIPT_DIR)s/METAQ_coherent_formfac.py %(CR)s -t %(T_SEP)s %(PRIORITY)s

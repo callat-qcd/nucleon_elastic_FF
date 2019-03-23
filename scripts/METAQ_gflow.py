@@ -50,8 +50,10 @@ cfgs_run = range(ri,rf,dr)
 
 if args.p:
     q = 'priority'
+    params['PRIORITY'] = '-p'
 else:
     q = 'todo'
+    params['PRIORITY'] = ''
 
 nt = int(params['NT'])
 nl = int(params['NL'])
