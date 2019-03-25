@@ -1,11 +1,33 @@
 import shutil
 import time
+import socket
 
+hn = socket.gethostname()
+if any(host in hn for host in ['oslic','pascal']):
+    manage  = '/p/lustre1/walkloud/c51/x_files/project_2'
+    scratch = '/p/lustre1/walkloud/c51/x_files/project_2'
+    machine = 'pascal'
+elif any(host in hn for host in ['lassen']):
+    manage  = '/p/gpfs1/walkloud/c51/x_files/project_2/'
+    scratch = '/p/gpfs1/walkloud/c51/x_files/project_2/'
+    machine = 'lassen'
+''' TERRIBLE LOGIN NAME FOR SUMMIT '''
+elif any(host in hn for host in ['login']):
+    manage  = '/ccs/proj/lgt100/c51/x_files/project_2'
+    scratch = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/'
+    machine = 'summit'
+else:
+    print("Host "+hn+" unknown, using default.")
+    manage = os.path.dirname(os.path.abspath(__file__))
+    root = os.path.dirname(os.path.abspath(__file__))+'/c51/x_files/project_2'
+    machine = 'default'
+print("c51 manage dir is",manage)
+print("c51 scratch dir is",scratch)
 
-base_dir   = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/%(ENS_S)s'
-ens_dir    = '/ccs/proj/lgt100/c51/x_files/project_2/production/%(ENS_S)s/scripts'
-script_dir = '/ccs/proj/lgt100/c51/x_files/project_2/production/nucleon_elastic_FF/scripts'
-metaq_dir  = '/ccs/proj/lgt100/c51/x_files/project_2/metaq'
+base_dir   = scratch+'/production/%(ENS_S)s'
+ens_dir    = manage +'/production/%(ENS_S)s/scripts'
+script_dir = manage +'/production/nucleon_elastic_FF/scripts'
+metaq_dir  = manage +'/metaq'
 
 src_base       = 'src_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_%(SRC)s'
 prop_base      = 'prop_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
