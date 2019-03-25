@@ -103,7 +103,9 @@ def dset_avg(
         LOGGER.debug("Parsing file `%s`", file)
         with h5py.File(file, "r") as h5f:
 
-            for key, val in get_dsets(h5f, load_dsets=False).items():
+            for key, val in get_dsets(
+                h5f, load_dsets=False, ignore_containers=["meta_info"]
+            ).items():
                 LOGGER.debug("\tParsing dset `%s`", key)
 
                 if not has_match(
