@@ -47,15 +47,8 @@ def get_dsets(
             A dictionary containing the full path HDF path (e.g., `groupA/subgroupB`)
             to the data set as keys and the unloaded values of the set as values.
     """
-    file_name = (
-        container.file.filename
-        if isinstance(container, h5py.Group)
-        else container.filename
-    )
-    name = os.path.join(file_name, container.name)
-
     if isinstance(container, h5py.File):
-        LOGGER.info("Locating all dsets of h5 file `%s`", name)
+        LOGGER.info("Locating all dsets of h5 file `%s`", container.filename)
 
     dsets = {}
     ignore_containers = [] if ignore_containers is None else ignore_containers
@@ -103,7 +96,7 @@ def create_dset(h5f: h5py.File, key: str, data: Any, overwrite: bool = False):
         h5f.create_dataset(key, data=data)
 
 
-def assert_h5files_equal(
+def assert_h5files_equal(  # pylint: disable=R0913
     actual: str,
     expected: str,
     atol: float = 1.0e-7,

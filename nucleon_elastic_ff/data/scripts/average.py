@@ -63,20 +63,21 @@ def group_files(
 def parse_dset_address(
     address, dset_replace_patterns: Optional[Dict[str, str]] = None
 ) -> Tuple[str, Dict[str, str]]:
+    """Adjust address of file with substitutions and extract substitution information
     """
-    """
-
     out_grp = address
     meta_info = {}
     for pat, subs in dset_replace_patterns.items():
         out_grp = re.sub(pat, subs, out_grp)
+
         match = re.search(pat, address)
         if match:
             meta_info.update(match.groupdict())
+
     return out_grp, meta_info
 
 
-def dset_avg(
+def dset_avg(  # pylint: disable=R0914
     files: List[str],
     out_file: str,
     dset_replace_patterns: Dict[str, str],
