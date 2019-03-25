@@ -9,7 +9,7 @@ verbose=True
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 import importlib
-import management
+import c51_mdwf_hisq as c51
 import sources
 try:
     ens_s = os.getcwd().split('/')[-2]
@@ -40,8 +40,8 @@ nl = int(params['NL'])
 
 h5_out = h5.open_file(ens_s+'_charges.h5','a')
 
-base_dir = management.base_dir % params
-coherent_ff_base = management.coherent_ff_base
+base_dir = c51.base_dir % params
+coherent_ff_base = c51.coherent_ff_base
 params['MQ'] = params['MV_L']
 snk_mom = params['snk_mom'][0]
 m0,m1,m2 = snk_mom.split()

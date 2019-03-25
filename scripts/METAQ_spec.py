@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 import xml_input
 import metaq_input
 import importlib
-import management
+import c51_mdwf_hisq as c51
 import sources
 
 try:
@@ -92,19 +92,19 @@ else:
     q = 'todo'
 params['PRIORITY'] = priority
 
-base_dir = management.base_dir % params
+base_dir = c51.base_dir % params
 params['NODES']      = params['cpu_nodes']
 params['GPUS']       = params['cpu_gpus']
 params['WALL_TIME']  = params['spec_time']
-params['ENS_DIR']    = management.ens_dir % params
-params['SCRIPT_DIR'] = management.script_dir
+params['ENS_DIR']    = c51.ens_dir % params
+params['SCRIPT_DIR'] = c51.script_dir
 cfg_dir = base_dir+'/cfgs_flow'
-metaq_dir  = management.metaq_dir
+metaq_dir  = c51.metaq_dir
 
-src_base      = management.src_base
-prop_base     = management.prop_base
-prop_xml_base = management.prop_xml_base
-spec_base     = management.spec_base
+src_base      = c51.src_base
+prop_base     = c51.prop_base
+prop_xml_base = c51.prop_xml_base
+spec_base     = c51.spec_base
 sp_ext        = params['SP_EXTENSION']
 prop_size     = nt* nl**3 * 3**2 * 4**2 * 2 * 4
 '''            spin*par* vol       * comp * dbl '''

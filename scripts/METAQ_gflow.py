@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 import xml_input
 import metaq_input
 import importlib
-import management
+import c51_mdwf_hisq as c51
 import sources
 
 try:
@@ -62,16 +62,16 @@ smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 params['MQ'] = params['MV_L']
 
-base_dir = management.base_dir % params
+base_dir = c51.base_dir % params
 
 params['NODES']      = params['cpu_nodes']
 params['GPUS']       = params['cpu_gpus']
 params['WALL_TIME']  = params['gflow_time']
-params['ENS_DIR']    = management.ens_dir % params
-params['SCRIPT_DIR'] = management.script_dir
+params['ENS_DIR']    = c51.ens_dir % params
+params['SCRIPT_DIR'] = c51.script_dir
 
 cfg_dir = base_dir+'/cfgs_flow'
-metaq_dir  = management.metaq_dir
+metaq_dir  = c51.metaq_dir
 
 if not os.path.exists(base_dir+'/production/'+ens+'/cfgs_flow'):
     os.makedirs(base_dir+'/production/'+ens+'/cfgs_flow')
