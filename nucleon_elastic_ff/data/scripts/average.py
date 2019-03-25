@@ -4,8 +4,8 @@ from typing import List
 from typing import Union
 from typing import Dict
 from typing import Tuple
+from typing import Optional
 
-import os
 import re
 
 import h5py
@@ -19,18 +19,29 @@ from nucleon_elastic_ff.data.parsing import parse_file_info
 from nucleon_elastic_ff.data.h5io import get_dsets
 from nucleon_elastic_ff.data.h5io import create_dset
 
-from nucleon_elastic_ff.data.arraymanip import average_arrays
-
 
 LOGGER = set_up_logger("nucleon_elastic_ff")
 
 
-def get_groups(
+def group_files(
     all_files: List[str], keys: List[str]
 ) -> Dict[Dict[str, Union[int, float, str]], str]:
     """Collects files by properties which are not allowed to differ.
+
+    Parses the information from file names and groups them according to similar
+    parameters.
+    Labes in `keys` are allowed to differ.
+
+    **Arguments**
+        all_files: List[str]
+            All files to group.
+
+        keys: List[str]
+            Keys which are allowed to differ.
     """
-    LOGGER.debug("Collecting groups")
+    LOGGER.info("Grouping %d files", len(all_files))
+    LOGGER.info("Keys allowed to differ are: %s", keys)
+
     groups = {}
     for file in all_files:
         info = parse_file_info(file, convert_numeric=False)
@@ -41,91 +52,94 @@ def get_groups(
         if info_str in groups:
             groups[info_str].append(file)
         else:
-            LOGGER.debug("Found group %s", info_str)
+            LOGGER.debug("Creating new group `%s`", info_str)
             groups[info_str] = [file]
+
+    LOGGER.info("Created %d groups of files", len(groups))
 
     return groups
 
 
-def average_groups_over_files(
+def parse_dset_address(
+    address, dset_replace_patterns: Optional[Dict[str, str]] = None
+) -> Tuple[str, Dict[str]]:
+    """
+    """
+
+    out_grp = address
+    meta_info = {}
+    for pat, subs in dset_replace_patterns.items():
+        out_grp = re.sub(pat, subs, out_grp)
+        meta_info.update(re.match(pat, address).groupdict())
+
+    return out_grp, meta_info
+
+
+def dset_avg(
     files: List[str],
-    file_replace_pattern: Tuple[str, str],
-    group_replace_pattern: Tuple[str, str],
+    out_file: str,
+    dset_replace_patterns: Dict[str, str],
     overwrite: bool = False,
 ):
     """Reads h5 files and exports the average of datasets across files.
 
     Each group in the file list will be averaged over files.
     """
-    dsets = {}
+    dsets_acc = {}
+    n_dsets = {}
+    dset_meta = {}
+
+    LOGGER.info(
+        "Starting averaging over `%d` files with hdf5 group/dset substitutions",
+        len(files),
+    )
+    for pat, subs in dset_replace_patterns.items():
+        LOGGER.info("\t%s = %s", pat, subs)
+    LOGGER.info("The export file will be called `%s`", out_file)
+
+    LOGGER.info("Start parsing files")
     for file in files:
+        LOGGER.debug("Parsing file `%s`", file)
         with h5py.File(file, "r") as h5f:
-            file_dsets = get_dsets(h5f, load_dsets=True)
 
-            for key, val in file_dsets.items():
-                if key in dsets:
-                    dsets[key].append(val)
+            for key, val in get_dsets(h5f, load_dsets=False).items():
+                LOGGER.debug("\tParsing dset `%s`", key)
+
+                if not has_match(key, dset_replace_patterns.keys(), match_all=True):
+                    LOGGER.debug("\t\tNo match")
+                    continue
+
+                out_grp, meta_info = parse_dset_address(key)
+                LOGGER.debug("\t\tNew group:`%s`", out_grp)
+                LOGGER.debug("\t\tMeta info: `%s`", meta_info)
+
+                meta = val.attrs.get("meta", None)
+                meta = str(meta) + "&" if meta else ""
+                meta += "&".join(["{kkey}=={vval}" for kkey, vval in meta_info])
+
+                if out_grp in dsets_acc:
+                    dsets_acc[out_grp] += val[()]
+                    n_dsets[out_grp] += 1
+                    dset_meta[out_grp] += "\n" + meta
                 else:
-                    dsets[key] = [val]
+                    dsets_acc[out_grp] = val[()]
+                    n_dsets[out_grp] = 1
+                    dset_meta[out_grp] = meta
 
-    out_file = re.sub(file_replace_pattern[0], file_replace_pattern[1], files[0])
+    LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_acc), out_file)
     with h5py.File(out_file) as h5f:
-        for dset_address, val in dsets.items():
-            avg_address = re.sub(
-                group_replace_pattern[0], group_replace_pattern[1], dset_address
+        for key, acc in dsets_acc.items():
+            LOGGER.debug(
+                "Writing dset `%s` (average of %d dsets) with meta info:\n\t`%s`",
+                key,
+                n_dsets[key],
+                dset_meta[key],
             )
-
-            if has_match(avg_address, ["local_current"]):
-                avg = average_arrays(val)
-                create_dset(h5f, avg_address, avg, overwrite=overwrite)
-                for n, file in enumerate(files):
-                    h5f[avg_address].attrs[f"avg_file_{n}"] = file
+            create_dset(h5f, key, acc / n_dsets[key], overwrite=overwrite)
+            h5f[key].attrs["meta"] = dset_meta[key]
 
 
-def average_group(
-    file: str,
-    file_replace_pattern: Tuple[str, str],
-    group_replace_pattern: Tuple[str, str],
-    overwrite: bool = False,
-):
-    """Averages over different groups within a file and exports to a new file
-    """
-    avg_dsets = {}
-    avg_meta = {}
-    with h5py.File(file, "r") as h5f:
-        file_dsets = get_dsets(h5f, load_dsets=True)
-
-        for key, val in file_dsets.items():
-            if has_match(key, group_replace_pattern[0]):
-                avg_key = re.sub(group_replace_pattern[0], group_replace_pattern[1], key)
-                if avg_key in avg_dsets:
-                    avg_dsets[avg_key].append(val)
-                    avg_meta[avg_key].append(
-                        re.findall(group_replace_pattern[0], key)[0]
-                    )
-                else:
-                    avg_dsets[avg_key] = [val]
-                    avg_meta[avg_key] = [re.findall(group_replace_pattern[0], key)[0]]
-
-    with h5py.File(
-        re.sub(file_replace_pattern[0], file_replace_pattern[1], file)
-    ) as h5f:
-        for key, val in avg_dsets.items():
-            if has_match(key, ["local_current"]):
-                avg = average_arrays(val)
-                create_dset(h5f, key, avg, overwrite=overwrite)
-                for n, match_string in enumerate(avg_meta[key]):
-                    h5f[key].attrs[f"avg_group_{n}"] = match_string
-
-
-def average_files(  # pylint: disable=R0913
-    root: str,
-    avg_over_keys: List[str],
-    file_locate_pattern: str,
-    file_replace_pattern: Tuple[str, str],
-    group_replace_pattern: Tuple[str, str],
-    overwrite: bool = False,
-):
+def source_average(root: str, overwrite: bool = False):  # pylint: disable=R0913
     """Recursively scans directory for files and averages matches which over specified
     component.
 
@@ -137,147 +151,31 @@ def average_files(  # pylint: disable=R0913
         root: str
             The directory to look for files.
 
-        avg_over_keys: List[str]
-            The keys which are allowed to differ when deciding which files belong in one
-            group.
-
-        name_input: str
-            Files must match this pattern to be submitted for averaging.
-
-        name_output: str
-            Files must not match this pattern to be submitted for averaging.
-            Also the averaged output files will have the input name replaced by the
-            output name. This also includes directory names.
-
         overwrite: bool = False
             Overwrite existing sliced files.
 
     """
-    LOGGER.info("Starting averaging files")
-    LOGGER.info("Looking into `%s`", root)
-    LOGGER.info(
-        "Locating files matching pattern `%s` and `%s` but ignoring files matching `%s`",
-        file_locate_pattern,
-        file_replace_pattern[0],
-        file_replace_pattern[1],
-    )
+    LOGGER.info("Running source average")
 
-    all_files = find_all_files(
+    avg_over_file_keys = ("x", "y", "z", "t", "t0")
+    file_replace_pattern = {"x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"}
+    dset_replace_pattern = ({"x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+": "src_avg"},)
+
+    file_patterns = [r".*\.h5$", "formfac_4D_tslice"]
+    file_patterns += list(file_replace_pattern.keys())
+
+    files = find_all_files(
         root,
-        file_patterns=[file_locate_pattern + r".*\.h5$", file_replace_pattern[0]],
-        exclude_file_patterns=[file_replace_pattern[1]],
+        file_patterns=file_patterns,
+        exclude_file_patterns=list(file_replace_pattern.values()),
         match_all=True,
     )
-    if not overwrite:
-        all_files = [
-            file
-            for file in all_files
-            if not os.path.exists(
-                re.sub(file_replace_pattern[0], file_replace_pattern[1], file)
-            )
-        ]
-    LOGGER.info(
-        "Found %d files which match the pattern%s",
-        len(all_files),
-        " " if overwrite else " (and do not exist)",
-    )
-    for file in all_files:
-        LOGGER.info("-> %s", file)
 
-    LOGGER.info(
-        "Now averaging over files which have same pars besides their values for `%s`",
-        avg_over_keys,
-    )
+    file_groups = group_files(files, keys=avg_over_file_keys)
 
-    groups = get_groups(all_files, avg_over_keys)
-    LOGGER.info("Found %d groups", len(groups))
-    for group, files in groups.items():
-        LOGGER.info("Averaging over group %s", group)
-        average_groups_over_files(
-            files, file_replace_pattern, group_replace_pattern, overwrite=overwrite
-        )
+    for file_group in file_groups.values():
+        out_file = file_group[0]
+        for pat, subs in file_replace_pattern.items():
+            out_file = re.sub(pat, subs, out_file)
 
-    LOGGER.info("Done")
-
-
-def source_average(  # pylint: disable=R0913
-    root: str,
-    avg_over_keys: Tuple[str] = ("x", "y", "z", "t"),
-    file_locate_pattern: str = "formfac_4D_tslice",
-    file_replace_pattern: str = ("x[0-9]+y[0-9]+z[0-9]+t[0-9]+", "src_avg"),
-    group_replace_pattern: str = ("x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+", "src_avg"),
-    overwrite: bool = False,
-):
-    """Recursively scans directory for files and averages matches which over specified
-    component.
-
-    The input files must be h5 files (ending with ".h5") and must have `name_input`
-    in their file name. Files which have `name_output` as name are excluded.
-    Also, this routine ignores exporting to files which already exist.
-
-    **Arguments**
-        root: str
-            The directory to look for files.
-
-        file_locate_pattern: str = "formfac_4D"
-            Files must match this pattern to be submitted for slicing.
-
-        name_output: str = "formfac_4D_tslice"
-            Files must not match this pattern to be submitted for slicing.
-            Also the sliced output files will have the input name replaced by the output
-            name. This also includes directory names.
-
-        overwrite: bool = False
-            Overwrite existing sliced files.
-
-    """
-    average_files(
-        root,
-        avg_over_keys,
-        file_locate_pattern,
-        file_replace_pattern,
-        group_replace_pattern,
-        overwrite=overwrite,
-    )
-
-
-def t0_average(  # pylint: disable=R0913
-    root: str,
-    file_locate_pattern: str = "formfac_4D_tslice.*src_avg",
-    file_replace_pattern: str = ("src_avg", "src_t0_avg"),
-    group_replace_pattern: str = (r"t0_[\+\-0-9]+", "t0_avg"),
-    overwrite: bool = False,
-):
-    """Recursively scans directory for files and averages matches which over specified
-    component.
-
-    The input files must be h5 files (ending with ".h5") and must have `name_input`
-    in their file name. Files which have `name_output` as name are excluded.
-    Also, this routine ignores exporting to files which already exist.
-
-    **Arguments**
-        root: str
-            The directory to look for files.
-
-        file_locate_pattern: str = "formfac_4D_tslice.*src_avg"
-            Files must match this pattern to be submitted for slicing.
-
-        name_output: str = "src_t0_avg"
-            Files must not match this pattern to be submitted for slicing.
-            Also the sliced output files will have the input name replaced by the output
-            name. This also includes directory names.
-
-        overwrite: bool = False
-            Overwrite existing sliced files.
-
-    """
-    all_files = find_all_files(
-        root,
-        file_patterns=[file_locate_pattern + r".*\.h5$", file_replace_pattern[0]],
-        exclude_file_patterns=[file_replace_pattern[1]],
-        match_all=True,
-    )
-    for file in all_files:
-        average_group(
-            file, file_replace_pattern, group_replace_pattern, overwrite=overwrite
-        )
+        dset_avg(file_group, out_file, dset_replace_pattern, overwrite=overwrite)
