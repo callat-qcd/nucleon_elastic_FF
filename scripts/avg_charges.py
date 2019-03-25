@@ -41,18 +41,27 @@ nl = int(params['NL'])
 h5_out = h5.open_file(ens_s+'_charges.h5','a')
 
 base_dir = management.base_dir % params
+coherent_ff_base = management.coherent_ff_base
+params['MQ'] = params['MV_L']
+snk_mom = params['snk_mom'][0]
+m0,m1,m2 = snk_mom.split()
+params['M0']=m0
+params['M1']=m1
+params['M2']=m2
+params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
+
 state = dict()
 state['pp'] = 'proton'
 state['np'] = 'proton_np'
 spins = ['up_up','dn_dn']
 
-for charge in params['curr_p']:
-    params['CURR'] = charge
-    if charge not in h5_out.get_node('/'):
-        h5_out.create_group('/',charge)
-    for dt in params['t_seps']:
-        tsep = str(dt)
-        h5_path = '/'+charge+'/tsep_'+tsep
+for dt in params['t_seps']:
+    tsep = str(dt)
+    for charge in params['curr_p']:
+        params['CURR'] = charge
+        if charge not in h5_out.get_node('/'):
+            h5_out.create_group('/',charge)
+        h5_out_path = '/'+charge+'/tsep_'+tsep
         if tsep not in h5_out.get_node('/'+charge):
             print(charge,tsep)
             params['T_SEP'] = tsep
@@ -84,29 +93,34 @@ for charge in params['curr_p']:
                 for s0 in srcs:
                     t0 = s0.split('t')[1]
                     params['SRC'] = s0
-                    if args.verbose:
+                    if verbose:
                         print(charge,tsep,no,src)
                     coherent_formfac_name = coherent_ff_base % params
                     coherent_formfac_file  = base_dir+'/formfac/'+no + '/'+coherent_formfac_name+'.h5'
                     src_h5 = h5.open_file(coherent_formfac_file,'r')
                     for par in ['pp','np']:
+                        if par == 'np':
+                            tsep_s = '-'+tsep
+                        else:
+                            tsep_s = tsep
                         for spin in spins:
-                            h5_path  = '/'+state[par]+'_%(FS)s_t0_'+t0+'_tsep_'+tsep+'_sink_mom_px0_py0_pz0/'
-                            h5_path += charge+'/'+src_split(s0)+'/px0_py0_pz0/local_current'
+                            h5_path  = '/'+state[par]+'_%(FS)s_t0_'+t0+'_tsep_'+tsep_s+'_sink_mom_px0_py0_pz0/'
+                            h5_path += charge+'/'+sources.src_split(s0)+'/px0_py0_pz0/local_current'
                             try:
                                 FS   = 'UU_'+spin
-                                tmp  = src_h5.get_node(h5_path % FS).read()
+                                tmp  = src_h5.get_node(h5_path % {'FS':FS}).read()
                                 FS   = 'DD_'+spin
-                                tmp -= src_h5.get_node(h5_path % FS).read()
-                                data_tmp[spin+'_'+par].append()
-                            except:
+                                tmp -= src_h5.get_node(h5_path % {'FS':FS}).read()
+                                data_tmp[spin+'_'+par].append(tmp)
+                            except Exception as e:
                                 print('bad data read')
+                                print(e)
                     src_h5.close()
                 for par in ['pp','np']:
                     for spin in spins:
                         data[spin+'_'+par].append(np.mean(np.array(data_tmp[spin+'_'+par]),axis=0))
             for par in ['pp','np']:
                 for spin in spins:
-                    h5_out.create_array(h5_path,spin+'_'+par,np.array(data[spin+'_'+par]))
+                    h5_out.create_array(h5_out_path,spin+'_'+par,np.array(data[spin+'_'+par]))
                     h5_out.flush()
 h5_out.close()
