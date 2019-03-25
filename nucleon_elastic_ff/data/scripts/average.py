@@ -62,7 +62,7 @@ def group_files(
 
 def parse_dset_address(
     address, dset_replace_patterns: Optional[Dict[str, str]] = None
-) -> Tuple[str, Dict[str]]:
+) -> Tuple[str, Dict[str, str]]:
     """
     """
 
@@ -70,8 +70,9 @@ def parse_dset_address(
     meta_info = {}
     for pat, subs in dset_replace_patterns.items():
         out_grp = re.sub(pat, subs, out_grp)
-        meta_info.update(re.match(pat, address).groupdict())
-
+        match = re.match(pat, address)
+        if match:
+            meta_info.update(match.groupdict())
     return out_grp, meta_info
 
 
@@ -105,11 +106,11 @@ def dset_avg(
             for key, val in get_dsets(h5f, load_dsets=False).items():
                 LOGGER.debug("\tParsing dset `%s`", key)
 
-                if not has_match(key, dset_replace_patterns.keys(), match_all=True):
+                if not has_match(key, list(dset_replace_patterns.keys()), match_all=True):
                     LOGGER.debug("\t\tNo match")
                     continue
 
-                out_grp, meta_info = parse_dset_address(key)
+                out_grp, meta_info = parse_dset_address(key, dset_replace_patterns)
                 LOGGER.debug("\t\tNew group:`%s`", out_grp)
                 LOGGER.debug("\t\tMeta info: `%s`", meta_info)
 
@@ -157,11 +158,11 @@ def source_average(root: str, overwrite: bool = False):  # pylint: disable=R0913
     """
     LOGGER.info("Running source average")
 
-    avg_over_file_keys = ("x", "y", "z", "t", "t0", "tsep")
+    avg_over_file_keys = ("x", "y", "z", "t")
     file_replace_pattern = {"x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"}
     dset_replace_pattern = {
         r"x(?P<x>[0-9]+)_y(?P<y>[0-9]+)_z(?P<z>[0-9]+)_t(?P<t>[0-9]+)": "src_avg",
-        r"t0(?P<t0>[0-9]+)_tsep(?P<t0>[\+\-0-9]+)": "",
+        r"t0_(?P<t0>[0-9]+)_": "",
     }
 
     file_patterns = [r".*\.h5$", "formfac_4D_tslice"]
