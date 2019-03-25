@@ -70,7 +70,7 @@ def parse_dset_address(
     meta_info = {}
     for pat, subs in dset_replace_patterns.items():
         out_grp = re.sub(pat, subs, out_grp)
-        match = re.match(pat, address)
+        match = re.search(pat, address)
         if match:
             meta_info.update(match.groupdict())
     return out_grp, meta_info
@@ -95,7 +95,7 @@ def dset_avg(
         len(files),
     )
     for pat, subs in dset_replace_patterns.items():
-        LOGGER.info("\t%s = %s", pat, subs)
+        LOGGER.info("\t'%s' = '%s'", pat, subs)
     LOGGER.info("The export file will be called `%s`", out_file)
 
     LOGGER.info("Start parsing files")
@@ -106,7 +106,9 @@ def dset_avg(
             for key, val in get_dsets(h5f, load_dsets=False).items():
                 LOGGER.debug("\tParsing dset `%s`", key)
 
-                if not has_match(key, list(dset_replace_patterns.keys()), match_all=True):
+                if not has_match(
+                    key, list(dset_replace_patterns.keys()), match_all=True
+                ):
                     LOGGER.debug("\t\tNo match")
                     continue
 

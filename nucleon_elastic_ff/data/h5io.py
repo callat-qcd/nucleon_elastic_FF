@@ -53,7 +53,9 @@ def get_dsets(
         else container.filename
     )
     name = os.path.join(file_name, container.name)
-    LOGGER.debug("Reading `%s`", name)
+
+    if isinstance(container, h5py.File):
+        LOGGER.info("Locating all dsets of h5 file `%s`", name)
 
     dsets = {}
     ignore_containers = [] if ignore_containers is None else ignore_containers
@@ -66,7 +68,7 @@ def get_dsets(
         address = os.path.join(parent_name, key) if parent_name else key
 
         if isinstance(obj, h5py.Dataset):
-            LOGGER.debug("Found dataset: `%s`", address)
+            LOGGER.debug("\t`%s`", address)
             dsets[address] = obj[()] if load_dsets else obj
         elif isinstance(obj, h5py.Group):
             dsets.update(get_dsets(obj, parent_name=address, load_dsets=load_dsets))
