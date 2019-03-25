@@ -157,9 +157,12 @@ def source_average(root: str, overwrite: bool = False):  # pylint: disable=R0913
     """
     LOGGER.info("Running source average")
 
-    avg_over_file_keys = ("x", "y", "z", "t", "t0")
+    avg_over_file_keys = ("x", "y", "z", "t", "t0", "tsep")
     file_replace_pattern = {"x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"}
-    dset_replace_pattern = ({"x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+": "src_avg"},)
+    dset_replace_pattern = {
+        r"x(?P<x>[0-9]+)_y(?P<y>[0-9]+)_z(?P<z>[0-9]+)_t(?P<t>[0-9]+)": "src_avg",
+        r"t0(?P<t0>[0-9]+)_tsep(?P<t0>[\+\-0-9]+)": "",
+    }
 
     file_patterns = [r".*\.h5$", "formfac_4D_tslice"]
     file_patterns += list(file_replace_pattern.keys())
