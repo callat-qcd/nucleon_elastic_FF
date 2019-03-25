@@ -14,6 +14,12 @@ def xyzt(src):
     z = src.split('z')[1].split('t')[0]
     t = src.split('t')[1]
     return x,y,z,t
+def src_split(src):
+    x0 = src.split('x')[1].split('y')[0]
+    y0 = src.split('y')[1].split('z')[0]
+    z0 = src.split('z')[1].split('t')[0]
+    t0 = src.split('t')[1]
+    return 'x%s_y%s_z%s_t%s' %(x0,y0,z0,t0)
 
 def xXyYzZtT(posn):
     if len(posn) is 4:

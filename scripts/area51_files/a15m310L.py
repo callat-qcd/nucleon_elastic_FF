@@ -9,6 +9,9 @@ params['U0']   = '0.85535'
 params['MS_L'] = '0.013'
 params['MS_S'] = '0.065'
 params['MS_C'] = '0.838'
+params['cfg_i'] = 300
+params['cfg_f'] = 5295
+params['cfg_d'] = 5
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
