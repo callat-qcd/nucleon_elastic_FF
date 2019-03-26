@@ -48,7 +48,7 @@ def main():
     LOGGER.info("Running nucleon_elastic_ff scripts")
     LOGGER.info("Full log can be found in `nucleon_elastic_ff.log`")
 
-    if args.tslice:
+    if args.slice:
         tslice.tslice(args.root, overwrite=args.overwrite)
 
     if args.average:
