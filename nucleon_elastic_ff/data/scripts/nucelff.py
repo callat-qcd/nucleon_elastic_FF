@@ -40,6 +40,15 @@ PARSER.add_argument(
     help="Overwrite hdf5 files if they already exist.",
 )
 
+PARSER.add_argument(
+    "--n-expected-sources",
+    "-n",
+    type=int,
+    default=None,
+    help="Option passed to average sources. If specified, raise error if number of"
+    " sources in one average group is different than specified.",
+)
+
 
 def main():
     """Runs src average and or tslice.
@@ -52,7 +61,11 @@ def main():
         tslice.tslice(args.root, overwrite=args.overwrite)
 
     if args.average:
-        average.source_average(args.root, overwrite=args.overwrite)
+        average.source_average(
+            args.root,
+            overwrite=args.overwrite,
+            n_expected_sources=args.n_expected_sources,
+        )
 
 
 if __name__ == "__main__":

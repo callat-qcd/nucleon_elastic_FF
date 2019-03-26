@@ -145,7 +145,9 @@ def dset_avg(  # pylint: disable=R0914
             h5f[key].attrs["meta"] = dset_meta[key]
 
 
-def source_average(root: str, overwrite: bool = False):  # pylint: disable=R0913
+def source_average(
+    root: str, overwrite: bool = False, n_expected_sources: Optional[int] = None
+):  # pylint: disable=R0913
     """Recursively scans directory for files and averages matches which over specified
     component.
 
@@ -159,6 +161,11 @@ def source_average(root: str, overwrite: bool = False):  # pylint: disable=R0913
 
         overwrite: bool = False
             Overwrite existing sliced files.
+
+        n_expected_sources: Optional[int] = None
+            Added control to pass excepted number of sources.
+            If given and sources in one group is less than a certain number, raises
+            ValueError.
 
     """
     LOGGER.info("Running source average")
@@ -184,6 +191,14 @@ def source_average(root: str, overwrite: bool = False):  # pylint: disable=R0913
 
     for file_group in file_groups.values():
         out_file = file_group[0]
+
+        if n_expected_sources:
+            if len(file_group) != n_expected_sources:
+                raise ValueError(
+                    "Expected %d sources in one average group but only received %d"
+                    % (n_expected_sources, len(file_group))
+                )
+
         for pat, subs in file_replace_pattern.items():
             out_file = re.sub(pat, subs, out_file)
 
