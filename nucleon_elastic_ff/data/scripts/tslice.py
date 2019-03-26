@@ -130,7 +130,7 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
                     LOGGER.debug("\tShifting to source origin")
                     info = parse_file_info(file_address_in, convert_numeric=True)
                     for axis, key in enumerate(["z", "y", "x"]):
-                        LOGGER.debug("\t\t %s -> %s %+d", key, key, info[key])
+                        LOGGER.debug("\t\t %s -> %s %+d", key, key, -info[key])
                         out = shift_array(out, -info[key], axis=axis + 1)
 
                 else:
