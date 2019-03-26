@@ -79,8 +79,7 @@ def tslice(
     for file_address in all_files:
         file_address_out = file_address.replace(name_input, name_output)
         if not os.path.exists(os.path.dirname(file_address_out)):
-            os.mkdir(os.path.dirname(file_address_out))
-        LOGGER.info("-> `%s`", file_address)
+            os.makedirs(os.path.dirname(file_address_out))
         slice_file(file_address, file_address_out, overwrite=overwrite)
 
     LOGGER.info("Done")
@@ -106,6 +105,8 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
         overwrite: bool = False
             Overwrite existing sliced file.
     """
+    LOGGER.info("Sclicing\n\t  `%s`\n\t->`%s`", file_address_in, file_address_out)
+
     with h5py.File(file_address_in, "r") as h5f:
         dsets = get_dsets(h5f, load_dsets=False)
 
@@ -113,24 +114,23 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
             for name, dset in dsets.items():
 
                 if has_match(name, ["local_current"]):
-                    LOGGER.debug("Start slicing `%s`", name)
+                    LOGGER.debug("Start slicing dset `%s`", name)
+
                     t_info = parse_t_info(name)
                     t_info["nt"] = dset.shape[0]
-                    meta_name = name.replace("local_current", "meta_info")
-                    LOGGER.debug("Extract temporal info `%s`", t_info)
-                    for key, val in t_info.items():
-                        create_dset(
-                            h5f_out,
-                            os.path.join(meta_name, key),
-                            val,
-                            overwrite=overwrite,
-                        )
+                    LOGGER.debug("\tExtract temporal info `%s`", t_info)
+
+                    meta = dset.attrs.get("meta", None)
+                    meta = str(meta) + "&" if meta else ""
+                    meta += "&".join([f"{key}=={val}" for key, val in t_info.items()])
 
                     slice_index = get_t_slices(**t_info)
                     out = slice_array(dset[()], slice_index)
 
+                    LOGGER.debug("\tShifting to source origin")
                     info = parse_file_info(file_address_in, convert_numeric=True)
                     for axis, key in enumerate(["z", "y", "x"]):
+                        LOGGER.debug("\t\t %s -> %s %+d", key, key, info[key])
                         out = shift_array(out, -info[key], axis=axis + 1)
 
                 else:
