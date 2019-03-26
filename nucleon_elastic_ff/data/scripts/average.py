@@ -121,7 +121,7 @@ def dset_avg(  # pylint: disable=R0914
 
                 meta = val.attrs.get("meta", None)
                 meta = str(meta) + "&" if meta else ""
-                meta += "&".join(["{kkey}=={vval}" for kkey, vval in meta_info.items()])
+                meta += "&".join([f"{kkey}=={vval}" for kkey, vval in meta_info.items()])
 
                 if out_grp in dsets_acc:
                     dsets_acc[out_grp] += val[()]
