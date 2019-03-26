@@ -54,7 +54,7 @@ def slice_array(array: np.ndarray, index: List[int]) -> np.ndarray:
             if index[n] > i:
                 fact[n + 1] = -1
     fact = fact.reshape([len(index)] + [1] * (len(array.shape) - 1))
-    return array[index]
+    return array[index] * fact
 
 
 def shift_array(array: np.ndarray, shift: int = 0, axis: int = 0) -> np.ndarray:
