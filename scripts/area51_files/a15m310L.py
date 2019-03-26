@@ -2,7 +2,6 @@ import sources
 
 params = dict()
 params['ENS_ABBR'] = 'a15m310L'
-params['ENS_LONG'] = 'l2448f211b580m013m065m838'
 params['NL']   = '24'
 params['NT']   = '48'
 params['U0']   = '0.85535'
@@ -43,7 +42,7 @@ params['generator'] = sources.oa(int(params['NL']))
 params['N_SEQ'] = 2*len(params['t_shifts']) #2 * t_shifts
 
 ''' minutes after last file modification time when deletion of small files is OK '''
-params['prop_time_delete'] = 10
+params['file_time_delete'] = 10
 
 params['MESONS_PSQ_MAX']  = 5
 params['BARYONS_PSQ_MAX'] = 5
@@ -59,12 +58,34 @@ params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P']
 params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['T34','T12','CHROMO_MAG']
 
-params['cpu_nodes'] = 1
-params['cpu_gpus']  = 0
-params['gflow_time']  = 15
-params['src_time']  = 5
-params['spec_time'] = 10
+''' SCHEDULING PARAMETERS '''
 
-params['gpu_nodes'] = 0
-params['gpu_gpus']  = 6
-params['prop_time'] = 10
+params['queue'] = 'metaq'
+
+params['OMP_NUM_THREADS'] = '4'
+
+params['cpu_nodes']  = 1
+params['cpu_gpus']   = 0
+params['cpu_maxcus'] = 1
+params['gflow_time'] = 15
+params['src_time']   = 5
+params['spec_time']  = 10
+
+params['cpu_nrs']    = '--nrs 2'
+params['cpu_rs_node']= '-r1'
+params['cpu_a_rs']   = '-a16'
+params['cpu_g_rs']   = ''
+params['cpu_c_rs']   = '-c16'
+params['cpu_latency']= '-l cpu-cpu'
+
+params['gpu_nodes']  = 0
+params['gpu_gpus']   = 6
+params['gpu_maxcus'] = 1
+params['prop_time']  = 10
+
+params['gpu_nrs']    = '--nrs 1'
+params['gpu_rs_node']= '-r1'
+params['gpu_a_rs']   = '-a6'
+params['gpu_g_rs']   = ''
+params['gpu_c_rs']   = '-c6'
+params['gpu_latency']= '-l gpu-cpu'

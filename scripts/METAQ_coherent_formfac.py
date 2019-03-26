@@ -96,6 +96,7 @@ params['ENS_DIR']    = c51.ens_dir % params
 params['SCRIPT_DIR'] = c51.script_dir
 cfg_dir = base_dir+'/cfgs_flow'
 metaq_dir  = c51.metaq_dir
+params['METAQ_DIR'] = metaq_dir
 
 if args.t_sep == None:
     t_seps  = params['t_seps']
