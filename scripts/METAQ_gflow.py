@@ -65,8 +65,6 @@ val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 ''' for now - just doing the light quark '''
 params['MQ'] = params['MV_L']
 
-#base_dir = c51.base_dir % params
-
 params['NODES']       = params['cpu_nodes']
 params['METAQ_NODES'] = params['cpu_nodes']
 params['METAQ_GPUS']  = params['cpu_gpus']
@@ -83,12 +81,6 @@ params['A_RS']        = params['cpu_a_rs']
 params['G_RS']        = params['cpu_g_rs']
 params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
-
-#cfg_dir = base_dir+'/cfgs_flow'
-#metaq_dir  = c51.metaq_dir
-
-#if not os.path.exists(base_dir+'/production/'+ens+'/cfgs_flow'):
-#    os.makedirs(base_dir+'/production/'+ens+'/cfgs_flow')
 
 for c in cfgs_run:
     no = str(c)
@@ -129,7 +121,9 @@ for c in cfgs_run:
                 params['INI']       = xmlini
                 params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                 params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                params['CLEANUP'] = ''
+                params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
+                params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_src.py '+params['CFG']+' '+params['PRIORITY']+'\n'
+                params['CLEANUP']  += 'sleep 5'
                 scheduler.make_task(metaq,args.mtype,params,folder=q)
         else:
             print('missing MILC.scidac cfg',scidac_cfg)

@@ -64,28 +64,59 @@ params['queue'] = 'metaq'
 
 params['OMP_NUM_THREADS'] = '4'
 
-params['cpu_nodes']  = 1
-params['cpu_gpus']   = 0
-params['cpu_maxcus'] = 1
-params['gflow_time'] = 15
-params['src_time']   = 5
-params['spec_time']  = 10
+def mpirun_params(machine):
+    if machine == 'lassen':
+        params['cpu_nodes']   = 1
+        params['cpu_gpus']    = 0
+        params['cpu_maxcus']  = 1
+        params['gflow_time']  = 15
+        params['src_time']    = 5
+        params['spec_time']   = 10
 
-params['cpu_nrs']    = '--nrs 2'
-params['cpu_rs_node']= '-r1'
-params['cpu_a_rs']   = '-a18'
-params['cpu_g_rs']   = ''
-params['cpu_c_rs']   = '-c18'
-params['cpu_latency']= '-l cpu-cpu'
+        params['cpu_nrs']     = '--nrs 2'
+        params['cpu_rs_node'] = '-r1'
+        params['cpu_a_rs']    = '-a18'
+        params['cpu_g_rs']    = ''
+        params['cpu_c_rs']    = '-c18'
+        params['cpu_latency'] = '-l cpu-cpu'
 
-params['gpu_nodes']  = 0
-params['gpu_gpus']   = 6
-params['gpu_maxcus'] = 1
-params['prop_time']  = 10
+        params['gpu_nodes']   = 0
+        params['gpu_gpus']    = 4
+        params['gpu_maxcus']  = 1
+        params['prop_time']   = 10
 
-params['gpu_nrs']    = '--nrs 1'
-params['gpu_rs_node']= '-r1'
-params['gpu_a_rs']   = '-a6'
-params['gpu_g_rs']   = ''
-params['gpu_c_rs']   = '-c6'
-params['gpu_latency']= '-l gpu-cpu'
+        params['gpu_nrs']     = '--nrs 1'
+        params['gpu_rs_node'] = '-r1'
+        params['gpu_a_rs']    = '-a4'
+        params['gpu_g_rs']    = '-g4'
+        params['gpu_c_rs']    = '-c4'
+        params['gpu_latency'] = '-l gpu-cpu'
+        params['gpu_geom']    = ' -geom 1 1 1 4'
+
+    if machine == 'summit':
+        params['cpu_nodes']   = 1
+        params['cpu_gpus']    = 0
+        params['cpu_maxcus']  = 1
+        params['gflow_time']  = 15
+        params['src_time']    = 5
+        params['spec_time']   = 10
+
+        params['cpu_nrs']     = '--nrs 2'
+        params['cpu_rs_node'] = '-r1'
+        params['cpu_a_rs']    = '-a16'
+        params['cpu_g_rs']    = ''
+        params['cpu_c_rs']    = '-c16'
+        params['cpu_latency'] = '-l cpu-cpu'
+
+        params['gpu_nodes']   = 0
+        params['gpu_gpus']    = 6
+        params['gpu_maxcus']  = 1
+        params['prop_time']   = 10
+
+        params['gpu_nrs']     = '--nrs 1'
+        params['gpu_rs_node'] = '-r1'
+        params['gpu_a_rs']    = '-a6'
+        params['gpu_g_rs']    = '-g6'
+        params['gpu_c_rs']    = '-c6'
+        params['gpu_latency'] = '-l gpu-cpu'
+        params['gpu_geom']    = ' -geom 1 1 1 6'

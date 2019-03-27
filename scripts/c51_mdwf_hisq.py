@@ -73,7 +73,7 @@ ens_long = {
     }
 
 base_dir   = scratch+'/production/%(ENS_S)s'
-ens_dir    = manage +'/production/%(ENS_S)s/scripts'
+ens_dir    = manage +'/production/%(ENS_S)s'
 script_dir = manage +'/production/nucleon_elastic_FF/scripts'
 metaq_dir  = manage +'/metaq'
 
