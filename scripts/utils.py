@@ -64,7 +64,7 @@ def parse_cfg_src_argument(cfg_arg,src_arg,params):
         else:
             srcs = {cfgs_run[0]:[src_arg]}
             ''' make sure this src is in the expected list '''
-            no = str(cfgs[0])
+            no = str(cfgs_run[0])
             src_check = []
             srcs_cfg = sources.make(no, nl=params['NL'], nt=params['NT'], t_shifts=params['t_shifts'],
                 generator=params['generator'], seed=params['seed'][params['STREAM']])

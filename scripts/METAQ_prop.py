@@ -89,7 +89,7 @@ params['L_GPU_CPU']   = params['cpu_latency']
 
 for c in cfgs_run:
     no = str(c)
-    params['CFG'] = c
+    params['CFG'] = no
     ''' set up ensemble and make sure all dirs exist '''
     params = c51.ensemble(params)
     params['RUN_DIR']     = params['prod']
@@ -174,8 +174,8 @@ for c in cfgs_run:
                     else:
                         if args.verbose:
                             print('    src missing',src_file)
-                        print('python METAQ_src.py %s -s %s %s -v' %(c,s0,priority))
-                        os.system('python %s/METAQ_src.py %s -s %s %s -v' %(params['SCRIPT_DIR'],c,s0,priority))
+                        print('python METAQ_src.py %s -s %s %s -v' %(c,s0,params['PRIORITY']))
+                        os.system('python %s/METAQ_src.py %s -s %s %s -v' %(params['SCRIPT_DIR'],c,s0,params['PRIORITY']))
                 else:
                     if args.verbose:
                         print('    prop exists',prop_file)
