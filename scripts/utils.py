@@ -43,6 +43,46 @@ def parse_cfg_argument(cfg_arg, params):
         sys.exit()
     return range(ci,cf+dc,dc)
 
+def parse_cfg_src_argument(cfg_arg,src_arg,params):
+    cfgs_run = parse_cfg_argument(cfg_arg,params)
+    if args.src:
+        if len(cfgs_run) > 1:
+            print('if a src is passed, only 1 cfg can be specified: len(cfgs) = ',len(cfgs_run))
+            sys.exit(-1)
+        else:
+            srcs = {cfgs_run[0]:[src_arg]}
+            ''' make sure this src is in the expected list '''
+            no = str(cfgs[0])
+            src_check = []
+            srcs_cfg = sources.make(no, nl=params['NL'], nt=params['NT'], t_shifts=params['t_shifts'],
+                generator=params['generator'], seed=params['seed'][stream])
+            for origin in srcs_cfg:
+                try:
+                    src_gen = srcs_cfg[origin].iteritems()
+                except AttributeError: # Python 3 automatically creates a generator
+                    src_gen = srcs_cfg[origin].items()
+                for src_type, src in src_gen:
+                    src_check.append(sources.xXyYzZtT(src))
+            if srcs[cfgs_run[0]][0] not in src_check:
+                print('you supplied a src not in the current src list: allowed srcs')
+                print(src_check)
+                sys.exit(-1)
+    else:
+        srcs = {}
+        for c in cfgs_run:
+            no = str(c)
+            srcs_cfg = sources.make(no, nl=params['NL'], nt=params['NT'], t_shifts=params['t_shifts'],
+                generator=params['generator'], seed=params['seed'][stream])
+            srcs[c] = []
+            for origin in srcs_cfg:
+                try:
+                    src_gen = srcs_cfg[origin].iteritems()
+                except AttributeError: # Python 3 automatically creates a generator
+                    src_gen = srcs_cfg[origin].items()
+                for src_type, src in src_gen:
+                    srcs[c].append(sources.xXyYzZtT(src))
+    return cfgs_run, srcs
+
 def nsq_vectors(nsq):
     n = int(np.ceil(np.sqrt(nsq)))+1
     r = range(-(n+1),n,1)

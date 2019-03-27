@@ -119,13 +119,3 @@ names['seqprop']         += '_%(MOM)s_dt%(T_SEP)s_Nsnk%(N_SEQ)s_%(SS_PS)s'
 names['coherent_ff']      = 'formfac_%(ENS_S)s_%(CFG)s'
 names['coherent_ff']     += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
 names['coherent_ff']     += '_%(MOM)s_dt%(T_SEP)s_Nsnk%(N_SEQ)s_%(SRC)s_%(SS_PS)s'
-
-def check_file(f_name,f_size,time_delete,bad_file_dir):
-    if os.path.exists(f_name) and os.path.getsize(f_name) < f_size:
-        now = time.time()
-        file_time = os.stat(f_name).st_mtime
-        ''' check last update of file in minutes '''
-        if (now-file_time)/60 > time_delete:
-            print('DELETING BAD FILE',os.path.getsize(f_name),f_name.split('/')[-1])
-            shutil.move(f_name,bad_file_dir+'/'+f_name.split('/')[-1])
-    return os.path.exists(f_name)

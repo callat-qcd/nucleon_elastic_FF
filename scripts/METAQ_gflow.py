@@ -98,8 +98,8 @@ for c in cfgs_run:
         if os.path.exists(scidac_cfg):
             print('making flowed cfg input xml')
             metaq = (c51.names['flow'] %params)+'.sh'
-            t_exists,t_working = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
-            if not t_exists or (args.o and not task_working):
+            t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
+            if not t_e or (args.o and not t_w):
                 xmlini = params['xml']+'/'+(c51.names['flow'] %params) +'.ini.xml'
                 fin = open(xmlini,'w')
                 fin.write(xml_input.head)
