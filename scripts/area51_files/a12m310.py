@@ -1,6 +1,9 @@
 import sources
 
 params = dict()
+params['tuning_mq'] = False
+params['run_ff'] = True
+
 params['ENS_ABBR'] = 'a12m310'
 params['NL']   = '24'
 params['NT']   = '64'

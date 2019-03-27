@@ -103,6 +103,8 @@ for c in cfgs_run:
         params['CFG_FILE'] = cfg_file
         for s0 in srcs[c]:
             params['SRC'] = s0
+            if args.verbose:
+                print(c,s0)
             ''' check if spectrum and props exist '''
             make_src = False
             prop_name = c51.names['prop'] % params
