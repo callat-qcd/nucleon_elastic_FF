@@ -65,6 +65,7 @@ val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 ''' for now - just doing the light quark '''
 params['MQ'] = params['MV_L']
 
+params = area51.mpirun_params(c51.machine)
 params['NODES']       = params['cpu_nodes']
 params['METAQ_NODES'] = params['cpu_nodes']
 params['METAQ_GPUS']  = params['cpu_gpus']
@@ -75,7 +76,6 @@ params['MAXCUS']      = params['cpu_maxcus']
 params['SOURCE_ENV']  = c51.env
 params['PROG']        = '$LALIBE_CPU'
 params['APP']         = 'APP='+c51.bind_dir+c51.bind_c_36
-params = area51.mpirun_params(c51.machine)
 params['NRS']         = params['cpu_nrs']
 params['RS_NODE']     = params['cpu_rs_node']
 params['A_RS']        = params['cpu_a_rs']
