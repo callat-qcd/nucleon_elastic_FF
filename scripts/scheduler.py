@@ -1,12 +1,12 @@
-import os
+import os, sys
 from glob import glob
 
 def check_task(task,mtype,params,folder='todo',overwrite=False,task_type='metaq'):
-    ''' METAQ TASKS '''
     if task_type == 'metaq':
+        ''' METAQ TASKS '''
         task_exist = False
         for tdir in ['todo','priority','hold']:
-            if os.path.exists(metaq_dir+'/'+tdir+'/'+mtype+'/'+task):
+            if os.path.exists(params['METAQ_DIR']+'/'+tdir+'/'+mtype+'/'+task):
                 task_exist = True
         task_lst  = glob(params['METAQ_DIR']+'/working/*/*.sh')
         task_lst += glob(params['METAQ_DIR']+'/working/*/*/*.sh')
@@ -15,12 +15,12 @@ def check_task(task,mtype,params,folder='todo',overwrite=False,task_type='metaq'
             if task == t.split('/')[-1]:
                 task_exist = True
                 task_working = True
-
-    ''' MPI_JM TASKS '''
     elif task_type == 'mpi_jm':
+        ''' MPI_JM TASKS '''
         print('mpi_jm task generation not supported yet')
         task_exist = True
         task_working = True
+        sys.exit()
 
     return task_exist,task_working
 
@@ -36,10 +36,11 @@ def make_task(task,mtype,params,folder='todo',task_type='metaq'):
         metaQ.write(mpirun[params['machine']] % params)
         metaQ.write(cleanup % params)
         metaQ.close()
-        os.chmod(metaq_dir+'/'+folder+'/'+mtype+'/'+task, 0o770)
+        os.chmod(params['METAQ_DIR']+'/'+folder+'/'+mtype+'/'+task, 0o770)
 
     elif task_type == 'mpi_jm':
         print('mpi_jm task generation not supported yet')
+        sys.exit()
 
 ''' DEFINE A BUNCH OF METAQ TASK INFO '''
 

@@ -73,9 +73,9 @@ params['spec_time']  = 10
 
 params['cpu_nrs']    = '--nrs 2'
 params['cpu_rs_node']= '-r1'
-params['cpu_a_rs']   = '-a16'
+params['cpu_a_rs']   = '-a18'
 params['cpu_g_rs']   = ''
-params['cpu_c_rs']   = '-c16'
+params['cpu_c_rs']   = '-c18'
 params['cpu_latency']= '-l cpu-cpu'
 
 params['gpu_nodes']  = 0

@@ -14,15 +14,18 @@ import importlib
 import c51_mdwf_hisq as c51
 import sources
 import utils
+import scheduler
 
 ens,stream = c51.ens_base()
 ens_s = ens+'_'+stream
 
 area51 = importlib.import_module(ens)
 params = area51.params
+params['machine'] = c51.machine
 params['ENS_LONG'] = c51.ens_long[ens]
 params['ENS_S']    = ens_s
 params['STREAM']   = stream
+params['METAQ_PROJECT'] = 'cfg_flow_'+ens_s
 
 '''
     COMMAND LINE ARG PARSER
@@ -62,7 +65,7 @@ val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 ''' for now - just doing the light quark '''
 params['MQ'] = params['MV_L']
 
-base_dir = c51.base_dir % params
+#base_dir = c51.base_dir % params
 
 params['NODES']       = params['cpu_nodes']
 params['METAQ_NODES'] = params['cpu_nodes']
@@ -70,18 +73,29 @@ params['METAQ_GPUS']  = params['cpu_gpus']
 params['WALL_TIME']   = params['gflow_time']
 params['ENS_DIR']     = c51.ens_dir % params
 params['SCRIPT_DIR']  = c51.script_dir
+params['MAXCUS']      = params['cpu_maxcus']
+params['SOURCE_ENV']  = c51.env
+params['PROG']        = '$LALIBE_CPU'
+params['APP']         = 'APP='+c51.bind_dir+c51.bind_c_36
+params['NRS']         = params['cpu_nrs']
+params['RS_NODE']     = params['cpu_rs_node']
+params['A_RS']        = params['cpu_a_rs']
+params['G_RS']        = params['cpu_g_rs']
+params['C_RS']        = params['cpu_c_rs']
+params['L_GPU_CPU']   = params['cpu_latency']
 
-cfg_dir = base_dir+'/cfgs_flow'
-metaq_dir  = c51.metaq_dir
+#cfg_dir = base_dir+'/cfgs_flow'
+#metaq_dir  = c51.metaq_dir
 
-if not os.path.exists(base_dir+'/production/'+ens+'/cfgs_flow'):
-    os.makedirs(base_dir+'/production/'+ens+'/cfgs_flow')
+#if not os.path.exists(base_dir+'/production/'+ens+'/cfgs_flow'):
+#    os.makedirs(base_dir+'/production/'+ens+'/cfgs_flow')
 
 for c in cfgs_run:
     no = str(c)
     params['CFG'] = no
     ''' set up ensemble and make sure all dirs exist '''
     params = c51.ensemble(params)
+    params['RUN_DIR']     = params['prod']
 
     ''' check if flowed cfg exists and make if not '''
     scidac_cfg = params['scidac_cfg']
@@ -93,7 +107,7 @@ for c in cfgs_run:
             metaq = (c51.names['flow'] %params)+'.sh'
             t_exists,t_working = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
             if not t_exists or (args.o and not task_working):
-                xmlini = base_dir+'/xml/'+no+'/cfg_flow_'+cfg_flow + '.ini.xml'
+                xmlini = params['xml']+'/'+(c51.names['flow'] %params) +'.ini.xml'
                 fin = open(xmlini,'w')
                 fin.write(xml_input.head)
                 ''' do  gradient flow '''
@@ -111,6 +125,10 @@ for c in cfgs_run:
                 fin.close()
 
                 ''' Make METAQ task '''
+                params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
+                params['INI']       = xmlini
+                params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
+                params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                 params['CLEANUP'] = ''
                 scheduler.make_task(metaq,args.mtype,params,folder=q)
         else:

@@ -1,6 +1,9 @@
-import shutil
+import os,shutil
 import time
 import socket
+
+''' NUCLEON_ELASTIC_FF import '''
+import utils
 
 def ens_base():
     ens,stream = os.getcwd().split('/')[-1].split('_')
@@ -8,23 +11,33 @@ def ens_base():
 
 hn = socket.gethostname()
 if any(host in hn for host in ['oslic','pascal']):
-    manage  = '/p/lustre1/walkloud/c51/x_files/project_2'
-    scratch = '/p/lustre1/walkloud/c51/x_files/project_2'
-    machine = 'pascal'
+    manage    = '/p/lustre1/walkloud/c51/x_files/project_2'
+    scratch   = '/p/lustre1/walkloud/c51/x_files/project_2'
+    machine   = 'pascal'
+    env       = ''
+    bind_dir  = ''
 elif any(host in hn for host in ['lassen']):
-    manage  = '/p/gpfs1/walkloud/c51/x_files/project_2/'
-    scratch = '/p/gpfs1/walkloud/c51/x_files/project_2/'
-    machine = 'lassen'
-''' TERRIBLE LOGIN NAME FOR SUMMIT '''
+    manage    = '/p/gpfs1/walkloud/c51/x_files/project_2'
+    scratch   = '/p/gpfs1/walkloud/c51/x_files/project_2'
+    machine   = 'lassen'
+    env       = 'source /usr/workspace/coldqcd/software/lassen_smpi_RR/install/env.sh'
+    bind_dir  = '/usr/workspace/coldqcd/software/callat_build_scripts/binding_scripts/'
+    bind_c_36 = 'lassen_bind_cpu.N36.sh'
+    bind_g_4  = 'lassen_bind_gpu.omp4.sh'
 elif any(host in hn for host in ['login']):
-    manage  = '/ccs/proj/lgt100/c51/x_files/project_2'
-    scratch = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/'
-    machine = 'summit'
+    ''' TERRIBLE LOGIN NAME FOR SUMMIT '''
+    manage   = '/ccs/proj/lgt100/c51/x_files/project_2'
+    scratch  = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2'
+    machine  = 'summit'
+    env      = ''
+    bind_dir = ''
 else:
     print("Host "+hn+" unknown, using default.")
-    manage = os.path.dirname(os.path.abspath(__file__))
-    root = os.path.dirname(os.path.abspath(__file__))+'/c51/x_files/project_2'
-    machine = 'default'
+    manage   = os.path.dirname(os.path.abspath(__file__))
+    root     = os.path.dirname(os.path.abspath(__file__))+'/c51/x_files/project_2'
+    machine  = 'default'
+    env      = ''
+    bind_dir = ''
 print("c51 manage dir is",manage)
 print("c51 scratch dir is",scratch)
 
@@ -65,13 +78,14 @@ script_dir = manage +'/production/nucleon_elastic_FF/scripts'
 metaq_dir  = manage +'/metaq'
 
 def ensemble(params):
-    milc_cfg              = params['ENS_LONG']+params['stream']+'.'+params['CFG']
+    milc_cfg              = params['ENS_LONG']+params['STREAM']+'.'+params['CFG']
     params['prod']        = scratch + "/production/" + params['ENS_S']
     params['milc_cfg']    = params['prod']+'/cfgs/'+milc_cfg
     params['scidac_cfg']  = params['prod']+'/cfgs_scidac/'+milc_cfg+'.scidac'
     params['flowed_cfg']  = params['prod']+'/cfgs_flow/'+milc_cfg+'_wflow'+params['FLOW_TIME']+'.lime'
 
     ''' DIRECTORIES '''
+    params['METAQ_DIR']   = metaq_dir
     dirs    = ['flowed','corrupt','src','quda_resource']
     dirs_no = ['xml','stdout','prop','spec','spec_4D','seqsrc','seqprop','formfac','formfac_4D',]
     for d in dirs:
@@ -84,7 +98,7 @@ def ensemble(params):
     return params
 
 names = dict()
-names['flow']             = 'cfg_flow_%(ENS_LONG)s%(STREAM)s'
+names['flow']             = 'cfg_flow_%(ENS_LONG)s%(STREAM)s_%(CFG)s_wflow%(FLOW_TIME)s'
 names['src']              = 'src_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_%(SRC)s'
 names['prop']             = 'prop_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['prop']            += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
