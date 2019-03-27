@@ -35,6 +35,7 @@ parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] run number')
 parser.add_argument('-s','--src',type=str)
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
+parser.add_argument('--mtype',default='cpu',help='specify metaq dir [%(default)s]')
 parser.add_argument('-p',default=False,action='store_const',const=True,\
     help='put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
@@ -126,11 +127,12 @@ for c in cfgs_run:
                 src_name = c51.names['src'] % params
                 src_file = params['src']+'/'+src_name+'.'+params['SP_EXTENSION']
                 utils.check_file(src_file,file_size,params['file_time_delete'],params['corrupt'])
+                print('making src',src_name)
                 if not os.path.exists(src_file):
                     metaq = src_name + '.sh'
                     t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
                     if not t_e or (args.o and not t_w):
-                        xmlini = base_dir+'/xml/'+no+'/'+src_name+'.'+'ini.xml'
+                        xmlini = params['xml'] +'/'+src_name+'.'+'ini.xml'
                         fin = open(xmlini,'w')
                         fin.write(xml_input.head)
                         ''' create source '''
