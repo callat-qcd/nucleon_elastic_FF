@@ -35,7 +35,7 @@ parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] cfg numbers')
 parser.add_argument('-s','--src',type=str)
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
-parser.add_argument('--mtype',default='cpu',help='specify metaq dir [%(default)s]')
+parser.add_argument('--mtype',default='gpu',help='specify metaq dir [%(default)s]')
 parser.add_argument('-p',default=False,action='store_const',const=True,\
     help='put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
