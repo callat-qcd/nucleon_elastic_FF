@@ -25,7 +25,7 @@ params['machine'] = c51.machine
 params['ENS_LONG'] = c51.ens_long[ens]
 params['ENS_S']    = ens_s
 params['STREAM']   = stream
-params['METAQ_PROJECT'] = 'cfg_flow_'+ens_s
+params['METAQ_PROJECT'] = 'spec_'+ens_s
 
 '''
     COMMAND LINE ARG PARSER

@@ -72,20 +72,13 @@ for cfg in cfgs_run:
         utils.check_file(spec_file,params['spec_size'],params['file_time_delete'],params['corrupt'])
         if os.path.exists(spec_file):
             files.append(spec_file)
-    for f in files:
-        print(f)
-    sys.exit()
-    if args.src == None:
-        files = glob(d_dir+'/spec/'+no+'/spec_'+ens_s+'_'+no+'_'+val+'_mq'+mq_e[ens]+'_x*.h5')
-    else:
-        files = [d_dir+'/spec/'+no+'/spec_'+base+'_'+val+'_mq'+mq_e[ens]+'_'+no+'_'+args.src+'.h5']
     if len(files) > 0:
         for ftmp in files:
             src = ftmp.split('_')[-1].split('.')[0]
             t_src = int(src.split('t')[1])
-            mq = mq_e[ens].replace('.','p')
+            mq = params['MQ'].replace('.','p')
             f5 = h5.open_file(data_dir+'/'+ens+'_'+no+'.h5','a')
-            spec_dir = '/'+val_p+'/spectrum/ml'+mq
+            spec_dir = '/'+val_p+'/spec/ml'+mq
             good_file=True
             now = datetime.datetime.now().timestamp()
             if os.path.getsize(ftmp) < good_size[ens]:
