@@ -82,6 +82,7 @@ def mpirun_params(machine):
         params['cpu_g_rs']    = ''
         params['cpu_c_rs']    = '-c16'
         params['cpu_latency'] = '-l cpu-cpu'
+        params['cpu_bind']    = 'lassen_bind_cpu.N32.sh'
 
         params['gpu_nodes']   = 0
         params['gpu_gpus']    = 4
@@ -95,6 +96,7 @@ def mpirun_params(machine):
         params['gpu_c_rs']    = '-c4'
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 1 4'
+        params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
     if machine == 'summit':
         params['cpu_nodes']   = 1

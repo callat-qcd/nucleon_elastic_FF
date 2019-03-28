@@ -22,8 +22,6 @@ elif any(host in hn for host in ['lassen']):
     machine   = 'lassen'
     env       = 'source /usr/workspace/coldqcd/software/lassen_smpi_RR/install/env.sh'
     bind_dir  = '/usr/workspace/coldqcd/software/callat_build_scripts/binding_scripts/'
-    bind_c_36 = 'lassen_bind_cpu.N36.sh'
-    bind_g_4  = 'lassen_bind_gpu.omp4.sh'
 elif any(host in hn for host in ['login']):
     ''' TERRIBLE LOGIN NAME FOR SUMMIT '''
     manage   = '/ccs/proj/lgt100/c51/x_files/project_2'

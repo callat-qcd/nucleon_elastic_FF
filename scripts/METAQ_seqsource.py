@@ -53,7 +53,7 @@ print('')
 '''
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 
-if args.p:
+if args.priority:
     q = 'priority'
     params['PRIORITY'] = '-p'
 else:
@@ -86,6 +86,24 @@ params['M1']=m1
 params['M2']=m2
 params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
+params = area51.mpirun_params(c51.machine)
+params['NODES']       = params['cpu_nodes']
+params['METAQ_NODES'] = params['cpu_nodes']
+params['METAQ_GPUS']  = params['cpu_gpus']
+params['WALL_TIME']   = params['gflow_time']
+params['ENS_DIR']     = c51.ens_dir % params
+params['SCRIPT_DIR']  = c51.script_dir
+params['MAXCUS']      = params['cpu_maxcus']
+params['SOURCE_ENV']  = c51.env
+params['PROG']        = '$LALIBE_CPU'
+params['APP']         = 'APP='+c51.bind_dir+params['cpu_bind']
+params['NRS']         = params['cpu_nrs']
+params['RS_NODE']     = params['cpu_rs_node']
+params['A_RS']        = params['cpu_a_rs']
+params['G_RS']        = params['cpu_g_rs']
+params['C_RS']        = params['cpu_c_rs']
+params['L_GPU_CPU']   = params['cpu_latency']
+
 for c in cfgs_run:
     no = str(c)
     params['CFG'] = no
@@ -109,7 +127,7 @@ for c in cfgs_run:
             params['T_SEP'] = dt
             for s0 in srcs[c]:
                 params['SRC'] = s0
-                coherent_formfac_name  = names['coherent_ff'] % params
+                coherent_formfac_name  = c51.names['coherent_ff'] % params
                 coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
                 coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
                 if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
@@ -171,7 +189,7 @@ for c in cfgs_run:
                                 for particle in params['particles']:
                                     params['PARTICLE'] = particle
                                     params['SEQSOURCE'] = c51.names['seqsrc'] %params
-                                    seqsrc_file  = params['seqsrc']+'/'+seqsrc_name+'.'+params['SP_EXTENSION']
+                                    seqsrc_file  = params['seqsrc']+'/'+params['SEQSOURCE']+'.'+params['SP_EXTENSION']
                                     if not os.path.exists(seqsrc_file):
                                         ''' make seqsource '''
                                         fin.write(xml_input.lalibe_seqsource % params)

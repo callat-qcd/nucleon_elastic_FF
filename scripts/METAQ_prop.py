@@ -78,8 +78,8 @@ params['ENS_DIR']     = c51.ens_dir % params
 params['SCRIPT_DIR']  = c51.script_dir
 params['MAXCUS']      = params['cpu_maxcus']
 params['SOURCE_ENV']  = c51.env
-params['PROG']        = '$LALIBE_CPU'
-params['APP']         = 'APP='+c51.bind_dir+c51.bind_c_36
+params['PROG']        = '$LALIBE_GPU '+params['gpu_geom']
+params['APP']         = 'APP='+c51.bind_dir+params['gpu_bind']
 params['NRS']         = params['cpu_nrs']
 params['RS_NODE']     = params['cpu_rs_node']
 params['A_RS']        = params['cpu_a_rs']
