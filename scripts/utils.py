@@ -100,6 +100,15 @@ def nsq_vectors(nsq):
     r = range(-(n+1),n,1)
     return  [ [x,y,z] for x in r for y in r for z in r if x**2+y**2+z**2 == nsq ]
 
+def p_list(nsq):
+    n = int(np.ceil(np.sqrt(nsq)))+1
+    r = range(-(n+1),n,1)
+    n_lst = [ [x,y,z] for x in r for y in r for z in r if x**2+y**2+z**2 <= nsq ]
+    p_lst = []
+    for xyz in n_lst:
+        p_lst.append('px%d_py%d_pz%d' %(xyz[0],xyz[1],xyz[2]))
+    return p_lst
+
 def time_reverse(corr,phase=1,time_axis=1):
     '''
     Performe time-reversal of correlation function accounting for BC in time
