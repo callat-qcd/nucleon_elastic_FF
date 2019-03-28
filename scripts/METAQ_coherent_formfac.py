@@ -137,7 +137,7 @@ for c in cfgs_run:
                 params['SINK_SPIN']=src_spin
                 spin = snk_spin+'_'+src_spin
                 params['FLAV_SPIN']=fs
-                for particle in particles:
+                for particle in params['particles']:
                     params['PARTICLE'] = particle
                     if '_np' in particle:
                         params['T_SEP'] = '-'+dt
@@ -160,7 +160,7 @@ for c in cfgs_run:
                     params['T_SEP'] = dt
                     coherent_formfac_name  = c51.names['coherent_ff'] % params
                     coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
-                    coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
+                    coherent_formfac_file_4D = coherent_formfac_file.replace('formfac','formfac_4D')
                     params['THREE_PT_FILE'] = coherent_formfac_file
                     params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
                     utils.check_file(coherent_formfac_file_4D,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'])
@@ -186,7 +186,7 @@ for c in cfgs_run:
                                 fin.write(xml_input.qio_read % params)
 
                                 ''' read all seq props and do contractions '''
-                                for particle in particles:
+                                for particle in params['particles']:
                                     params['PARTICLE'] = particle
                                     if '_np' in particle:
                                         t_sep = '-'+dt
