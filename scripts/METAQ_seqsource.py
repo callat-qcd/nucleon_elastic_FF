@@ -208,7 +208,7 @@ for c in cfgs_run:
                                 params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                                 params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
                                 params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_coherent_seqprop.py '
-                                params['CLEANUP']  += params['CFG']+' -t'+params['T_SEP']+' '+params['PRIORITY']
+                                params['CLEANUP']  += params['CFG']+' -t'+params['T_SEP']+' '+params['PRIORITY']+'\n'
                                 params['CLEANUP']  += 'sleep 5'
                                 scheduler.make_task(metaq,args.mtype,params,folder=q)
                             else:

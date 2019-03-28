@@ -70,22 +70,23 @@ val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 params['MQ'] = params['MV_L']
 
 params = area51.mpirun_params(c51.machine)
-params['NODES']       = params['cpu_nodes']
-params['METAQ_NODES'] = params['cpu_nodes']
-params['METAQ_GPUS']  = params['cpu_gpus']
+params['NODES']       = params['gpu_nodes']
+params['METAQ_NODES'] = params['gpu_nodes']
+params['METAQ_GPUS']  = params['gpu_gpus']
 params['WALL_TIME']   = params['gflow_time']
 params['ENS_DIR']     = c51.ens_dir % params
 params['SCRIPT_DIR']  = c51.script_dir
-params['MAXCUS']      = params['cpu_maxcus']
+params['MAXCUS']      = params['gpu_maxcus']
 params['SOURCE_ENV']  = c51.env
-params['PROG']        = '$LALIBE_GPU '+params['gpu_geom']
+params['PROG']        = '$LALIBE_GPU '+params['gpu_geom']+'\n'
+params['PROG']       += 'export QUDA_RESOURCE_PATH='+(c51.base_dir %params)+'/quda_resource\n'
 params['APP']         = 'APP='+c51.bind_dir+params['gpu_bind']
-params['NRS']         = params['cpu_nrs']
-params['RS_NODE']     = params['cpu_rs_node']
-params['A_RS']        = params['cpu_a_rs']
-params['G_RS']        = params['cpu_g_rs']
-params['C_RS']        = params['cpu_c_rs']
-params['L_GPU_CPU']   = params['cpu_latency']
+params['NRS']         = params['gpu_nrs']
+params['RS_NODE']     = params['gpu_rs_node']
+params['A_RS']        = params['gpu_a_rs']
+params['G_RS']        = params['gpu_g_rs']
+params['C_RS']        = params['gpu_c_rs']
+params['L_GPU_CPU']   = params['gpu_latency']
 
 for c in cfgs_run:
     no = str(c)

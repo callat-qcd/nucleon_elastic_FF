@@ -32,6 +32,7 @@ params['METAQ_PROJECT'] = 'cfg_flow_'+ens_s
 '''
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
 parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] run cfg number')
+parser.add_argument('-s','--src',type=str)
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('--mtype',default='gpu',help='specify metaq dir [%(default)s]')
@@ -90,21 +91,22 @@ params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
 params = area51.mpirun_params(c51.machine)
 params['NODES']       = params['cpu_nodes']
-params['METAQ_NODES'] = params['cpu_nodes']
-params['METAQ_GPUS']  = params['cpu_gpus']
+params['METAQ_NODES'] = params['gpu_nodes']
+params['METAQ_GPUS']  = params['gpu_gpus']
 params['WALL_TIME']   = params['gflow_time']
 params['ENS_DIR']     = c51.ens_dir % params
 params['SCRIPT_DIR']  = c51.script_dir
-params['MAXCUS']      = params['cpu_maxcus']
+params['MAXCUS']      = params['gpu_maxcus']
 params['SOURCE_ENV']  = c51.env
-params['PROG']        = '$LALIBE_CPU'
-params['APP']         = 'APP='+c51.bind_dir+params['cpu_bind']
-params['NRS']         = params['cpu_nrs']
-params['RS_NODE']     = params['cpu_rs_node']
-params['A_RS']        = params['cpu_a_rs']
-params['G_RS']        = params['cpu_g_rs']
-params['C_RS']        = params['cpu_c_rs']
-params['L_GPU_CPU']   = params['cpu_latency']
+params['PROG']        = '"$LALIBE_GPU '+params['gpu_geom']+'"\n'
+params['PROG']       += 'export QUDA_RESOURCE_PATH='+(c51.base_dir %params)+'/quda_resource\n'
+params['APP']         = 'APP='+c51.bind_dir+params['gpu_bind']
+params['NRS']         = params['gpu_nrs']
+params['RS_NODE']     = params['gpu_rs_node']
+params['A_RS']        = params['gpu_a_rs']
+params['G_RS']        = params['gpu_g_rs']
+params['C_RS']        = params['gpu_c_rs']
+params['L_GPU_CPU']   = params['gpu_latency']
 
 for c in cfgs_run:
     no = str(c)
@@ -145,7 +147,7 @@ for c in cfgs_run:
                     params['SINK_SPIN']=src_spin
                     spin = snk_spin+'_'+src_spin
                     params['FLAV_SPIN']=fs
-                    for particle in particles:
+                    for particle in params['particles']:
                         params['PARTICLE'] = particle
                         if '_np' in particle:
                             params['QUARK_SPIN'] = 'LOWER'
@@ -176,7 +178,7 @@ for c in cfgs_run:
                                 metaq  = seqprop_name+'.sh'
                                 t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
                                 if not t_e or (args.o and not t_w):
-                                    xmlini = seqprop_file.replace('seqprop/','xml/').replace('.'+sp_ext,'.ini.xml')
+                                    xmlini = seqprop_file.replace('seqprop/','xml/').replace('.'+params['SP_EXTENSION'],'.ini.xml')
                                     fin = open(xmlini,'w')
                                     fin.write(xml_input.head)
 
@@ -222,7 +224,7 @@ for c in cfgs_run:
                                     params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                                     params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
                                     params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '
-                                    params['CLEANUP']  += params['CFG']+' -t'+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']
+                                    params['CLEANUP']  += params['CFG']+' -t'+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
                                     params['CLEANUP']  += 'sleep 5'
                                     scheduler.make_task(metaq,args.mtype,params,folder=q)
                                 else:
