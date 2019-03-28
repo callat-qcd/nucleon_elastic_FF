@@ -20,6 +20,12 @@ ens_s = ens+'_'+stream
 
 area51 = importlib.import_module(ens)
 params = area51.params
+params['machine'] = c51.machine
+params['ENS_LONG'] = c51.ens_long[ens]
+params['ENS_S']    = ens_s
+params['STREAM']   = stream
+
+print('ENSEMBLE:',ens_s)
 
 '''
     COMMAND LINE ARG PARSER
@@ -38,7 +44,6 @@ print('')
 dtype = np.float32
 data_dir = c51.data_dir % params
 utils.ensure_dirExists(data_dir)
-corrupt_dir = params['corrupt']
 
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
@@ -47,15 +52,14 @@ val_p = val.replace('.','p')
 
 mv_l = params['MV_L']
 
-print('MINING PROTON')
-print('ens_stream = ',base)
-print('ci:cf:dc = %d:%d:%d' %(ni,nf,dn))
+print('MINING SPEC')
 
 ps   = ['sh','pt']
 spin = ['spin_up','spin_dn']
 par  = ['proton','proton_np']
+params['MQ'] = params['MV_L']
 
-for cfg in cfgs:
+for cfg in cfgs_run:
     no = str(cfg)
     print(no)
     params['CFG'] = no
@@ -63,12 +67,13 @@ for cfg in cfgs:
     files = []
     for src in srcs[cfg]:
         params['SRC'] = src
-        spec_name = params['spec'] % params
+        spec_name = c51.names['spec'] % params
         spec_file = params['spec'] +'/'+ spec_name+'.h5'
         utils.check_file(spec_file,params['spec_size'],params['file_time_delete'],params['corrupt'])
         if os.path.exists(spec_file):
             files.append(spec_file)
-    print(spec_file)
+    for f in files:
+        print(f)
     sys.exit()
     if args.src == None:
         files = glob(d_dir+'/spec/'+no+'/spec_'+ens_s+'_'+no+'_'+val+'_mq'+mq_e[ens]+'_x*.h5')
