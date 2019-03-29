@@ -168,7 +168,7 @@ for corr in par:
                         tmp.append(src.read())
                         ns += 1
                     if args.v:
-                        print(corr,s,mq,no,'Ns = ',ns)
+                        print(corr,s,mq,no,mom,'Ns = ',ns)
                     tmp = np.array(tmp)
                     if first_data:
                         spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
@@ -190,6 +190,10 @@ for corr in par:
                 have_spin = True
         if have_spin:
             fout = h5.open_file(f_out,'a')
+            try:
+                fout.create_group('/'+val_p+'/spec/'+mqs,corr,createparents=True)
+            except:
+                pass
             tmp_dir = '/'+val_p+'/spec/'+mqs+'/'+corr
             add_spec = True
             if mom in fout.get_node(tmp_dir) and not args.o:
@@ -205,7 +209,7 @@ for corr in par:
                 cfgs_srcs = spin_data['cfgs_srcs']
                 nc = cfgs_srcs.shape[0]
                 ns_avg = cfgs_srcs.mean(axis=0)[1]
-                print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg)
+                print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
                 fout.create_array(c_dir,'cfgs_srcs',cfgs_srcs)
                 for s in spin:
                     fout.create_array(c_dir,s,spin_data[s])
