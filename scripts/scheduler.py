@@ -108,7 +108,7 @@ jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s -b none -d packed $APP $PRO
 
 mpirun['summit'] = '''
 %(APP)s
-jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s -c%(C_RS)s %(L_GPU_CPU)s -b packed:smt:%(OMP_NUM_THREADS)s %(PROG)s -i $ini -o $out > $stdout 2>&1
+jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s %(L_GPU_CPU)s -b packed:smt:%(OMP_NUM_THREADS)s %(PROG)s -i $ini -o $out > $stdout 2>&1
 
 '''
 

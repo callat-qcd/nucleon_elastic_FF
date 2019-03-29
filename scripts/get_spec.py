@@ -80,7 +80,7 @@ for cfg in cfgs_run:
             src_split = sources.src_split(src)
             t_src = int(src.split('t')[1])
             mq = params['MQ'].replace('.','p')
-            f5 = h5.open_file(data_dir+'/'+ens+'_'+no+'.h5','a')
+            f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
             spec_dir = '/'+val_p+'/spec/ml'+mq
             good_file=True
             now = datetime.datetime.now().timestamp()

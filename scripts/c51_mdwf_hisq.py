@@ -27,7 +27,7 @@ elif any(host in hn for host in ['login']):
     manage   = '/ccs/proj/lgt100/c51/x_files/project_2'
     scratch  = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2'
     machine  = 'summit'
-    env      = ''
+    env      = 'source /ccs/proj/lgt100/c51/software/summit_smpi/install/env.sh'
     bind_dir = ''
 else:
     print("Host "+hn+" unknown, using default.")

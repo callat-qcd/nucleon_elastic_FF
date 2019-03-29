@@ -48,19 +48,19 @@ data_avg_dir = data_dir+'/avg'
 utils.ensure_dirExists(data_avg_dir)
 
 if args.fout == None:
-    f_out = data_avg_dir+'/'+base+'_avg.h5'
+    f_out = data_avg_dir+'/'+ens_s+'_avg.h5'
 else:
     f_out = args.fout
 
-fin_files = glob(data_dir+'/'+ens+'_*.h5')
-if args.cfg == None:
+fin_files = glob(data_dir+'/'+ens_s+'_*.h5')
+if args.cfgs == None:
     cfgs = []
     for f in fin_files:
         cfg = f.split('_')[-1].split('.')[0]
         cfgs.append(int(cfg))
     cfgs.sort()
 else:
-    cfgs = utils.parse_cfg_argument(args.cfgs)
+    cfgs = utils.parse_cfg_argument(args.cfgs,params)
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -85,14 +85,16 @@ for mom in p_lst:
     for cfg in cfgs:
         no = str(cfg)
         good_cfg = False
-        if os.path.exists(data_dir+'/'+ens+'_'+no+'.h5'):
-            fin = h5.open_file(data_dir+'/'+ens+'_'+no+'.h5','r')
+        f_open = False
+        if os.path.exists(data_dir+'/'+ens_s+'_'+no+'.h5'):
+            fin = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','r')
+            f_open = True
             try:
                 srcs = fin.get_node('/'+val_p+'/spec/'+mqs+'/'+corr+'/'+mom)
                 if srcs._v_nchildren > 0:
                     good_cfg = True
             except:
-                print('ERROR reading ',data_dir+'/'+ens+'_'+no+'.h5')
+                print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
         #    fin.close()
         if good_cfg:
             ns = 0
@@ -101,7 +103,7 @@ for mom in p_lst:
                 tmp.append(src.read())
                 ns += 1
             if args.v:
-                print(corr,mq,no,'Ns = ',ns)
+                print(corr,mq,mom,no,'Ns = ',ns)
             tmp = np.array(tmp)
             if first_data:
                 spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
@@ -110,11 +112,12 @@ for mom in p_lst:
             else:
                 spec = np.append(spec,[tmp.mean(axis=0)],axis=0)
             cfgs_srcs.append([cfg,ns])
-        fin.close()
+        if f_open:
+            fin.close()
     cfgs_srcs = np.array(cfgs_srcs)
     nc = cfgs_srcs.shape[0]
     ns_avg = cfgs_srcs.mean(axis=0)[1]
-    print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg)
+    print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
     if nc > 0:
         fout = h5.open_file(f_out,'a')
         try:
@@ -149,14 +152,14 @@ for corr in par:
         for cfg in cfgs:
             no = str(cfg)
             good_cfg = False
-            if os.path.exists(data_dir+'/'+ens+'_'+no+'.h5'):
-                fin = h5.open_file(data_dir+'/'+ens+'_'+no+'.h5')
+            if os.path.exists(data_dir+'/'+ens_s+'_'+no+'.h5'):
+                fin = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5')
                 try:
                     srcs = fin.get_node('/'+val_p+'/spectrum/'+mqs+'/'+corr+'/'+s)
                     if srcs._v_nchildren > 0:
                         good_cfg = True
                 except:
-                    print('ERROR reading ',data_dir+'/'+ens+'_'+no+'.h5')
+                    print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
             if good_cfg:
                 ns = 0
                 tmp = []
