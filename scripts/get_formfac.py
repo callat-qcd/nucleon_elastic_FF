@@ -53,11 +53,19 @@ val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
 
 mv_l = params['MV_L']
+params['MQ'] = mv_l
 
 flav_spin = []
 for flav in params['flavs']:
     for spin in params['spins']:
         flav_spin.append(flav+'_'+spin)
+''' ONLY doing snk_mom 0 0 0 now '''
+snk_mom = params['snk_mom'][0]
+m0,m1,m2 = snk_mom.split()
+params['M0']=m0
+params['M1']=m1
+params['M2']=m2
+params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
 '''
 gf1p0_w3p0_n30_M51p3_L512_a1p5
@@ -94,6 +102,7 @@ for cfg in cfgs_run:
         for corr in params['particles']:
             for fs in flav_spin:
                 for tsep in params['t_seps']:
+                    params['T_SEP'] = tsep
                     dt = tsep
                     if '_np' in corr:
                         dt = '-'+dt
@@ -108,6 +117,8 @@ for cfg in cfgs_run:
                             try:
                                 f5.create_group(ff_dir+'/'+ff+'/'+curr,mom,createparents=True)
                                 f5.flush()
+                            except:
+                                pass
                             mom_dir = ff_dir+'/'+ff+'/'+curr+'/'+mom
                             if src in f5.get_node(mom_dir) and not args.o:
                                 get_data = False
