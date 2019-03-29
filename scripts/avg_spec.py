@@ -138,74 +138,75 @@ for mom in p_lst:
             fout.create_array(tmp_dir+'/'+mom,'corr',spec)
             fout.create_array(tmp_dir+'/'+mom,'cfgs_srcs',cfgs_srcs)
         fout.close()
-sys.exit()
-
 
 for corr in par:
-    spin_data = dict()
-    have_spin = False
-    for s in spin:
-        cfgs_srcs = []
-        spec = np.array([],dtype=dtype)
-        first_data = True
-        mqs = 'ml'+mq.replace('.','p')
-        for cfg in cfgs:
-            no = str(cfg)
-            good_cfg = False
-            if os.path.exists(data_dir+'/'+ens_s+'_'+no+'.h5'):
-                fin = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5')
-                try:
-                    srcs = fin.get_node('/'+val_p+'/spectrum/'+mqs+'/'+corr+'/'+s)
-                    if srcs._v_nchildren > 0:
-                        good_cfg = True
-                except:
-                    print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
-            if good_cfg:
-                ns = 0
-                tmp = []
-                for src in srcs:
-                    tmp.append(src.read())
-                    ns += 1
-                if args.v:
-                    print(corr,s,mq,no,'Ns = ',ns)
-                tmp = np.array(tmp)
-                if first_data:
-                    spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
-                    spec[0] = tmp.mean(axis=0)
-                    first_data = False
-                else:
-                    spec = np.append(spec,[tmp.mean(axis=0)],axis=0)
-                cfgs_srcs.append([cfg,ns])
-            fin.close()
-        cfgs_srcs = np.array(cfgs_srcs)
-        spin_data[s] = spec
-        if 'cfgs_srcs' not in spin_data:
-            spin_data['cfgs_srcs'] = cfgs_srcs
-        else:
-            if not np.all(cfgs_srcs == spin_data['cfgs_srcs']):
-                print('spin_data miss match')
-                sys.exit()
-        if cfgs_srcs.shape[0] > 0:
-            have_spin = True
-    if have_spin:
-        fout = h5.open_file(f_out,'a')
-        tmp_dir = '/'+val_p+'/spectrum/'+mqs
-        add_spec = True
-        if corr in fout.get_node(tmp_dir) and not args.o:
-            print(tmp_dir+'/'+corr+' exists: overwrite = False')
-            add_spec = False
-        elif corr in fout.get_node(tmp_dir) and args.o:
-            fout.remove_node(tmp_dir,corr,recursive=True)
-            fout.create_group(tmp_dir,corr)
-        elif corr not in fout.get_node(tmp_dir):
-            fout.create_group(tmp_dir,corr)
-        if add_spec:
-            c_dir = tmp_dir + '/' + corr
-            cfgs_srcs = spin_data['cfgs_srcs']
-            nc = cfgs_srcs.shape[0]
-            ns_avg = cfgs_srcs.mean(axis=0)[1]
-            print(corr,mq,'Nc=',nc,'Ns=',ns_avg)
-            fout.create_array(c_dir,'cfgs_srcs',cfgs_srcs)
-            for s in spin:
-                fout.create_array(c_dir,s,spin_data[s])
-        fout.close()
+    p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
+    ''' flip spin and momentum order in h5 dir structrure '''
+    for mom in p_lst:
+        spin_data = dict()
+        have_spin = False
+        for s in spin:
+            cfgs_srcs = []
+            spec = np.array([],dtype=dtype)
+            first_data = True
+            mqs = 'ml'+mq.replace('.','p')
+            for cfg in cfgs:
+                no = str(cfg)
+                good_cfg = False
+                if os.path.exists(data_dir+'/'+ens_s+'_'+no+'.h5'):
+                    fin = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5')
+                    try:
+                        srcs = fin.get_node('/'+val_p+'/spec/'+mqs+'/'+corr+'/'+s+'/'+mom)
+                        if srcs._v_nchildren > 0:
+                            good_cfg = True
+                    except:
+                        print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
+                if good_cfg:
+                    ns = 0
+                    tmp = []
+                    for src in srcs:
+                        tmp.append(src.read())
+                        ns += 1
+                    if args.v:
+                        print(corr,s,mq,no,'Ns = ',ns)
+                    tmp = np.array(tmp)
+                    if first_data:
+                        spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
+                        spec[0] = tmp.mean(axis=0)
+                        first_data = False
+                    else:
+                        spec = np.append(spec,[tmp.mean(axis=0)],axis=0)
+                    cfgs_srcs.append([cfg,ns])
+                fin.close()
+            cfgs_srcs = np.array(cfgs_srcs)
+            spin_data[s] = spec
+            if 'cfgs_srcs' not in spin_data:
+                spin_data['cfgs_srcs'] = cfgs_srcs
+            else:
+                if not np.all(cfgs_srcs == spin_data['cfgs_srcs']):
+                    print('spin_data miss match')
+                    sys.exit()
+            if cfgs_srcs.shape[0] > 0:
+                have_spin = True
+        if have_spin:
+            fout = h5.open_file(f_out,'a')
+            tmp_dir = '/'+val_p+'/spec/'+mqs+'/'+corr
+            add_spec = True
+            if mom in fout.get_node(tmp_dir) and not args.o:
+                print(tmp_dir+'/'+mom+' exists: overwrite = False')
+                add_spec = False
+            elif mom in fout.get_node(tmp_dir) and args.o:
+                fout.remove_node(tmp_dir,mom,recursive=True)
+                fout.create_group(tmp_dir,mom)
+            elif mom not in fout.get_node(tmp_dir):
+                fout.create_group(tmp_dir,mom)
+            if add_spec:
+                c_dir = tmp_dir + '/' + mom
+                cfgs_srcs = spin_data['cfgs_srcs']
+                nc = cfgs_srcs.shape[0]
+                ns_avg = cfgs_srcs.mean(axis=0)[1]
+                print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg)
+                fout.create_array(c_dir,'cfgs_srcs',cfgs_srcs)
+                for s in spin:
+                    fout.create_array(c_dir,s,spin_data[s])
+            fout.close()
