@@ -100,7 +100,7 @@ def nsq_vectors(nsq):
     r = range(-(n+1),n,1)
     return  [ [x,y,z] for x in r for y in r for z in r if x**2+y**2+z**2 == nsq ]
 
-def p_list(nsq):
+def p_lst(nsq):
     n = int(np.ceil(np.sqrt(nsq)))+1
     r = range(-(n+1),n,1)
     n_lst = [ [x,y,z] for x in r for y in r for z in r if x**2+y**2+z**2 <= nsq ]
