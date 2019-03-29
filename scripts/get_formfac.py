@@ -83,29 +83,29 @@ for cfg in cfgs_run:
     print(no)
     params['CFG'] = no
     params = c51.ensemble(params)
-    files = []
-    for src in srcs[cfg]:
-        params['SRC'] = src
-        ff_name = c51.names['coherent_ff'] % params
-        ff_file = params['formfac'] +'/'+ ff_name+'.h5'
-        utils.check_file(ff_file,params['ff_size'],params['file_time_delete'],params['corrupt'])
-        if os.path.exists(ff_file):
-            files.append(ff_file)
-    for ftmp in files:
-        f_in = h5.open_file(f_in,'r')
-        src = ftmp.split('_')[-1].split('.')[0]
-        src_split = sources.src_split(src)
-        t_src = src.split('t')[1]
-        mq = params['MQ'].replace('.','p')
-        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
-        ff_dir = '/'+val_p+'/formfac/ml'+mq
-        for corr in params['particles']:
-            for fs in flav_spin:
-                for tsep in params['t_seps']:
-                    params['T_SEP'] = tsep
-                    dt = tsep
-                    if '_np' in corr:
-                        dt = '-'+dt
+    for tsep in params['t_seps']:
+        params['T_SEP'] = tsep
+        files = []
+        for src in srcs[cfg]:
+            params['SRC'] = src
+            ff_name = c51.names['coherent_ff'] % params
+            ff_file = params['formfac'] +'/'+ ff_name+'.h5'
+            utils.check_file(ff_file,params['ff_size'],params['file_time_delete'],params['corrupt'])
+            if os.path.exists(ff_file):
+                files.append(ff_file)
+        for ftmp in files:
+            f_in = h5.open_file(f_in,'r')
+            src = ftmp.split('_')[-1].split('.')[0]
+            src_split = sources.src_split(src)
+            t_src = src.split('t')[1]
+            mq = params['MQ'].replace('.','p')
+            f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
+            ff_dir = '/'+val_p+'/formfac/ml'+mq
+            for corr in params['particles']:
+                dt = tsep
+                if '_np' in corr:
+                    dt = '-'+dt
+                for fs in flav_spin:
                     ff = corr+'_'+fs+'_t0_'+t_src+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
                     for curr in params['curr_p'] + params['curr_0p']:
                         if curr in params['curr_0p']:
