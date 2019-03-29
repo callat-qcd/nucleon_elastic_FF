@@ -2,6 +2,8 @@
 import os, sys, argparse, shutil, datetime, time
 import numpy as np
 import tables as h5
+import warnings
+warnings.simplefilter('ignore', h5.NaturalNameWarning)
 from glob import glob
 np.set_printoptions(linewidth=180)
 fmt = '%Y-%m-%d %H:%M:%S'
@@ -121,7 +123,7 @@ for cfg in cfgs_run:
                             print('  skipping piplus: overwrite = False',no,src)
                     else:
                         print('  NAN',no,src)
-                    fin.close()
+                fin.close()
             # PROTON
             get_data = False
             for s in spin:
