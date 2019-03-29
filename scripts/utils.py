@@ -109,6 +109,15 @@ def p_lst(nsq):
         p_lst.append('px%d_py%d_pz%d' %(xyz[0],xyz[1],xyz[2]))
     return p_lst
 
+def p_simple_lst(n=4):
+    r = range(-n,n+1)
+    p_lst = []
+    for p in r:
+        p_lst.append('px%d_py0_pz0' %p)
+        p_lst.append('px0_py%d_pz0' %p)
+        p_lst.append('px0_py0_pz%d' %p)
+    return p_lst
+    
 def time_reverse(corr,phase=1,time_axis=1):
     '''
     Performe time-reversal of correlation function accounting for BC in time
