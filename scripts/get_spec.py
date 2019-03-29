@@ -150,7 +150,7 @@ for cfg in cfgs_run:
                             data[:,1,0] = pt
                             if not np.any(np.isnan(data)):
                                 if args.v:
-                                    print(no,corr,s,src)
+                                    print(no,corr,s,src,mom)
                                 if src not in f5.get_node(mom_dir):
                                     f5.create_array(mom_dir,src,data)
                                 elif src in f5.get_node(mom_dir) and args.o:
