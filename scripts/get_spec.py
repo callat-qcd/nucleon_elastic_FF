@@ -1,11 +1,11 @@
 #!/sw/summit/python/3.7/anaconda3/5.3.0/bin/python
 import os, sys, argparse, shutil, datetime, time
 import numpy as np
+np.set_printoptions(linewidth=180)
 import tables as h5
 import warnings
 warnings.simplefilter('ignore', h5.NaturalNameWarning)
 from glob import glob
-np.set_printoptions(linewidth=180)
 fmt = '%Y-%m-%d %H:%M:%S'
 
 '''
@@ -43,7 +43,7 @@ print('Arguments passed')
 print(args)
 print('')
 
-dtype = np.float32
+dtype = np.complex64
 data_dir = c51.data_dir % params
 utils.ensure_dirExists(data_dir)
 
