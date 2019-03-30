@@ -137,6 +137,18 @@ def time_reverse(corr,phase=1,time_axis=1):
         cr[0] = phase * cr[0]
     return cr
 
+def get_write_h5_data(f_in,f_out,p_in,p_out,d_name,overwrite=False,verbose=False):
+    data = f_in.get_node(p_in).read()
+    if not np.any(np.isnan(data)):
+        if d_name not in f_out.get_node(p_out):
+            f_out.create_array(p_out,d_name,data)
+            if verbose: print('    fresh collect')
+        elif d_name in f_out.get_node(p_out) and overwrite:
+            f_out.get_node(p_out+'/'+d_name)[:] = data
+            if verbose: print('    replace collect')
+        elif d_name in f_out.get_node(p_out) and not overwrite:
+            if verbose: print('    skipping, overwrite = False')
+
 def mom_avg(h5_data,state,mom_lst,weights=False):
     '''
     perform a momentum average of a state from an open h5 file

@@ -74,7 +74,8 @@ base_dir   = scratch+'/production/%(ENS_S)s'
 ens_dir    = manage +'/production/%(ENS_S)s'
 script_dir = manage +'/production/nucleon_elastic_FF/scripts'
 metaq_dir  = manage +'/metaq'
-data_dir   = manage +'/production/%(ENS_S)s/data'
+#data_dir   = manage +'/production/%(ENS_S)s/data'
+data_dir   = scratch+'/production/%(ENS_S)s/data'
 
 def ensemble(params):
     milc_cfg              = params['ENS_LONG']+params['STREAM']+'.'+params['CFG']

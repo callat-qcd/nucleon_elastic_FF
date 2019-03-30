@@ -84,6 +84,7 @@ for cfg in cfgs_run:
     params['CFG'] = no
     params = c51.ensemble(params)
     for tsep in params['t_seps']:
+        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
         params['T_SEP'] = tsep
         files = []
         for src in srcs[cfg]:
@@ -94,12 +95,12 @@ for cfg in cfgs_run:
             if os.path.exists(ff_file):
                 files.append(ff_file)
         for ftmp in files:
+            print(ftmp)
             f_in = h5.open_file(ftmp,'r')
             src = ftmp.split('_')[-2].split('.')[0]
             src_split = sources.src_split(src)
             t_src = src.split('t')[1]
             mq = params['MQ'].replace('.','p')
-            f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
             ff_dir = '/'+val_p+'/formfac/ml'+mq
             for corr in params['particles']:
                 dt = str(tsep)
@@ -125,10 +126,11 @@ for cfg in cfgs_run:
                         if get_data:
                             for mom in p_lst:
                                 d_path = '/'+ff+'/'+curr+'/'+src_split+'/'+mom+'/local_current'
-                                data = f_in.get_node(d_path).read()
                                 mom_dir = ff_dir+'/'+ff+'/'+curr+'/'+mom
+                                if args.v: print(no,ff,curr,mom,src)
+                                '''
+                                data = f_in.get_node(d_path).read()
                                 if not np.any(np.isnan(data)):
-                                    if args.v: print(no,ff,curr,mom,src)
                                     if src not in f5.get_node(mom_dir):
                                         f5.create_array(mom_dir,src,data)
                                         print('  fresh    ',ff,no,curr,mom,src)
@@ -137,8 +139,13 @@ for cfg in cfgs_run:
                                         print('  replace  ',ff,no,curr,mom,src)
                                     elif src in f5.get_node(mom_dir) and not args.o:
                                         print('  skipping ',ff,': overwrite = False',no,curr,mom,src)
+                                '''
+                                utils.get_write_h5_data(f_in,f5,d_path,mom_dir,src,overwrite=args.o)
+                                f5.flush()
                         else:
                             print(ff,curr)
                             print('    data exists and overwrite=False')
-            f5.close()
             f_in.close()
+            print('I/O break: 1 second')
+            time.sleep(1)
+        f5.close()
