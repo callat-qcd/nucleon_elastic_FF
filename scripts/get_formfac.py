@@ -117,7 +117,7 @@ for cfg in cfgs_run:
                             for mom in p_lst:
                                 d_path = '/'+ff_in+'/'+curr+'/'+src_split+'/'+mom+'/local_current'
                                 mom_dir = ff_dir+'/'+ff_out+'/'+curr+'/'+mom
-                                if args.v: print(no,ff_in,curr,mom,src)
+                                if args.v: print(no,ff_in,'%10s' %curr,mom,src)
                                 '''
                                 data = f_in.get_node(d_path).read()
                                 if not np.any(np.isnan(data)):
