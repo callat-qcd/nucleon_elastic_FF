@@ -1,4 +1,4 @@
-#!/sw/summit/python/3.7/anaconda3/5.3.0/bin/python
+from __future__ import print_function
 import os, sys, argparse
 import numpy as np
 np.set_printoptions(linewidth=180)

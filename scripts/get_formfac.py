@@ -67,17 +67,6 @@ params['M1']=m1
 params['M2']=m2
 params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
-'''
-gf1p0_w3p0_n30_M51p3_L512_a1p5
-    formfac
-        ml0p0158
-            proton_UU_up_up_t0_31_tsep_10_sink_mom_px0_py0_pz0
-                A3, curr_p and curr_0p
-                    SRC
-                        MOM
-                            local_current
-'''
-
 for cfg in cfgs_run:
     no = str(cfg)
     print(no)
@@ -107,7 +96,8 @@ for cfg in cfgs_run:
                 if '_np' in corr:
                     dt = '-'+dt
                 for fs in flav_spin:
-                    ff = corr+'_'+fs+'_t0_'+t_src+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
+                    ff_in  = corr+'_'+fs+'_t0_'+t_src+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
+                    ff_out = corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
                     for curr in params['curr_p'] + params['curr_0p']:
                         if curr in params['curr_0p']:
                             p_lst = ['px0_py0_pz0']
@@ -116,18 +106,18 @@ for cfg in cfgs_run:
                         get_data = True
                         for mom in p_lst:
                             try:
-                                f5.create_group(ff_dir+'/'+ff+'/'+curr,mom,createparents=True)
+                                f5.create_group(ff_dir+'/'+ff_out+'/'+curr,mom,createparents=True)
                                 f5.flush()
                             except:
                                 pass
-                            mom_dir = ff_dir+'/'+ff+'/'+curr+'/'+mom
+                            mom_dir = ff_dir+'/'+ff_out+'/'+curr+'/'+mom
                             if src in f5.get_node(mom_dir) and not args.o:
                                 get_data = False
                         if get_data:
                             for mom in p_lst:
-                                d_path = '/'+ff+'/'+curr+'/'+src_split+'/'+mom+'/local_current'
-                                mom_dir = ff_dir+'/'+ff+'/'+curr+'/'+mom
-                                if args.v: print(no,ff,curr,mom,src)
+                                d_path = '/'+ff_in+'/'+curr+'/'+src_split+'/'+mom+'/local_current'
+                                mom_dir = ff_dir+'/'+ff_out+'/'+curr+'/'+mom
+                                if args.v: print(no,ff_in,curr,mom,src)
                                 '''
                                 data = f_in.get_node(d_path).read()
                                 if not np.any(np.isnan(data)):
@@ -140,10 +130,10 @@ for cfg in cfgs_run:
                                     elif src in f5.get_node(mom_dir) and not args.o:
                                         print('  skipping ',ff,': overwrite = False',no,curr,mom,src)
                                 '''
-                                utils.get_write_h5_data(f_in,f5,d_path,mom_dir,src,overwrite=args.o)
+                                utils.get_write_h5_ff_data(f_in,f5,d_path,mom_dir,src,overwrite=args.o)
                                 f5.flush()
                         else:
-                            print(ff,curr)
+                            print(ff_in,curr)
                             print('    data exists and overwrite=False')
             f_in.close()
             print('I/O break: 1 second')

@@ -118,7 +118,7 @@ def p_simple_lst(n=4):
         p_lst.append('px0_py%d_pz0' %p)
         p_lst.append('px0_py0_pz%d' %p)
     return p_lst
-    
+
 def time_reverse(corr,phase=1,time_axis=1):
     '''
     Performe time-reversal of correlation function accounting for BC in time
@@ -137,7 +137,7 @@ def time_reverse(corr,phase=1,time_axis=1):
         cr[0] = phase * cr[0]
     return cr
 
-def get_write_h5_data(f_in,f_out,p_in,p_out,d_name,overwrite=False,verbose=False):
+def get_write_h5_ff_data(f_in,f_out,p_in,p_out,d_name,overwrite=False,verbose=False):
     data = f_in.get_node(p_in).read()
     if not np.any(np.isnan(data)):
         if d_name not in f_out.get_node(p_out):
