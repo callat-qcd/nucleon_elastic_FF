@@ -94,15 +94,15 @@ for cfg in cfgs_run:
             if os.path.exists(ff_file):
                 files.append(ff_file)
         for ftmp in files:
-            f_in = h5.open_file(f_in,'r')
-            src = ftmp.split('_')[-1].split('.')[0]
+            f_in = h5.open_file(ftmp,'r')
+            src = ftmp.split('_')[-2].split('.')[0]
             src_split = sources.src_split(src)
             t_src = src.split('t')[1]
             mq = params['MQ'].replace('.','p')
             f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
             ff_dir = '/'+val_p+'/formfac/ml'+mq
             for corr in params['particles']:
-                dt = tsep
+                dt = str(tsep)
                 if '_np' in corr:
                     dt = '-'+dt
                 for fs in flav_spin:
@@ -125,18 +125,20 @@ for cfg in cfgs_run:
                         if get_data:
                             for mom in p_lst:
                                 d_path = '/'+ff+'/'+curr+'/'+src_split+'/'+mom+'/local_current'
-                                data = f_in.get_node(d_path)
+                                data = f_in.get_node(d_path).read()
                                 mom_dir = ff_dir+'/'+ff+'/'+curr+'/'+mom
                                 if not np.any(np.isnan(data)):
                                     if args.v: print(no,ff,curr,mom,src)
                                     if src not in f5.get_node(mom_dir):
                                         f5.create_array(mom_dir,src,data)
+                                        print('  fresh    ',ff,no,curr,mom,src)
                                     elif src in f5.get_node(mom_dir) and args.o:
                                         f5.get_node(mom_dir+'/'+src)[:] = data
+                                        print('  replace  ',ff,no,curr,mom,src)
                                     elif src in f5.get_node(mom_dir) and not args.o:
                                         print('  skipping ',ff,': overwrite = False',no,curr,mom,src)
                         else:
                             print(ff,curr)
                             print('    data exists and overwrite=False')
-        f5.close()
-        f_in.close()
+            f5.close()
+            f_in.close()

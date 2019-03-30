@@ -110,8 +110,9 @@ def p_lst(nsq):
     return p_lst
 
 def p_simple_lst(n=4):
-    r = range(-n,n+1)
+    r = [i for j in (range(-n,0), range(1,n+1)) for i in j]
     p_lst = []
+    p_lst.append('px0_py0_pz0')
     for p in r:
         p_lst.append('px%d_py0_pz0' %p)
         p_lst.append('px0_py%d_pz0' %p)
