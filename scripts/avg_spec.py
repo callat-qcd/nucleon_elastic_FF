@@ -182,7 +182,7 @@ for corr in par:
             ''' perform time-reversal on neg par correlators '''
             if '_np' in corr:
                 print('PERFORMING TIME_REVERSAL:',corr)
-                spec = utils.time_reversal(spec,phase=-1,time_axis=1)
+                spec = utils.time_reverse(spec,phase=-1,time_axis=1)
             spin_data[s] = spec
             if 'cfgs_srcs' not in spin_data:
                 spin_data['cfgs_srcs'] = cfgs_srcs

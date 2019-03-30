@@ -82,7 +82,7 @@ params['M1']=m1
 params['M2']=m2
 params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
-h5_root_path = val_p+'/formfac/'+params['MV_L'].replace('.','p')
+h5_root_path = '/'+val_p+'/formfac/ml'+params['MV_L'].replace('.','p')
 f5_out = h5.open_file(f_out,'a')
 
 for corr in params['particles']:
@@ -93,12 +93,13 @@ for corr in params['particles']:
                 dt = '-'+dt
             h5_path = h5_root_path+'/'+corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
             for curr in params['curr_p'] + params['curr_0p']:
+                curr_dir = h5_path +'/'+curr
+                try:
+                    f5_out.create_group(h5_path,curr,createparents=True)
+                    f5_out.flush()
+                except:
+                    pass
                 if curr in params['curr_0p']:
-                    curr_dir = h5_path +'/'+curr
-                    try:
-                        f5_out.create_group(h5_path,curr,createparents=True)
-                    except:
-                        pass
                     p_lst = ['px0_py0_pz0']
                 else:
                     p_lst = utils.p_simple_lst(n=4)
@@ -117,9 +118,9 @@ for corr in params['particles']:
                             no = str(cfg)
                             good_cfg = False
                             if os.path.exists(data_dir+'/'+ens_s+'_'+no+'.h5'):
-                                fin = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5')
+                                fin = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','r')
                                 try:
-                                    srcs = fin.get_node('/'+val_p+'/spec/'+mqs+'/'+corr+'/'+s+'/'+mom)
+                                    srcs = fin.get_node(mom_dir)
                                     if srcs._v_nchildren > 0:
                                         good_cfg = True
                                 except:
@@ -130,12 +131,12 @@ for corr in params['particles']:
                                 for src in srcs:
                                     tmp.append(src.read())
                                     ns += 1
-                                sys.stdout.write('    cfg=%4d Ns = %d' %(cfg,ns))
+                                sys.stdout.write('    cfg=%4d Ns = %d\r' %(cfg,ns))
                                 sys.stdout.flush()
                                 tmp = np.array(tmp)
                                 if first_data:
                                     data = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
-                                    data[0] = np.mean(axis=0)
+                                    data[0] = tmp.mean(axis=0)
                                     first_data = False
                                 else:
                                     data = np.append(data,[tmp.mean(axis=0)],axis=0)
@@ -145,7 +146,7 @@ for corr in params['particles']:
                         ''' perform time-reversal on neg par correlators '''
                         if '_np' in corr:
                             print('PERFORMING TIME_REVERSAL:',corr)
-                            data = utils.time_reversal(data,phase=-1,time_axis=1)
+                            data = utils.time_reverse(data,phase=-1,time_axis=1)
                         print('    Nc=%4d, Ns=%.7f' %(cfgs_srcs.shape[0],cfgs_srcs.mean(axis=0)[1]))
                         if mom in f5_out.get_node(curr_dir):
                             f5_out.remove_node(curr_dir,mom,recursive=True)
