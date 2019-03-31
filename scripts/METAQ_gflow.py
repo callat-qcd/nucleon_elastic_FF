@@ -96,7 +96,7 @@ for c in cfgs_run:
     cfg_file   = params['flowed_cfg']
     if not os.path.exists(cfg_file) or (os.path.exists(cfg_file) and args.o):
         if os.path.exists(scidac_cfg):
-            print('making flowed cfg input xml')
+            print('making flowed cfg input xml',no)
             metaq = (c51.names['flow'] %params)+'.sh'
             t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
             if not t_e or (args.o and not t_w):
