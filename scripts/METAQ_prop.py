@@ -126,7 +126,7 @@ for c in cfgs_run:
                         metaq = prop_name+'.sh'
                         t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
                         if not t_e or (args.o and not t_w):
-                            xmlini = params['xml'] +'/'+(prop_xml_base %params)+'.ini.xml'
+                            xmlini = params['xml'] +'/'+(c51.names['prop_xml'] %params)+'.ini.xml'
                             fin = open(xmlini,'w')
                             fin.write(xml_input.head)
                             ''' read src '''
@@ -141,7 +141,7 @@ for c in cfgs_run:
                             params['QUARK_SPIN'] = 'FULL'
                             ''' this xml file contains mres info and is distinct from the chroma .out.xml '''
                             params['PROP_XML']  = '<xml_file>'
-                            params['PROP_XML'] += prop_file.replace('/prop/','/xml/').replace(sp_ext,'out.xml')
+                            params['PROP_XML'] += prop_file.replace('/prop/','/xml/').replace(params['SP_EXTENSION'],'out.xml')
                             params['PROP_XML'] += '</xml_file>'
                             fin.write(xml_input.quda_nef % params)
 
