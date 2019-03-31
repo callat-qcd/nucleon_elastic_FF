@@ -86,7 +86,7 @@ def ensemble(params):
 
     ''' DIRECTORIES '''
     params['METAQ_DIR']   = metaq_dir
-    dirs    = ['flowed','corrupt','src','quda_resource']
+    dirs    = ['cfgs_flow','corrupt','src','quda_resource']
     dirs_no = ['xml','stdout','prop','spec','spec_4D','seqsrc','seqprop','formfac','formfac_4D',]
     for d in dirs:
         params[d] = params['prod']+'/'+d
