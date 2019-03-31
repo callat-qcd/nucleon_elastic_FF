@@ -115,6 +115,12 @@ for c in cfgs_run:
             '''            spin*par* vol       * comp * dbl '''
             spec_size_4D = 2 * 2 * nt * nl**3 * 2 * 8
             utils.check_file(spec_file_4D,spec_size_4D,params['file_time_delete'],params['corrupt'])
+            if os.path.exists(spec_file) and not os.path.exists(spec_file_4D):
+                now = time.time()
+                file_time = os.stat(spec_file)
+                if (now-file_time)/60 > params['file_time_delete']:
+                    print('DELETING:',spec_file)
+                    shutil.move(spec_file,params['corrupt']+'/'+spec_file.split('/')[-1])
             spec_exists = os.path.exists(spec_file) and os.path.exists(spec_file_4D)
             if not spec_exists:
                 prop_name = c51.names['prop'] % params
