@@ -25,6 +25,9 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.00951'
 params['MV_S'] = '0.0491'
 
+params['spec_size'] = 1121000
+params['ff_size']   = 5078000
+
 params['MAX_ITER']   = '2000'
 params['RSD_TARGET'] = '1.e-7'
 params['Q_DELTA']    = '0.1'
@@ -53,7 +56,7 @@ params['snk_mom'] = ['0 0 0']
 params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
 params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P']
-params['curr']    = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
+params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['T34','T12','CHROMO_MAG']
 
 ''' SCHEDULING PARAMETERS '''
