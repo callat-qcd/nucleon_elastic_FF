@@ -2,7 +2,7 @@ import sources
 
 params = dict()
 params['tuning_mq'] = False
-params['run_ff'] = True
+params['run_ff'] = False
 
 params['ENS_ABBR'] = 'a12m310L'
 params['NL']   = '32'
@@ -45,7 +45,7 @@ params['generator'] = sources.oa(int(params['NL']))
 params['N_SEQ'] = 2*len(params['t_shifts']) #2 * t_shifts
 
 ''' minutes after last file modification time when deletion of small files is OK '''
-params['file_time_delete'] = 10
+params['file_time_delete'] = 10.
 
 params['MESONS_PSQ_MAX']  = 5
 params['BARYONS_PSQ_MAX'] = 5
