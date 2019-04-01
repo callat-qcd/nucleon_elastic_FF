@@ -83,7 +83,6 @@ params['M2']=m2
 params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
 h5_root_path = '/'+val_p+'/formfac/ml'+params['MV_L'].replace('.','p')
-f5_out = h5.open_file(f_out,'a')
 
 for corr in params['particles']:
     for fs in flav_spin:
@@ -93,6 +92,7 @@ for corr in params['particles']:
                 dt = '-'+dt
             h5_path = h5_root_path+'/'+corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
             for curr in params['curr_p'] + params['curr_0p']:
+                f5_out = h5.open_file(f_out,'a')
                 curr_dir = h5_path +'/'+curr
                 try:
                     f5_out.create_group(h5_path,curr,createparents=True)
@@ -154,7 +154,7 @@ for corr in params['particles']:
                         f5_out.create_array(mom_dir,'cfgs_srcs',cfgs_srcs)
                         f5_out.create_array(mom_dir,'local_curr',data)
                         f5_out.flush()
-f5_out.close()
+                f5_out.close()
 
 """
 for cfg in cfgs_run:
