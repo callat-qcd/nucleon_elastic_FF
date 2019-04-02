@@ -196,9 +196,6 @@ def source_average(
     for file_group in file_groups.values():
         out_file = file_group[0]
 
-        if not os.path.exists(os.path.basename(out_file)):
-            os.makedirs(os.path.basename(out_file))
-
         if n_expected_sources:
             if len(file_group) != n_expected_sources:
                 raise ValueError(
@@ -208,5 +205,10 @@ def source_average(
 
         for pat, subs in file_replace_pattern.items():
             out_file = re.sub(pat, subs, out_file)
+
+        base_dir = os.path.dirname(out_file)
+        if not os.path.exists(base_dir):
+            LOGGER.info("Creating `%s`", base_dir)
+            os.makedirs(base_dir)
 
         dset_avg(file_group, out_file, dset_replace_pattern, overwrite=overwrite)
