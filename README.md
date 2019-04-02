@@ -1,50 +1,43 @@
-# three_points
+# three correlation function data management
 
+This repo supports the generation of xml and tasks for our MDWF on HISQ calculations of the proton 3pt functions.
+Currently, the task management scripts live in the `scripts` folder and are run as command line scripts.  Additionally, simple data collection scripts are also in the `scripts` folder and can be run as command line scripts.  ChrisK has developed a time-slicing script, that is run by first `pip install`ing, and then executed from the command line.
 
-## nucleon_elastic_ff.data
+## scripts
+[Andre add some description]
 
-Management scripts for nucleon elastic form factor data.
+## 4D data management scripts
 
-### Time slicing
+### install
 
-Slicing h5 files in ther temporal component.
-
-
-```python
-from nucleon_elastic_ff.data.scripts.tslice import tslice
-
-tslice(DATAROOT)
+Instantiate each time or add to your .bashrc/.bash_profile (this is for Summit)
+```
+module load python/3.7.0-anaconda3-5.3.0
+export PYTHONUSERBASE=/ccs/proj/lgt100/c51/software/python
+export PYTHONPATH="$PYTHONUSERBASE/lib/python3.7/site-packages:$PYTHONPATH"
+export PATH="$PYTHONUSERBASE/bin:$PATH"
 ```
 
+Option 1 - create symlink so updates pulled to repo do not have to be re-installed
 ```
-def tslice(
-    root: str,
-    name_input: str = "formfac_4D",
-    name_output: str = "formfac_4D_tslice",
-    overwrite: bool = False,
-):
-    """Recursively scans directory for files and slices matches in time direction.
+cd <path_to_script>/nucleon_elastic_FF
+pip install --user -e .
+```
+A successful installation will place a few executables here (on Summit)
+```
+/ccs/proj/lgt100/c51/software/python/bin/
+```
 
-    The input files must be h5 files (ending with ".h5") and must have `name_input`
-    in their file name. Files which have `name_output` as name are excluded.
-    Also, this routine ignores exporting to files which already exist.
-    Once all files are fixed, this routine calls `slice_file` on each file.
-    The slicing info is inferred by the group name (see `parse_t_info`) and cut according
-    using `slice_array`.
+### usage
 
-    **Arguments**
-        root: str
-            The directory to look for files.
-
-        name_input: str = "formfac_4D"
-            Files must match this pattern to be submitted for slicing.
-
-        name_output: str = "formfac_4D_tslice"
-            Files must not match this pattern to be submitted for slicing.
-            Also the sliced output files will have the input name replaced by the output
-            name. This also includes directory names.
-
-        overwrite: bool = False
-            Overwrite existing sliced files.
-    """
+A sample use case on Summit
+```
+cd /gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/a15m310Lfaces_a
+nucelff -h [to get a help message]
+nucelff formfac_4D/300 -s [to slice only cfg 300]
+```
+The, we can average by running either of the following
+```
+nucelff formfac_4D_tslice/300 -a --n-expected-sources 24
+nucelff formfac_4D/300 -a --n-expected-sources 24
 ```
