@@ -10,6 +10,7 @@ from nucleon_elastic_ff.utilities import set_up_logger
 
 LOGGER = set_up_logger("nucleon_elastic_ff")
 
+
 def parse_t_info(string: str) -> Dict[str, int]:
     """Extract `t0` and `tsep` info from string.
 
@@ -55,8 +56,7 @@ def parse_file_info(
     pattern = (
         r"(?P<type>formfac_4D[_a-z]*)"
         "_"
-        r"a(?P<a>[0-9\.]+)"
-        r"m(?P<mpi>[0-9\.]+)"
+        r"a(?P<ensemble>[0-9a-zA-Z]+)"
         r"_"
         r"(?P<stream>[a-z]+)"
         r"_"
