@@ -76,7 +76,8 @@ def tslice(
         " " if overwrite else " (and do not exist)",
     )
 
-    for file_address in all_files:
+    for n_file, file_address in enumerate(all_files):
+        LOGGER.info("--- File %d of %d ---", n_file + 1, len(all_files))
         file_address_out = file_address.replace(name_input, name_output)
         if not os.path.exists(os.path.dirname(file_address_out)):
             os.makedirs(os.path.dirname(file_address_out))
