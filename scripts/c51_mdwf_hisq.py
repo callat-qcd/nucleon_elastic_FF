@@ -22,7 +22,7 @@ elif any(host in hn for host in ['lassen']):
     machine   = 'lassen'
     env       = 'source /usr/workspace/coldqcd/software/lassen_smpi_RR/install/env.sh'
     bind_dir  = '/usr/workspace/coldqcd/software/callat_build_scripts/binding_scripts/'
-elif any(host in hn for host in ['login']):
+elif any(host in hn for host in ['login','batch']):
     ''' TERRIBLE LOGIN NAME FOR SUMMIT '''
     manage   = '/ccs/proj/lgt100/c51/x_files/project_2'
     scratch  = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2'
@@ -44,6 +44,7 @@ ens_long = {
     'a15m350'  :'l1648f211b580m0166m065m838',
     'a15m310'  :'l1648f211b580m013m065m838',
     'a15m310L' :'l2448f211b580m013m065m838',
+    'a15m310Lfaces' :'l2448f211b580m013m065m838',
     'a15m310XL':'l4864f211b580m013m065m838',
     'a15m260XL':'',
     'a15m220'  :'l2448f211b580m0064m0640m828',
