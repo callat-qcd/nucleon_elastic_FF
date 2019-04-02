@@ -197,7 +197,7 @@ def source_average(
         out_file = file_group[0]
 
         if not os.path.exists(os.path.basename(out_file)):
-            os.mkdirs(os.path.basename(out_file))
+            os.makedirs(os.path.basename(out_file))
 
         if n_expected_sources:
             if len(file_group) != n_expected_sources:
