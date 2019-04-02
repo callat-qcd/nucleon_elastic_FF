@@ -95,7 +95,7 @@ def parse_file_info(
     LOGGER.debug("Parsing info of `%s`", filename)
     for key, val in match.groupdict().items():
         LOGGER.debug("%s == %s", key, val)
-        if key in ["stype", "type", "stream", "avg"]:
+        if key in ["stype", "type", "stream", "avg", "ensemble"]:
             info[key] = val
         elif key in [
             "cfg",
@@ -114,8 +114,5 @@ def parse_file_info(
             info[key] = int(val) if convert_numeric else val
         else:
             info[key] = float(val) if convert_numeric else val
-
-    if convert_numeric:
-        info["a"] /= 1000
 
     return info
