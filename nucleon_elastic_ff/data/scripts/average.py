@@ -171,7 +171,10 @@ def source_average(
     LOGGER.info("Running source average")
 
     avg_over_file_keys = ("x", "y", "z", "t")
-    file_replace_pattern = {"x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"}
+    file_replace_pattern = {
+        "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg",
+        "formfac_4D_tslice": "formfac_4D_tslice_src_avg",
+    }
     dset_replace_pattern = {
         r"x(?P<x>[0-9]+)_y(?P<y>[0-9]+)_z(?P<z>[0-9]+)_t(?P<t>[0-9]+)": "src_avg",
         r"t0_(?P<t0>[0-9]+)_": "",
