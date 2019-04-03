@@ -61,6 +61,8 @@ class SliceWorkFlowTest(TestCase):
         if not os.path.exists(TMPDIR):
             os.mkdir(TMPDIR)
             LOGGER.info("Creating temp dir `%s`", TMPDIR)
+        else:
+            raise OSError("You can only run unittests if %s is empty" % TMPDIR)
 
         self.created_files = []
         self.created_dirs = []
