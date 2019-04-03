@@ -8,45 +8,36 @@ from itertools import product
 import os
 
 from unittest import TestCase
+from unittest.mock import patch
+from unittest.mock import call
 
 import h5py
 
 from nucleon_elastic_ff.utilities import set_up_logger
 
-TMPDIR = os.path.join(os.getcwd(), "tmp")
-
-LOGFILE = os.path.join(os.getcwd(), "tests", "nucleon_elastic_ff_test.log")
-LOGGER = set_up_logger(LOGFILE)
+from nucleon_elastic_ff.data.scripts import tslice
 
 
-def setUp():
-    """Creates the temp data directory
-    """
-    if not os.path.exists(TMPDIR):
-        os.mkdir(TMPDIR)
+TMPDIR = os.path.join(os.getcwd(), "tests", "temp")
+
+LOGFILE = "nucleon_elastic_ff_test"
+LOGGER = set_up_logger(LOGFILE, mode="w")
 
 
-def tearDown():
-    """Creates the temp data directory
-    """
-    if os.path.exists(TMPDIR):
-        os.rmdir(TMPDIR)
-
-
-class WorkFlowTest(TestCase):
-    """Tests for the time-slice source and t0 avarage workflow
+class SliceWorkFlowTest(TestCase):
+    """Tests for the time slice workflow
     """
 
     file_pars: Dict[str, List[str]] = {
         "type": ["formfac_4D"],
-        "ensemble": ["a09m310"],
+        "ensemble": ["a09m310", "a001m134"],
         "stream": ["e"],
         "cfg": ["1188", "3090", "3312"],
         "flow": ["gf1.0_w3.5_n45_M51.1_L56_a1.5_mq0.00951"],
         "mom": ["px0py0pz0", "px0py0pz1"],
         "dt": ["10", "12"],
-        "Nsnk": ["8"],
-        "src": [],
+        "Nsnk": ["2"],
+        "src": ["x30y4z9t79", "x20y0z2t7"],
     }
 
     @staticmethod
@@ -64,16 +55,14 @@ class WorkFlowTest(TestCase):
         path = os.path.join(kwargs["ensemble"] + "_" + kwargs["stream"], kwargs["type"])
         return os.path.join(base, path, self.file_name(**kwargs))
 
-    def create_random_dsets(self, **pars):
-        """
-        """
-        dsets = {}
-        return dsets
-
     def setUp(self):
         """Sets up directories and fake files.
         """
-        self.created_files = {}
+        if not os.path.exists(TMPDIR):
+            os.mkdir(TMPDIR)
+            LOGGER.info("Creating temp dir `%s`", TMPDIR)
+
+        self.created_files = []
         self.created_dirs = []
 
         for par_values in product(*list(self.file_pars.values())):
@@ -85,25 +74,77 @@ class WorkFlowTest(TestCase):
                 os.makedirs(file_dir)
                 self.created_dirs.append(file_dir)
 
-            dsets = self.create_random_dsets(**pars)
+            LOGGER.debug("Creating fake file `%s`", file_path)
             with h5py.File(file_path, "w") as h5f:
-                for dset_addr, dset_data in dsets.items():
-                    h5f.create_dset(dset_addr, data=dset_data)
-            self.created_files[file_path] = dsets
+                h5f.create_dataset("test", data=0)
+            self.created_files.append(file_path)
 
     def tearDown(self):
         """Removes fake files and directories
         """
-        # for file in self.created_files:
-        #     if os.path.exists(file):
-        #         os.remove(file)
-        #
-        # for file_dir in self.created_dirs:
-        #     if os.path.exists(file_dir):
-        #         os.rmdir(file_dir)
+        for file in self.created_files:
+            if os.path.exists(file):
+                LOGGER.debug("Removing fake file `%s`", file)
+                os.remove(file)
+
+        for file_dir in self.created_dirs:
+            if os.path.exists(file_dir):
+                LOGGER.debug("Removing fake dir `%s`", file_dir)
+                os.removedirs(file_dir)
+
+        for ensemble, stream in product(
+            self.file_pars["ensemble"], self.file_pars["stream"]
+        ):
+            tslice_path = os.path.join(
+                TMPDIR, ensemble + "_" + stream, "formfac_4D_tslice"
+            )
+            if os.path.exists(tslice_path):
+                LOGGER.debug("Removing fake dir `%s`", tslice_path)
+                os.removedirs(tslice_path)
+
+        if os.path.exists(TMPDIR):
+            LOGGER.debug("Removing temp dir `%s`", TMPDIR)
+            os.removedirs(TMPDIR)
 
     def test_01_slice(self):
-        """Tests if slicing is called for the right files.
+        """Tests if slicing is called for the right files names.
         """
         LOGGER.info("--- Running `test_01_slice` ---")
-        self.assertTrue(True)
+
+        # Check if slice file method is called for exepected files
+        with patch(
+            "nucleon_elastic_ff.data.scripts.tslice.slice_file"
+        ) as mocked_slice_file:
+            # These are the expected calls
+            mocked_calls = []
+            for file_address in self.created_files:
+                file_address_out = file_address.replace(
+                    "formfac_4D", "formfac_4D_tslice"
+                )
+                overwrite = False
+                mocked_calls.append(
+                    call(file_address, file_address_out, overwrite=overwrite)
+                )
+
+            tslice.tslice(TMPDIR, overwrite=False)
+            try:
+                mocked_slice_file.assert_has_calls(mocked_calls, any_order=True)
+            except AssertionError as e:
+                LOGGER.error("Failed tslice test. Mock has different calls.")
+                LOGGER.error("Expected:")
+                for expected_call in mocked_calls:
+                    LOGGER.error("\t%s:", expected_call)
+                LOGGER.error("Actual:")
+                for actual_call in mocked_slice_file.call_args_list:
+                    LOGGER.error("\t%s:", actual_call)
+                LOGGER.exception(e)
+                raise e
+
+        # Check if folders have been created correctly
+        for ensemble, stream in product(
+            self.file_pars["ensemble"], self.file_pars["stream"]
+        ):
+            tslice_path = os.path.join(
+                TMPDIR, ensemble + "_" + stream, "formfac_4D_tslice"
+            )
+            self.assertTrue(os.path.exists(tslice_path))
