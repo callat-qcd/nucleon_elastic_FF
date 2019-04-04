@@ -93,8 +93,8 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
     If a data set has "local_current" in its name it is sliced in its time components.
     The slicing info is inferred by the group name (see `parse_t_info`) and cut according
     using `slice_array`.
-    Also the slicing meta info is stored in the resulting output file in the "meta_info"
-    group (same place as "local_current").
+    Also the slicing meta info is stored in the resulting output file in the `meta`
+    attribute of `local_current`.
 
     **Arguments**
         file_address_in: str
@@ -114,6 +114,7 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
         with h5py.File(file_address_out) as h5f_out:
             for name, dset in dsets.items():
 
+                meta = None
                 if has_match(name, ["local_current"]):
                     LOGGER.debug("Start slicing dset `%s`", name)
 
@@ -138,6 +139,8 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
                     out = dset[()]
 
                 create_dset(h5f_out, name, out, overwrite=overwrite)
+                if meta:
+                    h5f_out[name].attrs["meta"] = meta
 
 
 def get_t_slices(t0: int, tsep: int, nt: int) -> List[int]:  # pylint: disable=C0103
