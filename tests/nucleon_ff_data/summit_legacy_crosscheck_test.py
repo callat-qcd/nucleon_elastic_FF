@@ -20,7 +20,7 @@ TMPDIR = os.path.join(os.getcwd(), "tests", "temp")
 LOGFILE = "nucleon_elastic_ff_test"
 LOGGER = set_up_logger(LOGFILE, mode="w")
 
-DATAROOT = "/ccs/home/ckoerber/data/"
+DATAROOT = "/ccs/home/ckoerber/data"
 
 SRCFILEROOT = (
     "formfac_4D_a09m310_e_1140"
@@ -56,16 +56,23 @@ class LegacyTest(TestCase):
 
         for formfac_4D in SRCFILES:
             path = os.path.join("formfac_4D", self.cfg, formfac_4D)
+
+            dir_name = os.path.dirname(TMPDIR, path)
+            if not os.path.exists(dir_name):
+                os.makedirs(dir_name)
+
             os.link(os.path.join(DATAROOT, path), os.path.join(TMPDIR, path))
 
     def tearDown(self):
         """Removes fake files and directories
         """
-        for formfac_4D in SRCFILES:
-            path = os.path.join(TMPDIR, "formfac_4D", self.cfg, formfac_4D)
-            if os.path.exists(path):
-                LOGGER.debug("Removing test formfac_4D dir `%s`", path)
-                os.removedirs(path)
+        for ftype in ["formfac_4D", "formfac_4D_tslice", "formfac_4D_tslice_src_avg"]:
+            dir_name = os.path.join(TMPDIR, ftype, self.cfg)
+            if os.path.exists(dir_name):
+                for file in os.listdir(dir_name):
+                    if file.startswith("formfac_4D") and file.endswith(".h5"):
+                        os.remove(file)
+                os.removedirs(dir_name)
 
         if os.path.exists(TMPDIR):
             LOGGER.debug("Removing temp dir `%s`", TMPDIR)
@@ -95,7 +102,7 @@ class LegacyTest(TestCase):
         not os.path.exists(DATAROOT),
         "Could not locate dir %s. This test must be run on summit." % DATAROOT,
     )
-    def test_slice_average(self):
+    def test_02_slice_average(self):
         """Slices files
         """
         with self.subTest("Slicing"):
