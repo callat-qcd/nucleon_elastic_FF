@@ -57,7 +57,7 @@ class LegacyTest(TestCase):
         for formfac_4D in SRCFILES:
             path = os.path.join("formfac_4D", self.cfg, formfac_4D)
 
-            dir_name = os.path.dirname(TMPDIR, path)
+            dir_name = os.path.dirname(os.path.join(TMPDIR, path))
             if not os.path.exists(dir_name):
                 os.makedirs(dir_name)
 
