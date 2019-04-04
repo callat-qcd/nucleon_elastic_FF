@@ -6,15 +6,6 @@
 Nucleon Elastic FF documentation
 ==============================================
 
-.. toctree::
-   :maxdepth: 4
-   :caption: Contents:
-
-   README
-   usage
-   api/index
-
-
 
 Indices and tables
 ==================
