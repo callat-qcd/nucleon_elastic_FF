@@ -102,28 +102,37 @@ def dset_avg(  # pylint: disable=R0914
     Also the average meta info is stored in the resulting output file in the `meta`
     attribute of `local_current`.
 
-    .. Example:: Suppose you pass two h5 files `files = ["file1.h5", "file2.h5"]`.
-        to write to the out file `out_file = "out.h5"`. Lets assume the dset structure
+    .. note:: Suppose you pass two h5 files ``files = ["file1.h5", "file2.h5"]``.
+        to write to the out file ``out_file = "out.h5"``. Lets assume the dset structure
         is as follows
-        ```file1.h5
-        /x1y1
-        /x1y2
-        ```
-        and also
-        ```file2.h5
-        /x2y1
-        /x2y2
-        ```
-        If you pass the `dset_replace_patterns = {"x[0-9]y1": "x_avg_y1"}`, this will
-        create the file
-        ```out.h5
-        /x_avg_y1
-        ```
-        where the dset `x_avg_y1` is the average over `file1.h5/x1y1` and
-        `file1.h5/x2y1`. `file1.h5/x1y2` and `file2.h5/x2y2` are ignored because they
-        don't match the patterns.
 
-        **Arguments**
+        .. code-block:: bash
+
+            file1.h5
+            /x1y1
+            /x1y2
+
+        and also
+
+        .. code-block:: bash
+
+            file2.h5
+            /x2y1
+            /x2y2
+
+        If you pass the ``dset_replace_patterns = {"x[0-9]y1": "x_avg_y1"}``, this will
+        create the file
+
+        .. code-block:: bash
+
+            out.h5
+            /x_avg_y1
+
+        where the dset ``x_avg_y1`` is the average over ``file1.h5/x1y1`` and
+        ``file1.h5/x2y1``. ``file1.h5/x1y2`` and ``file2.h5/x2y2`` are ignored because
+        they don't match the patterns.
+
+    **Arguments**
         files: List[str]
             List of h5 file address which will be read into memory and averaged over.
 
