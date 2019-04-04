@@ -32,20 +32,21 @@ def fft(  # pylint: disable = R0913
     Routine FFTs 4D correlation functions. If `max_momentum` is given this routine cuts
     the output array in a all momentum directions.
 
-    .. Example:: The user specifies `max_momentum = 5`, which means, in each direction,
-        `x, y, z`, the momentum should is of from `[0,1,2,3,4,5,-5,-4,-3,-2,-1]`,
+    .. note::
+        The user specifies ``max_momentum = 5``, which means, in each direction,
+        ``x, y, z``, the momentum should is of from ``[0,1,2,3,4,5,-5,-4,-3,-2,-1]``,
         just like a regular FFT space, except the higher valued modes are chopped out.
-
 
     The input files must be h5 files (ending with ".h5") and must have `name_input`
     in their file name. Files which have `name_output` as name are excluded.
     Also, this routine ignores exporting to files which already exist.
     Once all files are fixed, this routine calls `slice_file` on each file.
-    This routines transforms `local_current` dsets to `momentum_current` dsets.
+    This routines transforms ``local_current`` dsets to ``momentum_current`` dsets.
 
-    .. Note:: This routine explicitly assumes that the datasets to transform are of shape
-    `shape1 + [Nz, Ny, Nx] + [2]` where shape1 can be anything the second shape is the
-    to transformed shape and the last shape corresponds to real / complex.
+    .. Note::
+        This routine explicitly assumes that the datasets to transform are of shape
+        ``shape1 + [Nz, Ny, Nx] + [2]`` where shape1 can be anything the second shape is the
+        to transformed shape and the last shape corresponds to real / complex.
 
     **Arguments**
         root: str
@@ -125,13 +126,15 @@ def fft_file(  # pylint: disable = R0914
     Also the slicing meta info is stored in the resulting output file in the `meta`
     attribute of `momentum_current`.
 
-    .. Example:: The user specifies `max_momentum = 5`, which means, in each direction,
-        `x, y, z`, the momentum should is of from `[0,1,2,3,4,5,-5,-4,-3,-2,-1]`,
+    .. note::
+        The user specifies ``max_momentum = 5``, which means, in each direction,
+        ``x, y, z``, the momentum should is of from ``[0,1,2,3,4,5,-5,-4,-3,-2,-1]``,
         just like a regular FFT space, except the higher valued modes are chopped out.
 
-    .. Note:: This routine explicitly assumes that the datasets to transform are of shape
-    `shape1 + [Nz, Ny, Nx] + [2]` where shape1 can be anything the second shape is the
-    to transformed shape and the last shape corresponds to real / complex.
+    .. Note::
+        This routine explicitly assumes that the datasets to transform are of shape
+        ``shape1 + [Nz, Ny, Nx] + [2]`` where shape1 can be anything the second shape is the
+        to transformed shape and the last shape corresponds to real / complex.
 
     **Arguments**
         file_address_in: str
