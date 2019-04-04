@@ -112,11 +112,13 @@ class LegacyTest(TestCase):
             created_files = [
                 os.path.join(created_dir, file)
                 for file in sorted(os.listdir(created_dir))
+                if file.startswith("formfac_4D_tslice") and file.endswith(".h5")
             ]
             expected_dir = os.path.join(DATAROOT, "formfac_4D_tslice", self.cfg)
             expected_files = [
                 os.path.join(expected_dir, file)
                 for file in sorted(os.listdir(expected_dir))
+                if file.startswith("formfac_4D_tslice") and file.endswith(".h5")
             ]
 
             self.assertEqual(len(created_files), len(expected_files))
@@ -131,11 +133,13 @@ class LegacyTest(TestCase):
             created_files = [
                 os.path.join(created_dir, file)
                 for file in sorted(os.listdir(created_dir))
+                if file.startswith("formfac_4D_tslice_src_avg") and file.endswith(".h5")
             ]
             expected_dir = os.path.join(DATAROOT, "formfac_4D_tslice_src_avg", self.cfg)
             expected_files = [
                 os.path.join(expected_dir, file)
                 for file in sorted(os.listdir(expected_dir))
+                if file.startswith("formfac_4D_tslice_src_avg") and file.endswith(".h5")
             ]
 
             self.assertEqual(len(created_files), len(expected_files))
