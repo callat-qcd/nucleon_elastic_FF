@@ -71,7 +71,7 @@ class LegacyTest(TestCase):
             if os.path.exists(dir_name):
                 for file in os.listdir(dir_name):
                     if file.startswith("formfac_4D") and file.endswith(".h5"):
-                        os.remove(file)
+                        os.remove(os.path.join(dir_name, file))
                 os.removedirs(dir_name)
 
         if os.path.exists(TMPDIR):
