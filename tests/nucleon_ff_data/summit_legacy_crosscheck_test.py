@@ -85,10 +85,10 @@ class LegacyTest(TestCase):
     def test_01_walkloud_vs_ckoerber(self):
         """Compares walklouds legacy file against ckoerbers file
         """
-        walkloud = os.listdir(
+        walkloud = os.path.join(
             DATAROOT, "formfac_4D_tslice_src_avg", self.cfg, "awl_avg.h5"
         )
-        ckoerber = os.listdir(
+        ckoerber = os.path.join(
             DATAROOT,
             "formfac_4D_tslice",
             self.cfg,
@@ -108,8 +108,16 @@ class LegacyTest(TestCase):
         with self.subTest("Slicing"):
             tslice.tslice(TMPDIR, overwrite=False)
 
-            created_files = sorted(os.listdir(TMPDIR, "formfac_4D_tslice", self.cfg))
-            expected_files = sorted(os.listdir(DATAROOT, "formfac_4D_tslice", self.cfg))
+            created_dir = os.path.join(TMPDIR, "formfac_4D_tslice", self.cfg)
+            created_files = [
+                os.path.join(created_dir, file)
+                for file in sorted(os.listdir(created_dir))
+            ]
+            expected_dir = os.path.join(DATAROOT, "formfac_4D_tslice", self.cfg)
+            expected_files = [
+                os.path.join(expected_dir, file)
+                for file in sorted(os.listdir(expected_dir))
+            ]
 
             self.assertEqual(len(created_files), len(expected_files))
 
@@ -119,12 +127,16 @@ class LegacyTest(TestCase):
         with self.subTest("Averaging"):
             average.source_average(TMPDIR, overwrite=False, n_expected_sources=8)
 
-            created_files = sorted(
-                os.listdir(TMPDIR, "formfac_4D_tslice_src_avg", self.cfg)
-            )
-            expected_files = sorted(
-                os.listdir(DATAROOT, "formfac_4D_tslice_src_avg", self.cfg)
-            )
+            created_dir = os.path.join(TMPDIR, "formfac_4D_tslice_src_avg", self.cfg)
+            created_files = [
+                os.path.join(created_dir, file)
+                for file in sorted(os.listdir(created_dir))
+            ]
+            expected_dir = os.path.join(DATAROOT, "formfac_4D_tslice_src_avg", self.cfg)
+            expected_files = [
+                os.path.join(expected_dir, file)
+                for file in sorted(os.listdir(expected_dir))
+            ]
 
             self.assertEqual(len(created_files), len(expected_files))
 
