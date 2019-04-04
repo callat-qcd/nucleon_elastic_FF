@@ -134,20 +134,23 @@ def dset_avg(  # pylint: disable=R0914
         they don't match the patterns.
 
     **Arguments**
-=======
-    .. Example:: Suppose you pass two h5 files `files = ["file1.h5", "file2.h5"]`.
-        to write to the out file `out_file = "out.h5"`. Lets assume the dset structure
         is as follows
-        ```file1.h5
-        /x1y1
-        /x1y2
-        ```
+
+        .. code-block:: bash
+
+            file1.h5
+            /x1y1
+            /x1y2
+
         and also
-        ```file2.h5
-        /x2y1
-        /x2y2
-        ```
-        If you pass the `dset_replace_patterns = {"x[0-9]y1": "x_avg_y1"}`, this will
+
+        .. code-block:: bash
+
+            file2.h5
+            /x2y1
+            /x2y2
+
+        If you pass the ``dset_replace_patterns = {"x[0-9]y1": "x_avg_y1"}``, this will
         create the file
         ```out.h5
         /x_avg_y1
@@ -157,20 +160,19 @@ def dset_avg(  # pylint: disable=R0914
         don't match the patterns.
 
         **Arguments**
->>>>>>> Better documentation for average
-        files: List[str]
-            List of h5 file address which will be read into memory and averaged over.
+            files: List[str]
+                List of h5 file address which will be read into memory and averaged over.
 
-        out_file: str
-            The name of the file which will contain the averages.
+            out_file: str
+                The name of the file which will contain the averages.
 
-        dset_replace_patterns: Dict[str, str]
-            A map for how dsets in the input files are used to write to the output file.
-            The routine only averages over dsets which match all keys of
-            dset_replace_patterns.
+            dset_replace_patterns: Dict[str, str]
+                A map for how dsets in the input files are used to write to the output file.
+                The routine only averages over dsets which match all keys of
+                dset_replace_patterns.
 
-        overwrite: bool = False
-            Overwrite existing sliced files.
+            overwrite: bool = False
+                Overwrite existing sliced files.
     """
     dsets_acc = {}
     n_dsets = {}
@@ -291,7 +293,6 @@ def source_average(  # pylint: disable=R0913, R0914
             Added control to pass excepted number of sources.
             If given and sources in one group is less than a certain number, raises
             ValueError.
-<<<<<<< HEAD
 
         expected_sources: Optional[List[str]] = None
             Adds expected sources to file filter patterns.
@@ -302,8 +303,6 @@ def source_average(  # pylint: disable=R0913, R0914
 
         file_name_addition: Optional[str] = None
             Appends this string to the file name if not None.
-=======
->>>>>>> Better documentation for average
     """
     LOGGER.info("Running source average")
 

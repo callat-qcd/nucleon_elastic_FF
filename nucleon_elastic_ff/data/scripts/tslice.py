@@ -177,11 +177,7 @@ def slice_file(  # pylint: disable=R0914, R0913
             for name, dset in dsets.items():
 
                 meta = None
-<<<<<<< HEAD
                 if has_match(name, dset_patterns, match_all=True):
-=======
-                if has_match(name, ["local_current"]):
->>>>>>> Updated meta slicing info
                     LOGGER.debug("Start slicing dset `%s`", name)
 
                     pattern = ".*(?:proton|neutron)(?:_(?P<parity>np))?"
