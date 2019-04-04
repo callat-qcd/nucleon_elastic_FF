@@ -90,7 +90,7 @@ class LegacyTest(TestCase):
         )
         ckoerber = os.path.join(
             DATAROOT,
-            "formfac_4D_tslice",
+            "formfac_4D_tslice_src_avg",
             self.cfg,
             "formfac_4D_tslice_src_avg_a09m310_e_1140"
             "_gf1.0_w3.5_n45_M51.1_L56_a1.5_mq0.00951"
