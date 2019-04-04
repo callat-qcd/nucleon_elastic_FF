@@ -19,4 +19,4 @@ in the repository root.
 
 If you are on `summit`, this also runs the legacy tests which compares
 files created by the routine against benchmark files.
-This could take roughly 2 minutes. 
+This could take roughly 2 minutes.
