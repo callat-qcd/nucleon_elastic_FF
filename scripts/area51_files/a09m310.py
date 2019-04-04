@@ -40,7 +40,6 @@ params['seed']['e'] = '1a' #this should have been 1e,
 '''                               0, nt/2, nt/4, 3 nt/4 '''
 params['t_shifts'] = [ 0, 48  , 24  , 72     ]
 params['generator'] = sources.oa(int(params['NL']))
-params['N_SEQ'] = 2*len(params['t_shifts']) #2 * t_shifts
 
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10

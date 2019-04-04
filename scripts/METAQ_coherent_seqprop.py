@@ -129,6 +129,7 @@ for c in cfgs_run:
         for dt_int in t_seps:
             dt = str(dt_int)
             params['T_SEP'] = dt
+            params['N_SEQ'] = str(len(srcs[c]))
             ''' Do the 3pt files exist? '''
             have_3pts = True
             for s0 in srcs[c]:
@@ -183,6 +184,7 @@ for c in cfgs_run:
                                     fin.write(xml_input.head)
 
                                     ''' read all seqsources '''
+                                    params['SEQSOURCE_LIST'] = ''
                                     for si,s0 in enumerate(srcs[c]):
                                         params['SRC'] = s0
                                         seqsrc_name = c51.names['seqsrc'] %params
@@ -192,6 +194,7 @@ for c in cfgs_run:
                                         params['LIME_FILE'] = seqsrc_file
                                         fin.write(xml_input.qio_read % params)
                                         params['SEQSOURCE_'+str(si)] = seqsrc_name
+                                        params['SEQSOURCE_LIST'] += '            <elem>'+seqsrc_name+'</elem>\n'
                                     ''' make coherent_seqsource '''
                                     coherent_seqsrc_name = c51.names['coherent_seqsrc'] % params
                                     params['COHERENT_SEQSOURCE'] = coherent_seqsrc_name

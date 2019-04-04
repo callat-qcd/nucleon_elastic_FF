@@ -75,6 +75,8 @@ def parse_cfg_src_argument(cfg_arg,src_arg,params):
                     src_gen = srcs_cfg[origin].items()
                 for src_type, src in src_gen:
                     src_check.append(sources.xXyYzZtT(src))
+            if 'si' in params and 'sf' in params and 'ds' in params:
+                src_check = src_check[params['si']:params['sf']+params['ds']:params['ds']]
             if srcs[cfgs_run[0]][0] not in src_check:
                 print('you supplied a src not in the current src list: allowed srcs')
                 print(src_check)
@@ -93,6 +95,8 @@ def parse_cfg_src_argument(cfg_arg,src_arg,params):
                     src_gen = srcs_cfg[origin].items()
                 for src_type, src in src_gen:
                     srcs[c].append(sources.xXyYzZtT(src))
+            if 'si' in params and 'sf' in params and 'ds' in params:
+                srcs[c] = srcs[c][params['si']:params['sf']+params['ds']:params['ds']]
     return cfgs_run, srcs
 
 def nsq_vectors(nsq):

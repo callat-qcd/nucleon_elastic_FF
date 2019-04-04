@@ -45,7 +45,6 @@ params['seed']['a'] = '1a'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
 params['t_shifts'] = [ 0, 24  , 12  , 36     ]
 params['generator'] = sources.corners(int(params['NL']),dx=int(params['NL'])/4)
-params['N_SEQ'] = 2*len(params['t_shifts']) #2 * t_shifts
 
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10

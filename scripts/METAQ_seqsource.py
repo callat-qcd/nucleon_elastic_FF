@@ -125,6 +125,7 @@ for c in cfgs_run:
         for dt_int in t_seps:
             dt = str(dt_int)
             params['T_SEP'] = dt
+            params['N_SEQ'] = str(len(srcs[c]))
             for s0 in srcs[c]:
                 params['SRC'] = s0
                 coherent_formfac_name  = c51.names['coherent_ff'] % params

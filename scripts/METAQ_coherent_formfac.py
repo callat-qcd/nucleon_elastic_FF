@@ -137,6 +137,7 @@ for c in cfgs_run:
                 params['SINK_SPIN']=src_spin
                 spin = snk_spin+'_'+src_spin
                 params['FLAV_SPIN']=fs
+                params['N_SEQ'] = str(len(srcs[c]))
                 for particle in params['particles']:
                     params['PARTICLE'] = particle
                     if '_np' in particle:

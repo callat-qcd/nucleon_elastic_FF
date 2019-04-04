@@ -287,14 +287,7 @@ coherent_seqsrc='''<elem>
     </SinkParams>
     <NamedObject>
         <sink_ids>
-            <elem>%(SEQSOURCE_0)s</elem>
-            <elem>%(SEQSOURCE_1)s</elem>
-            <elem>%(SEQSOURCE_2)s</elem>
-            <elem>%(SEQSOURCE_3)s</elem>
-            <elem>%(SEQSOURCE_4)s</elem>
-            <elem>%(SEQSOURCE_5)s</elem>
-            <elem>%(SEQSOURCE_6)s</elem>
-            <elem>%(SEQSOURCE_7)s</elem>
+%(SEQSOURCE_LIST)s
         </sink_ids>
         <result_sink>%(COHERENT_SEQSOURCE)s</result_sink>
     </NamedObject>
