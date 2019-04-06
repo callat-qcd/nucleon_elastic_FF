@@ -97,6 +97,7 @@ def ensemble(params):
         params[d] = params['prod']+'/'+d+'/'+params['CFG']
     for d in dirs+dirs_no:
         utils.ensure_dirExists(params[d])
+    params['formfac_4D_tslice'] = params['prod']+'/'+'formfac_4D_tslice'+'/'+params['CFG']
 
     return params
 
