@@ -33,7 +33,7 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
-parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
 args = parser.parse_args()
@@ -47,6 +47,7 @@ utils.ensure_dirExists(ff_data_dir)
 
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
+params['N_SEQ'] = len(srcs[cfgs_run[0]])
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -77,11 +78,13 @@ for cfg in cfgs:
             for fs in flav_spin:
                 for curr in currents:
 '''
-for cfg in cfgs:
+for cfg in cfgs_run:
     no = str(cfg)
-    params['CFG'] = cfg
+    params['CFG'] = no
+    params = c51.ensemble(params)
     for tsep in params['t_seps']:
         dt = str(tsep)
+        params['T_SEP'] = dt
         ''' check to make sure all files exist '''
         all_files = True
         for src in srcs[cfg]:
@@ -98,99 +101,39 @@ for cfg in cfgs:
                 all_files = False
         if all_files:
             ''' open out file '''
-            f5_out = h5.open_file(ff_data_dir+'/formfac_'+ens_s+'.h5'+,'a')
+            f5_out = h5.open_file(ff_data_dir+'/formfac_'+ens_s+'_'+no+'.h5','a')
             for corr in params['particles']:
                 if '_np' in corr:
                     dt = '-'+dt
                 for fs in flav_spin:
                     for curr in params['curr_4d']:
-                        print(corr,dt,fs,curr)
+                        print(corr,cfg,dt,fs,curr)
                         data = []
                         for src in srcs[cfg]:
-                            print('    %s\r' %src)
+                            sys.stdout.write('    %s\r' %src)
+                            sys.stdout.flush()
                             params['SRC'] = src
                             ff_name = (c51.names['coherent_ff'] % params).replace('formfac_','formfac_4D_tslice_')
                             ff_file = params['formfac_4D_tslice'] +'/'+ ff_name+'.h5'
                             f_in = h5.open_file(ff_file,'r')
                             s_split = sources.src_split(src)
                             t0 = src.split('t')[1]
-                            hin_path  = corr+'_'+fs+'_t0_'+t0+'_tsep_'+dt+'_sink_mom_px0_py0_pz0/'
-                            hin_path += curr+'/'+s_split+'/4D_correlator'
+                            hin_path  = '/'+corr+'_'+fs+'_t0_'+t0+'_tsep_'+dt+'_sink_mom_px0_py0_pz0/'
+                            hin_path += curr+'/'+s_split+'/4D_correlator/local_current'
                             data.append(f_in.get_node(hin_path).read())
                             f_in.close()
+                        hout_path  = '/'+corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px0_py0_pz0/'
+                        hout_path += curr+'/src_avg'
                         data = np.array(data)
+                        try:
+                            f5_out.create_group(hout_path,'4D_correlator',createparents=True)
+                        except:
+                            pass
                         print(data.shape)
+                        if 'local_current' not in f5_out.get_node(hout_path+'/4D_correlator'):
+                            f5_out.create_array(hout_path+'/4D_correlator','local_current',data.mean(axis=0))
+                        elif 'local_current' in f5_out.get_node(hout_path+'/4D_correlator') and args.o:
+                            f5_out.get_node(hout_path+'/4D_correlator/local_current')[:] = data.mean(axis=0)
+                        elif 'local_current' in f5_out.get_node(hout_path+'/4D_correlator') and not args.o:
+                            print('    SKIPPING: data exists and overwrite = False')
             f5_out.close()
-
-
-for corr in params['particles']:
-    for fs in flav_spin:
-        for tsep in params['t_seps']:
-            dt = str(tsep)
-            if '_np' in corr:
-                dt = '-'+dt
-            h5_path = h5_root_path+'/'+corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
-            for curr in params['curr_p'] + params['curr_0p']:
-                f5_out = h5.open_file(f_out,'a')
-                curr_dir = h5_path +'/'+curr
-                try:
-                    f5_out.create_group(h5_path,curr,createparents=True)
-                    f5_out.flush()
-                except:
-                    pass
-                if curr in params['curr_0p']:
-                    p_lst = ['px0_py0_pz0']
-                else:
-                    p_lst = utils.p_simple_lst(n=4)
-                for mom in p_lst:
-                    mom_dir = curr_dir+'/'+mom
-                    print(mom_dir)
-                    get_data = True
-                    if mom in f5_out.get_node(curr_dir) and not args.o:
-                        print('    data exists and overwrite=False')
-                        get_data = False
-                    if get_data:
-                        cfgs_srcs = []
-                        #data = np.array([],dtype=dtype)
-                        first_data = True
-                        for cfg in cfgs:
-                            no = str(cfg)
-                            good_cfg = False
-                            if os.path.exists(ff_data_dir+'/'+ens_s+'_'+no+'.h5'):
-                                fin = h5.open_file(ff_data_dir+'/'+ens_s+'_'+no+'.h5','r')
-                                try:
-                                    srcs = fin.get_node(mom_dir)
-                                    if srcs._v_nchildren > 0:
-                                        good_cfg = True
-                                except:
-                                    print('ERROR reading ',ff_data_dir+'/'+ens_s+'_'+no+'.h5')
-                            if good_cfg:
-                                ns = 0
-                                tmp = []
-                                for src in srcs:
-                                    tmp.append(src.read())
-                                    ns += 1
-                                sys.stdout.write('    cfg=%4d Ns = %d\r' %(cfg,ns))
-                                sys.stdout.flush()
-                                tmp = np.array(tmp)
-                                if first_data:
-                                    data = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
-                                    data[0] = tmp.mean(axis=0)
-                                    first_data = False
-                                else:
-                                    data = np.append(data,[tmp.mean(axis=0)],axis=0)
-                                cfgs_srcs.append([cfg,ns])
-                            fin.close()
-                        cfgs_srcs = np.array(cfgs_srcs)
-                        ''' perform time-reversal on neg par correlators '''
-                        if '_np' in corr:
-                            print('PERFORMING TIME_REVERSAL:',corr)
-                            data = utils.time_reverse(data,phase=-1,time_axis=1)
-                        print('    Nc=%4d, Ns=%.7f' %(cfgs_srcs.shape[0],cfgs_srcs.mean(axis=0)[1]))
-                        if mom in f5_out.get_node(curr_dir):
-                            f5_out.remove_node(curr_dir,mom,recursive=True)
-                        f5_out.create_group(curr_dir,mom)
-                        f5_out.create_array(mom_dir,'cfgs_srcs',cfgs_srcs)
-                        f5_out.create_array(mom_dir,'local_curr',data)
-                        f5_out.flush()
-                f5_out.close()
