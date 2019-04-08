@@ -47,7 +47,10 @@ utils.ensure_dirExists(ff_data_dir)
 
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
-params['N_SEQ'] = len(srcs[cfgs_run[0]])
+if 'indvdl' in ens:
+    params['N_SEQ'] = 1
+else:
+    params['N_SEQ'] = len(srcs[cfgs_run[0]])
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -99,6 +102,7 @@ for cfg in cfgs_run:
             utils.check_file(ff_file,ff_slice_size,params['file_time_delete'],params['corrupt'])
             if not os.path.exists(ff_file):
                 all_files = False
+                print('missing ',ff_file)
         if all_files:
             ''' open out file '''
             f5_out = h5.open_file(ff_data_dir+'/formfac_'+ens_s+'_'+no+'.h5','a')
@@ -137,3 +141,5 @@ for cfg in cfgs_run:
                         elif 'local_current' in f5_out.get_node(hout_path+'/4D_correlator') and not args.o:
                             print('    SKIPPING: data exists and overwrite = False')
             f5_out.close()
+        else:
+            print(no,dt,'missing srcs')
