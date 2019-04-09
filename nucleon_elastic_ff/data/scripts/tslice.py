@@ -101,7 +101,7 @@ def tslice(
     LOGGER.info("Done")
 
 
-def slice_file(
+def slice_file(  # pylint: disable R0914
     file_address_in: str,
     file_address_out: str,
     overwrite: bool = False,
