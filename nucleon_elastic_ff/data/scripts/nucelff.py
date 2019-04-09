@@ -31,7 +31,8 @@ PARSER.add_argument(
     help="Interface for controlling factor for determening sclicing size."
     " E.g., if a a file has NT = 48 and tslice_fact is 0.5, only time"
     " slices from 0 to 23 are exported to the output file. Note that the source"
-    " location is shifted before slicing.",
+    " location is shifted before slicing. If this argument is specified,"
+    " the code looks for files which match `spec_4D`",
 )
 PARSER.add_argument(
     "--average",
@@ -68,7 +69,17 @@ def main():
     LOGGER.info("Full log can be found in `nucleon_elastic_ff.log`")
 
     if args.slice:
-        tslice.tslice(args.root, overwrite=args.overwrite, tslice_fact=args.tslice_fact)
+        if args.tslice_fact is not None:
+            tslice.tslice(
+                args.root,
+                name_input="spec_4D",
+                name_output="spec_4D_tslice",
+                overwrite=args.overwrite,
+                tslice_fact=args.tslice_fact,
+            )
+
+        else:
+            tslice.tslice(args.root, overwrite=args.overwrite)
 
     if args.average:
         average.source_average(
