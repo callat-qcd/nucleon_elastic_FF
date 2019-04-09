@@ -114,8 +114,8 @@ def parse_file_info(
             "z",
             "t",
         ]:
-            info[key] = int(val) if convert_numeric else val
+            info[key] = int(val) if convert_numeric and val is not None else val
         else:
-            info[key] = float(val) if convert_numeric else val
+            info[key] = float(val) if convert_numeric and val is not None else val
 
     return info
