@@ -49,7 +49,7 @@ if not os.path.exists(ff_data_dir+'/avg'):
 utils.ensure_dirExists(ff_data_dir)
 
 # give empty '' to in place of args.src to generate all srcs/cfg
-cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,params)
+cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
 if 'indvdl' in ens:
     params['N_SEQ'] = 1
 else:
@@ -95,8 +95,8 @@ for corr in params['particles']:
             for curr in params['curr_4d']:
                 print(corr,fs,dt,curr)
                 h5_out_path =  h5_root_path+'/'+corr+'_'+fs+'_tsep_'+dt
-                h5_out_path += '_sink_mom_px'+m0+'_py'+m1+'d_pz'+m2
-                fin_path =  corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px'+m0+'_py'+m1+'d_pz'+m2
+                h5_out_path += '_sink_mom_px'+m0+'_py'+m1+'_pz'+m2
+                fin_path =  corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px'+m0+'_py'+m1+'_pz'+m2
                 fin_path += '/'+curr+'/src_avg/4D_correlator/local_current'
                 try:
                     f5_out.create_group(h5_out_path,curr,createparents=True)
@@ -118,7 +118,7 @@ for corr in params['particles']:
                             tmp = fin.get_node('/'+fin_path).read()
                             fin.close()
                             if first_data:
-                                data = np.zeros((1,)+tmp.shape,dtype=np.dtype(tmp))
+                                data = np.zeros((1,)+tmp.shape,dtype=tmp.dtype)
                                 data[0] = tmp
                                 first_data = False
                             else:
