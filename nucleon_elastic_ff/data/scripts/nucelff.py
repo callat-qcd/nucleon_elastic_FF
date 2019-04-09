@@ -76,6 +76,7 @@ def main():
                 name_output="spec_4D_tslice",
                 overwrite=args.overwrite,
                 tslice_fact=args.tslice_fact,
+                dset_patterns=["4D_correlator/x[0-9+]_y[0-9+]_z[0-9+]_t[0-9+]"],
             )
 
         else:

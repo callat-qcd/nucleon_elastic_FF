@@ -23,12 +23,13 @@ from nucleon_elastic_ff.data.arraymanip import shift_array
 LOGGER = set_up_logger("nucleon_elastic_ff")
 
 
-def tslice(
+def tslice(  # pylint: disable=R0913
     root: str,
     name_input: str = "formfac_4D",
     name_output: str = "formfac_4D_tslice",
     overwrite: bool = False,
     tslice_fact: Optional[float] = None,
+    dset_patterns: List[str] = ("local_current",),
 ):
     """Recursively scans dir for files, slices in time and shifts in all directions.
 
@@ -57,6 +58,9 @@ def tslice(
             E.g., if a a file has ``NT = 48`` and ``tslice_fact`` is 0.5, only time
             slices from 0 to 23 are exported to the output file. Note that the source
             location is shifted before slicing.
+
+        dset_patterns: List[str] = ("local_current",),
+            Pattern dsets must matched in order to be sliced.
 
     **Raises**
         ValueError:
@@ -95,7 +99,11 @@ def tslice(
         if not os.path.exists(os.path.dirname(file_address_out)):
             os.makedirs(os.path.dirname(file_address_out))
         slice_file(
-            file_address, file_address_out, overwrite=overwrite, tslice_fact=tslice_fact
+            file_address,
+            file_address_out,
+            overwrite=overwrite,
+            tslice_fact=tslice_fact,
+            dset_patterns=dset_patterns,
         )
 
     LOGGER.info("Done")
@@ -106,6 +114,7 @@ def slice_file(  # pylint: disable=R0914
     file_address_out: str,
     overwrite: bool = False,
     tslice_fact: Optional[float] = None,
+    dset_patterns: List[str] = ("local_current",),
 ):
     """Reads input file and writes time-sliced data to output file.
 
@@ -132,6 +141,9 @@ def slice_file(  # pylint: disable=R0914
             slices from 0 to 23 are exported to the output file. Note that the source
             location is shifted before slicing.
 
+        dset_patterns: List[str] = ("local_current",),
+            Pattern dsets must matched in order to be sliced.
+
     **Raises**
         ValueError:
             If ``tslice_fact`` is not ``None`` but one is able to parse ``tsep``
@@ -146,7 +158,7 @@ def slice_file(  # pylint: disable=R0914
         with h5py.File(file_address_out) as h5f_out:
             for name, dset in dsets.items():
 
-                if has_match(name, ["local_current"]):
+                if has_match(name, dset_patterns, match_all=True):
                     LOGGER.debug("Start slicing dset `%s`", name)
 
                     t_info = parse_t_info(name)

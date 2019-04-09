@@ -130,6 +130,7 @@ class SliceWorkFlowTest(TestCase):
                         file_address_out,
                         overwrite=overwrite,
                         tslice_fact=None,
+                        dset_patterns=("local_current",),
                     )
                 )
 
