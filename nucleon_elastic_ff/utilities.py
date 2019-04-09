@@ -9,7 +9,7 @@ import re
 import os
 
 
-def set_up_logger(name: str) -> logging.Logger:
+def set_up_logger(name: str, mode: str = "a") -> logging.Logger:
     """Sets up command line and file logger.
 
     Stream logger default level is INFO. File logger default level is DEBUG.
@@ -18,6 +18,9 @@ def set_up_logger(name: str) -> logging.Logger:
     **Arguments**
         name: str
             Name of the logger
+
+        mode: str = "a"
+            Default mode for the file logger
     """
     logger = logging.getLogger(name)
     if not logger.handlers:
@@ -29,7 +32,7 @@ def set_up_logger(name: str) -> logging.Logger:
         ch.setFormatter(formatter)
         logger.addHandler(ch)
 
-        sh = logging.FileHandler(f"{name}.log", mode="a")
+        sh = logging.FileHandler(f"{name}.log", mode=mode)
         sh.setLevel(logging.DEBUG)
         sh.setFormatter(formatter)
         logger.addHandler(sh)
