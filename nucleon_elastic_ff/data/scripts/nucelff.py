@@ -24,6 +24,16 @@ PARSER.add_argument(
     "See `nucleon_elastic_ff.data.scripts.tslice` for more info.",
 )
 PARSER.add_argument(
+    "--tslice-fact",
+    "-t",
+    type=float,
+    default=None,
+    help="Interface for controlling factor for determening sclicing size."
+    " E.g., if a a file has NT = 48 and tslice_fact is 0.5, only time"
+    " slices from 0 to 23 are exported to the output file. Note that the source"
+    " location is shifted before slicing.",
+)
+PARSER.add_argument(
     "--average",
     "-a",
     action="store_true",
@@ -58,7 +68,7 @@ def main():
     LOGGER.info("Full log can be found in `nucleon_elastic_ff.log`")
 
     if args.slice:
-        tslice.tslice(args.root, overwrite=args.overwrite)
+        tslice.tslice(args.root, overwrite=args.overwrite, tslice_fact=args.tslice_fact)
 
     if args.average:
         average.source_average(
