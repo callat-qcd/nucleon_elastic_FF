@@ -61,7 +61,7 @@ def parse_file_info(
             If one key is not specified.
     """
     pattern = (
-        r"(?P<type>formfac_4D[_a-z]*)"
+        r"(?P<type>formfac_4D[_a-z]*|spec_4D[_a-z]*)"
         "_"
         r"a(?P<ensemble>[0-9a-zA-Z]+)"
         r"_"
