@@ -1,6 +1,7 @@
 """Script for time slicing correlator data
 """
 from typing import List
+from typing import Optional
 
 import os
 
@@ -27,6 +28,7 @@ def tslice(
     name_input: str = "formfac_4D",
     name_output: str = "formfac_4D_tslice",
     overwrite: bool = False,
+    tslice_fact: Optional[float] = None,
 ):
     """Recursively scans dir for files, slices in time and shifts in all directions.
 
@@ -50,6 +52,17 @@ def tslice(
         overwrite: bool = False
             Overwrite existing sliced files.
 
+        tslice_fact: Optional[float] = None
+            User interface for controlling factor for determening sclicing size.
+            E.g., if a a file has ``NT = 48`` and ``tslice_fact`` is 0.5, only time
+            slices from 0 to 23 are exported to the output file. Note that the source
+            location is shifted before slicing.
+
+    **Raises**
+        ValueError:
+            If ``tslice_fact`` is not ``None`` but one is able to parse ``tsep``
+            information from the file string. This is a safeguard against accidentally
+            slicing files which shall not be sliced.
     """
     LOGGER.info("Starting slicing of files")
     LOGGER.info("Looking into `%s`", root)
@@ -81,12 +94,19 @@ def tslice(
         file_address_out = file_address.replace(name_input, name_output)
         if not os.path.exists(os.path.dirname(file_address_out)):
             os.makedirs(os.path.dirname(file_address_out))
-        slice_file(file_address, file_address_out, overwrite=overwrite)
+        slice_file(
+            file_address, file_address_out, overwrite=overwrite, tslice_fact=tslice_fact
+        )
 
     LOGGER.info("Done")
 
 
-def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = False):
+def slice_file(
+    file_address_in: str,
+    file_address_out: str,
+    overwrite: bool = False,
+    tslice_fact: Optional[float] = None,
+):
     """Reads input file and writes time-sliced data to output file.
 
     This methods scans all datasets within the file.
@@ -105,6 +125,18 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
 
         overwrite: bool = False
             Overwrite existing sliced file.
+
+        tslice_fact: Optional[float] = None
+            User interface for controlling factor for determening sclicing size.
+            E.g., if a a file has ``NT = 48`` and ``tslice_fact`` is 0.5, only time
+            slices from 0 to 23 are exported to the output file. Note that the source
+            location is shifted before slicing.
+
+    **Raises**
+        ValueError:
+            If ``tslice_fact`` is not ``None`` but one is able to parse ``tsep``
+            information from the file string. This is a safeguard against accidentally
+            slicing files which shall not be sliced.
     """
     LOGGER.info("Sclicing\n\t  `%s`\n\t->`%s`", file_address_in, file_address_out)
 
@@ -119,6 +151,16 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
 
                     t_info = parse_t_info(name)
                     t_info["nt"] = dset.shape[0]
+                    if tslice_fact is not None:
+                        if "tsep" in t_info:
+                            raise ValueError(
+                                "Found `tsep = %s` in file `%s`"
+                                " but user specified `tslice_fact`. Abort."
+                                % (t_info["tsep"], name)
+                            )
+                        else:
+                            t_info["tsep"] = int(t_info["nt"] * tslice_fact)
+
                     LOGGER.debug("\tExtract temporal info `%s`", t_info)
 
                     meta = dset.attrs.get("meta", None)

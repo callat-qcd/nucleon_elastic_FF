@@ -125,7 +125,12 @@ class SliceWorkFlowTest(TestCase):
                 )
                 overwrite = False
                 mocked_calls.append(
-                    call(file_address, file_address_out, overwrite=overwrite)
+                    call(
+                        file_address,
+                        file_address_out,
+                        overwrite=overwrite,
+                        tslice_fact=None,
+                    )
                 )
 
             tslice.tslice(TMPDIR, overwrite=False)
