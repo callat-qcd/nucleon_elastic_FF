@@ -12,9 +12,12 @@ LOGGER = set_up_logger("nucleon_elastic_ff")
 
 
 def parse_t_info(string: str) -> Dict[str, int]:
-    """Extract `t0` and `tsep` info from string.
+    r"""Extract `t0` and `tsep` info from string.
 
-    The pattern matches e.g., `proton_DD_dn_dn_t0_83_tsep_7_sink_mom_px0_py0_pz0`
+    The pattern matches e.g., ``proton_DD_dn_dn_t0_83_tsep_7_sink_mom_px0_py0_pz0``.
+    Matches ``_t0_[0-9]+_tsep_[\-0-9]+_``.
+    If no match is found, tries to identify ``t`` by the source location
+    ``_x[0-9]+y[0-9]+z[0-9]+t[0-9]+`` and sets ``t0`` to None.
 
     **Arguments**
         string: str
@@ -31,6 +34,11 @@ def parse_t_info(string: str) -> Dict[str, int]:
     if match:
         for key, val in match.groupdict().items():
             result[key] = int(val)
+    else:
+        match = re.findall(r"_x[0-9]+y[0-9]+z[0-9]+t([0-9]+)", string)
+        if match:
+            result["t0"] = match[0]
+            result["tsep"] = None
 
     return result
 
