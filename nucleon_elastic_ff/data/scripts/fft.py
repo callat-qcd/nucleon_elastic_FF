@@ -159,6 +159,7 @@ def fft_file(  # pylint: disable = R0914, R0913
     with h5py.File(file_address_in, "r") as h5f:
         dsets = get_dsets(h5f, load_dsets=False)
 
+        LOGGER.info("Start fft for %d dsets", len(dsets))
         with h5py.File(file_address_out) as h5f_out:
             for name, dset in dsets.items():
 
@@ -203,8 +204,10 @@ def fft_file(  # pylint: disable = R0914, R0913
                             for el in range(-max_momentum, 0)  # pylint: disable=E1130
                         ]
                         for axis, key in enumerate(["x", "y", "z"]):
-                            axis *= -1
-                            LOGGER.debug("\t\t %s -> %s[%s]", key, key, slice_index)
+                            axis = -1 * (axis + 1)
+                            LOGGER.debug(
+                                "\t\t Axis %d: %s -> %s[%s]", axis, key, key, slice_index
+                            )
                             out = np.take(out, slice_index, axis=axis)
 
                 else:
