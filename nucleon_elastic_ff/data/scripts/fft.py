@@ -1,6 +1,7 @@
 """Script for time fourier transforming correlator data
 """
 from typing import Optional
+from typing import List
 
 import os
 
@@ -109,10 +110,11 @@ def fft(  # pylint: disable = R0913
     LOGGER.info("Done")
 
 
-def fft_file(  # pylint: disable = R0914
+def fft_file(  # pylint: disable = R0914, R0913
     file_address_in: str,
     file_address_out: str,
     max_momentum: Optional[int] = None,
+    dset_patterns: List[str] = ("local_current",),
     overwrite: bool = False,
     cuda: bool = True,
 ):
@@ -143,6 +145,9 @@ def fft_file(  # pylint: disable = R0914
         max_momentum: Optional[int] = None
             The momentum at which the FT is cutoff in each spatial dimension.
 
+        dset_patterns: List[str] = ("local_current",),
+            List of regex patterns data sets must match to be ffted.
+
         overwrite: bool = False
             Overwrite existing sliced file.
 
@@ -157,7 +162,7 @@ def fft_file(  # pylint: disable = R0914
         with h5py.File(file_address_out) as h5f_out:
             for name, dset in dsets.items():
 
-                if has_match(name, ["local_current"]):
+                if has_match(name, dset_patterns, match_all=True):
                     name = name.replace("local_current", "momentum_current")
                     LOGGER.debug("Start fft procedure for dset `%s`", name)
                     shape = dset.shape
@@ -209,3 +214,42 @@ def fft_file(  # pylint: disable = R0914
                 create_dset(h5f_out, name, out, overwrite=overwrite)
                 if meta:
                     h5f_out[name].attrs["meta"] = meta
+
+
+def main():
+    """Runs argparse for ``fft_file``.
+    """
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Interface for `fft_file`")
+    parser.add_argument("input", type=str, help="Name of the input hdf5 file.")
+    parser.add_argument(
+        "output",
+        type=str,
+        help="Name of the output hdf5 file."
+        " FFT is placed in the same dataset as in the input file."
+        " Currently only looks for `local_current` datasets",
+    )
+    parser.add_argument(
+        "--max-momentum",
+        "-m",
+        type=int,
+        default=5,
+        help="Name of the output hdf5 file."
+        " FFT is placed in the same dataset as in the input file. [default=%(default)s]",
+    )
+    parser.add_argument(
+        "--overwrite",
+        "-f",
+        action="store_true",
+        default=False,
+        help="Overwrite hdf5 files if they already exist. [default=%(default)s]",
+    )
+    args = parser.parse_args()
+    fft_file(
+        args.input, args.output, max_momentum=args.max_momentum, overwrite=args.overwrite
+    )
+
+
+if __name__ == "__main__":
+    main()

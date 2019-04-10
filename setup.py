@@ -32,6 +32,7 @@ setup(
         "console_scripts": [
             "h5eq=nucleon_elastic_ff.data.scripts.h5eq:main",
             "nucelff=nucleon_elastic_ff.data.scripts.nucelff:main",
+            "h5fft=nucleon_elastic_ff.data.scripts.fft:main",
         ]
     },
     setup_requires=["pytest-runner"],
