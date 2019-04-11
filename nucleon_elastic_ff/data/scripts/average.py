@@ -250,7 +250,7 @@ def spec_average(
     dset_replace_pattern = {
         r"x(?P<x>[0-9]+)_y(?P<y>[0-9]+)_z(?P<z>[0-9]+)_t(?P<t>[0-9]+)": "src_avg",
         r"spin_(?:up|dn)": "spin_avg",
-        r"(proton|neutron)(?P:_np)?": r"\g<1>_parity_avg",
+        r"(proton|neutron)(?:_np)?": r"\g<1>_parity_avg",
     }
 
     file_patterns = [r".*\.h5$", "spec_4D_tslice"]
