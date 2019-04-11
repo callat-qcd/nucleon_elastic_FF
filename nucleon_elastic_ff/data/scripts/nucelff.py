@@ -40,7 +40,16 @@ PARSER.add_argument(
     action="store_true",
     default=False,
     help="Average time sliced files over different sources."
-    "See `nucleon_elastic_ff.data.scripts.average` for more info.",
+    " Looks for `formfac_4D_tslice` files."
+    " See `nucleon_elastic_ff.data.scripts.average` for more info.",
+)
+PARSER.add_argument(
+    "--average-spec",
+    action="store_true",
+    default=False,
+    help="Average time sliced files over different sources, spin and parity."
+    " Similar to `average` flag but looks for `spec_4D_tslice` files."
+    " See `nucleon_elastic_ff.data.scripts.spec_average` for more info.",
 )
 
 PARSER.add_argument(
@@ -84,6 +93,13 @@ def main():
 
     if args.average:
         average.source_average(
+            args.root,
+            overwrite=args.overwrite,
+            n_expected_sources=args.n_expected_sources,
+        )
+
+    if args.average_spec:
+        average.spec_average(
             args.root,
             overwrite=args.overwrite,
             n_expected_sources=args.n_expected_sources,
