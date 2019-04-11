@@ -212,3 +212,75 @@ def source_average(
             os.makedirs(base_dir)
 
         dset_avg(file_group, out_file, dset_replace_pattern, overwrite=overwrite)
+
+
+def spec_average(
+    root: str, overwrite: bool = False, n_expected_sources: Optional[int] = None
+):  # pylint: disable=R0913
+    """Recursively scans directory for files and averages matches which over specified
+    component.
+
+    Averages over source, spin and parity without shifting or slicing. Thus, the data
+    must already be in the correct shape.
+
+    The input files must be h5 files (ending with ".h5") and must have `spec_4D_tslice`
+    in their file name. Files which have `spec_4D_tslice_avg` as name are excluded.
+    Also, this routine ignores exporting to files which already exist.
+
+    **Arguments**
+        root: str
+            The directory to look for files.
+
+        overwrite: bool = False
+            Overwrite existing sliced files.
+
+        n_expected_sources: Optional[int] = None
+            Added control to pass excepted number of sources.
+            If given and sources in one group is less than a certain number, raises
+            ValueError.
+
+    """
+    LOGGER.info("Running source average")
+
+    avg_over_file_keys = ("x", "y", "z", "t")
+    file_replace_pattern = {
+        "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg",
+        "spec_4D_tslice": "spec_4D_tslice_avg",
+    }
+    dset_replace_pattern = {
+        r"x(?P<x>[0-9]+)_y(?P<y>[0-9]+)_z(?P<z>[0-9]+)_t(?P<t>[0-9]+)": "src_avg",
+        r"spin_(?:up|dn)": "spin_avg",
+        r"(proton|neutron)(?P:_np)?": r"\g<1>_parity_avg",
+    }
+
+    file_patterns = [r".*\.h5$", "spec_4D_tslice"]
+    file_patterns += list(file_replace_pattern.keys())
+
+    files = find_all_files(
+        root,
+        file_patterns=file_patterns,
+        exclude_file_patterns=list(file_replace_pattern.values()),
+        match_all=True,
+    )
+
+    file_groups = group_files(files, keys=avg_over_file_keys)
+
+    for file_group in file_groups.values():
+        out_file = file_group[0]
+
+        if n_expected_sources:
+            if len(file_group) != n_expected_sources:
+                raise ValueError(
+                    "Expected %d sources in one average group but only received %d"
+                    % (n_expected_sources, len(file_group))
+                )
+
+        for pat, subs in file_replace_pattern.items():
+            out_file = re.sub(pat, subs, out_file)
+
+        base_dir = os.path.dirname(out_file)
+        if not os.path.exists(base_dir):
+            LOGGER.info("Creating `%s`", base_dir)
+            os.makedirs(base_dir)
+
+        dset_avg(file_group, out_file, dset_replace_pattern, overwrite=overwrite)
