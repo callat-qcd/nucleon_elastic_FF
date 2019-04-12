@@ -55,7 +55,7 @@ def parse_cfg_argument(cfg_arg, params):
         sys.exit()
     return range(ci,cf+dc,dc)
 
-def parse_cfg_src_argument(cfg_arg,src_arg,params):
+def parse_cfg_src_argument(cfg_arg,src_arg,params,src_type=[]):
     cfgs_run = parse_cfg_argument(cfg_arg,params)
     if src_arg:
         if len(cfgs_run) > 1:
@@ -93,8 +93,12 @@ def parse_cfg_src_argument(cfg_arg,src_arg,params):
                     src_gen = srcs_cfg[origin].iteritems()
                 except AttributeError: # Python 3 automatically creates a generator
                     src_gen = srcs_cfg[origin].items()
-                for src_type, src in src_gen:
-                    srcs[c].append(sources.xXyYzZtT(src))
+                for s_type, src in src_gen:
+                    if len(src_type) > 0:
+                        if s_type in src_type:
+                            srcs[c].append(sources.xXyYzZtT(src))
+                    else:
+                        srcs[c].append(sources.xXyYzZtT(src))
             if 'si' in params and 'sf' in params and 'ds' in params:
                 srcs[c] = srcs[c][params['si']:params['sf']+params['ds']:params['ds']]
     return cfgs_run, srcs

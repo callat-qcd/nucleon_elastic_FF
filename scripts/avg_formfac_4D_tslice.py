@@ -36,6 +36,9 @@ parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--src_type',nargs='+',type=str)
+parser.add_argument('--debug',default=False,action='store_const',const=True)
+parser.add_argument('--n_seq',type=int)
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -46,11 +49,14 @@ ff_data_dir = c51.ff_data_dir % params
 utils.ensure_dirExists(ff_data_dir)
 
 # give empty '' to in place of args.src to generate all srcs/cfg
-cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
-if 'indvdl' in ens:
-    params['N_SEQ'] = 1
+cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params,src_type=args.src_type)
+if args.n_seq:
+    params['N_SEQ'] = args.n_seq
 else:
-    params['N_SEQ'] = len(srcs[cfgs_run[0]])
+    if 'indvdl' in ens:
+        params['N_SEQ'] = 1
+    else:
+        params['N_SEQ'] = len(srcs[cfgs_run[0]])
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -114,8 +120,11 @@ for cfg in cfgs_run:
                         print(corr,cfg,dt,fs,curr)
                         data = []
                         for src in srcs[cfg]:
-                            sys.stdout.write('    %s\r' %src)
-                            sys.stdout.flush()
+                            if args.debug:
+                                print('    %s' %src)
+                            else:
+                                sys.stdout.write('    %s\r' %src)
+                                sys.stdout.flush()
                             params['SRC'] = src
                             ff_name = (c51.names['coherent_ff'] % params).replace('formfac_','formfac_4D_tslice_')
                             ff_file = params['formfac_4D_tslice'] +'/'+ ff_name+'.h5'
