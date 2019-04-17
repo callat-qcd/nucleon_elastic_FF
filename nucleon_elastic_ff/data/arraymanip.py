@@ -35,28 +35,6 @@ def average_arrays(arrays: List[np.ndarray], axis: int = 0) -> np.ndarray:
     return np.average(arrays, axis=axis)
 
 
-def slice_array(array: np.ndarray, index: List[int]) -> np.ndarray:
-    """Slices arrays over first (zero) dimension.
-
-    If index is decreasin from element to another, the "another" element is multiplied
-    by minus one.
-
-    array: List[np.ndarray]
-        The arrays to average.
-
-    index: List[int]
-        The indices to keep.
-    """
-    LOGGER.debug("Slicing array with index `%s`", index)
-    fact = np.ones(len(index))
-    if len(index) > 1:
-        for n, i in enumerate(index[1:]):
-            if index[n] > i:
-                fact[n + 1] = -1
-    fact = fact.reshape([len(index)] + [1] * (len(array.shape) - 1))
-    return array[index] * fact
-
-
 def shift_array(array: np.ndarray, shift: int = 0, axis: int = 0) -> np.ndarray:
     """Rolls the array in specified dimension by shift: `v[n] -> v[n+shift]`
 

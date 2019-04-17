@@ -1,10 +1,12 @@
 """Script for time slicing correlator data
 """
+from typing import Tuple
 from typing import List
 from typing import Optional
 
 import os
 
+import numpy as np
 import h5py
 
 from nucleon_elastic_ff.utilities import set_up_logger
@@ -17,7 +19,6 @@ from nucleon_elastic_ff.data.h5io import create_dset
 from nucleon_elastic_ff.data.parsing import parse_t_info
 from nucleon_elastic_ff.data.parsing import parse_file_info
 
-from nucleon_elastic_ff.data.arraymanip import slice_array
 from nucleon_elastic_ff.data.arraymanip import shift_array
 
 LOGGER = set_up_logger("nucleon_elastic_ff")
@@ -120,8 +121,7 @@ def slice_file(  # pylint: disable=R0914
 
     This methods scans all datasets within the file.
     If a data set has "local_current" in its name it is sliced in its time components.
-    The slicing info is inferred by the group name (see `parse_t_info`) and cut according
-    using `slice_array`.
+    The slicing info is inferred by the group name (see `parse_t_info`).
     Also the slicing meta info is stored in the resulting output file in the "meta_info"
     group (same place as "local_current").
 
@@ -179,8 +179,9 @@ def slice_file(  # pylint: disable=R0914
                     meta = str(meta) + "&" if meta else ""
                     meta += "&".join([f"{key}=={val}" for key, val in t_info.items()])
 
-                    slice_index = get_t_slices(**t_info)
-                    out = slice_array(dset[()], slice_index)
+                    slice_index, slice_fact = get_t_slices(**t_info)
+                    slice_fact.reshape([t_info["tsep"]] + [1] * (len(dset.shape) - 1))
+                    out = slice_fact * dset[slice_index]
 
                     LOGGER.debug("\tShifting to source origin")
                     info = parse_file_info(file_address_in, convert_numeric=True)
@@ -194,7 +195,9 @@ def slice_file(  # pylint: disable=R0914
                 create_dset(h5f_out, name, out, overwrite=overwrite)
 
 
-def get_t_slices(t0: int, tsep: int, nt: int) -> List[int]:  # pylint: disable=C0103
+def get_t_slices(  # pylint: disable=C0103
+    t0: int, tsep: int, nt: int, negative_parity: bool = False
+) -> Tuple[List[int], np.ndarray]:
     """Returns range `[t0, t0 + tsep + step]` where `step` is defined by sign of `tsep`.
 
     List elements are counted modulo the maximal time extend nt.
@@ -210,4 +213,15 @@ def get_t_slices(t0: int, tsep: int, nt: int) -> List[int]:  # pylint: disable=C
             Maximum time slice.
     """
     step = tsep // abs(tsep)
-    return [ind % nt for ind in range(t0, t0 + tsep + step, step)]
+
+    index = [ind % nt for ind in range(t0, t0 + tsep + step, step)]
+
+    fact = np.ones(len(index), dtype=int)
+    for n, t in enumerate(index):
+        if t < t0:
+            fact[n] *= -1
+
+        if negative_parity and t != t0:
+            fact[n] *= -1
+
+    return index, fact
