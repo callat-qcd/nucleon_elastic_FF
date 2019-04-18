@@ -162,7 +162,7 @@ def slice_file(  # pylint: disable=R0914
                 if has_match(name, dset_patterns, match_all=True):
                     LOGGER.debug("Start slicing dset `%s`", name)
 
-                    pattern = "(?:proton|neutron)_(?P<parity>np)?"
+                    pattern = ".*(?:proton|neutron)(?:_(?P<parity>np))?"
                     match = re.match(pattern, name)
                     if not match:
                         raise ValueError("Could not infer parity of dset `%s`" % name)
