@@ -183,7 +183,7 @@ def slice_file(  # pylint: disable=R0914
                     slice_fact = slice_fact.reshape(
                         [t_info["tsep"] + 1] + [1] * (len(dset.shape) - 1)
                     )
-                    out = slice_fact * dset[slice_index]
+                    out = slice_fact * dset[()][slice_index]
 
                     LOGGER.debug("\tShifting to source origin")
                     info = parse_file_info(file_address_in, convert_numeric=True)
