@@ -5,6 +5,7 @@ from typing import List
 from typing import Optional
 
 import os
+import re
 
 import numpy as np
 import h5py
@@ -161,6 +162,12 @@ def slice_file(  # pylint: disable=R0914
                 if has_match(name, dset_patterns, match_all=True):
                     LOGGER.debug("Start slicing dset `%s`", name)
 
+                    pattern = "(?:proton|neutron)_(?P<parity>np)?"
+                    match = re.match(pattern, name)
+                    if not match:
+                        raise ValueError("Could not infer parity of dset `%s`" % name)
+                    negative_parity = match.groupdict()["parity"] == "np"
+
                     t_info = parse_t_info(name)
                     t_info["nt"] = dset.shape[0]
                     if tslice_fact is not None:
@@ -179,7 +186,9 @@ def slice_file(  # pylint: disable=R0914
                     meta = str(meta) + "&" if meta else ""
                     meta += "&".join([f"{key}=={val}" for key, val in t_info.items()])
 
-                    slice_index, slice_fact = get_t_slices(**t_info)
+                    slice_index, slice_fact = get_t_slices(
+                        **t_info, negative_parity=negative_parity
+                    )
                     slice_fact = slice_fact.reshape(
                         [t_info["tsep"] + 1] + [1] * (len(dset.shape) - 1)
                     )
@@ -216,14 +225,15 @@ def get_t_slices(  # pylint: disable=C0103
     """
     step = tsep // abs(tsep)
 
-    index = [ind % nt for ind in range(t0, t0 + tsep + step, step)]
+    actual_t = range(t0, t0 + tsep + step, step)
+    index_t = [ind % nt for ind in actual_t]
 
-    fact = np.ones(len(index), dtype=int)
-    for n, t in enumerate(index):
-        if t < t0:
+    fact = np.ones(len(index_t), dtype=int)
+    for n, t in enumerate(actual_t):
+        if t < 0 or t >= nt:
             fact[n] *= -1
 
         if negative_parity and t != t0:
             fact[n] *= -1
 
-    return index, fact
+    return index_t, fact
