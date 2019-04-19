@@ -180,6 +180,9 @@ def slice_file(  # pylint: disable=R0914
                         else:
                             t_info["tsep"] = int(t_info["nt"] * tslice_fact)
 
+                    if negative_parity and t_info["tsep"] > 0:
+                        t_info["tsep"] *= -1
+
                     LOGGER.debug("\tExtract temporal info `%s`", t_info)
 
                     meta = dset.attrs.get("meta", None)
