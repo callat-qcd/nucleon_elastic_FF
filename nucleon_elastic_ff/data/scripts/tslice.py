@@ -189,9 +189,7 @@ def slice_file(  # pylint: disable=R0914
                     meta = str(meta) + "&" if meta else ""
                     meta += "&".join([f"{key}=={val}" for key, val in t_info.items()])
 
-                    slice_index, slice_fact = get_t_slices(
-                        **t_info, negative_parity=negative_parity
-                    )
+                    slice_index, slice_fact = get_t_slices(**t_info)
                     slice_fact = slice_fact.reshape(
                         [t_info["tsep"] + 1] + [1] * (len(dset.shape) - 1)
                     )
@@ -210,11 +208,14 @@ def slice_file(  # pylint: disable=R0914
 
 
 def get_t_slices(  # pylint: disable=C0103
-    t0: int, tsep: int, nt: int, negative_parity: bool = False
+    t0: int, tsep: int, nt: int
 ) -> Tuple[List[int], np.ndarray]:
     """Returns range `[t0, t0 + tsep + step]` where `step` is defined by sign of `tsep`.
 
     List elements are counted modulo the maximal time extend nt.
+    This function returns the new indices and the factor associated with the indices.
+    E.g., if ``tsep`` is negative (T is applied), all entries but ``t0`` are multiplied
+    by minus one. Also, entries which hop the boundaries are multiplied by minus one.
 
     **Arguments**
         t0: int
@@ -236,7 +237,7 @@ def get_t_slices(  # pylint: disable=C0103
         if t < 0 or t >= nt:
             fact[n] *= -1
 
-        if negative_parity and t != t0:
+        if tsep < 0 and t != t0:
             fact[n] *= -1
 
     return index_t, fact
