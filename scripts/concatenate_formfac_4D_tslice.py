@@ -84,7 +84,11 @@ for particle in particles:
             for curr in currents:
                 for cfg in cfgs:
 '''
-f5_out = h5.open_file(ff_data_dir+'/avg/formfac_'+ens_s+'_avg.h5','a')
+if args.fout:
+    fout_name = args.fout
+else:
+    fout_name = ff_data_dir+'/avg/formfac_'+ens_s+'_avg.h5'
+f5_out = h5.open_file(fout_name,'a')
 for corr in params['particles']:
     for fs in flav_spin:
         for tsep in params['t_seps']:
