@@ -1,11 +1,15 @@
+import socket
 import sources
 
 params = dict()
 params['tuning_mq'] = False
 params['run_ff'] = True
 
-params['si'] = 0
-params['sf'] = 8
+# Lassen has done srcs 0 - 15, OA on [0 , 32, 16, 48, 8 , 40, 24, 56]
+# Summit will do srcs 16 - 32, OA on [4 , 36, 20, 52, 12, 44, 28, 60]
+# they have to be run in batches of 8 so that the t0 are spaced far enough apart to not interefere in the coherent sink
+params['si'] = 16
+params['sf'] = 23
 params['ds'] = 1
 
 params['ENS_ABBR'] = 'a15m135XL'
@@ -45,9 +49,18 @@ params['RSD_TOL']    = '80'
 params['SP_EXTENSION'] = 'lime'
 
 params['seed'] = dict()
-params['seed']['a'] = '2a'
-'''                    0, nt/2, nt/4, 3 nt/4 '''
-params['t_shifts'] = [ 0, 32  , 16  , 48     ]
+hn = socket.gethostname()
+if any(host in hn for host in ['lassen']):
+    random_run = '1'
+elif any(host in hn for host in ['login','batch']):
+    random_run = '1'
+for stream in ['b','c','d','e']:
+    params['seed'][stream] = random_run + stream
+
+# Lassen has done srcs 0 - 15, OA on [0 , 32, 16, 48, 8 , 40, 24, 56]
+# Summit will do srcs 16 - 32, OA on [4 , 36, 20, 52, 12, 44, 28, 60]
+# they have to be run in batches of 8 so that the t0 are spaced far enough apart to not interefere in the coherent sink
+params['t_shifts'] = [ 0 , 32, 16, 48, 8 , 40, 24, 56, 4 , 36, 20, 52, 12, 44, 28, 60 ]
 params['generator'] = sources.oa(int(params['NL']))
 
 ''' minutes after last file modification time when deletion of small files is OK '''
@@ -104,16 +117,17 @@ def mpirun_params(machine):
         params['gpu_c_rs']    = '-c4'
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 3 4 -qmp-geom 1 1 3 4 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
+        params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
     if machine == 'summit':
         params['cpu_nodes']   = 2
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 20
-        params['src_time']    = 5
+        params['src_time']    = 2
         params['spec_time']   = 10
 
-        params['cpu_nrs']     = '--nrs 3'
+        params['cpu_nrs']     = '--nrs 4'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a16'
         params['cpu_g_rs']    = ''
@@ -121,17 +135,19 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = ''
 
-        params['gpu_nodes']   = 0
+        params['gpu_nodes']   = 2
+        params['gpu_metaq_nodes']= 0
         params['gpu_gpus']    = 12
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 70
+        params['prop_time']   = 150
 
-        params['gpu_nrs']     = '--nrs 3'
+        params['gpu_nrs']     = '--nrs 2'
         params['gpu_rs_node'] = '-r1'
         params['gpu_a_rs']    = '-a6'
         params['gpu_g_rs']    = '-g6'
         params['gpu_c_rs']    = '-c6'
         params['gpu_latency'] = '-l gpu-cpu'
-        params['gpu_geom']    = ' -geom 1 1 3 4 -qmp-geom 1 1 3 4 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
+        params['gpu_geom']    = ' -geom 1 1 3 4'
+        params['gpu_bind']    = ''
 
     return params
