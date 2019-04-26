@@ -4,6 +4,10 @@ params = dict()
 params['tuning_mq'] = False
 params['run_ff'] = True
 
+params['si'] = 0
+params['sf'] = 31
+params['ds'] = 1
+
 params['ENS_ABBR'] = 'a15m310L'
 params['NL']   = '24'
 params['NT']   = '48'
@@ -49,17 +53,21 @@ params['generator'] = sources.corners(int(params['NL']),dx=int(params['NL'])/4)
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10
 
-params['MESONS_PSQ_MAX']  = 5
-params['BARYONS_PSQ_MAX'] = 5
+#params['MESONS_PSQ_MAX']  = 5
+#params['BARYONS_PSQ_MAX'] = 5
+params['MESONS_PSQ_MAX']  = 0
+params['BARYONS_PSQ_MAX'] = 0
 
 params['run_3pt'] = True
-params['t_seps']  = [3,4,5,6,7,8]
+#params['t_seps']  = [3,4,5,6,7,8]
+params['t_seps']  = [7]
 params['flavs']   = ['UU','DD']
 params['spins']   = ['up_up','dn_dn']
 params['snk_mom'] = ['0 0 0']
 params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
-params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P']
+#params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P']
+params['curr_4d'] = ['A3','V4']
 params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['T34','T12','CHROMO_MAG']
 
