@@ -191,10 +191,7 @@ def slice_file(  # pylint: disable=R0914
                     meta = str(meta) + "&" if meta else ""
                     meta += "&".join([f"{key}=={val}" for key, val in t_info.items()])
 
-                    slice_index, slice_fact = get_t_slices(**t_info)
-                    slice_fact = slice_fact.reshape(
-                        [t_info["tsep"] + 1] + [1] * (len(dset.shape) - 1)
-                    )
+                    slice_index, _ = get_t_slices(**t_info)
                     out = slice_fact * dset[()][slice_index]
 
                     LOGGER.debug("\tShifting to source origin")
