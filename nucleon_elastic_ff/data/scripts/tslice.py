@@ -122,9 +122,10 @@ def slice_file(  # pylint: disable=R0914
 
     This methods scans all datasets within the file.
     If a data set has "local_current" in its name it is sliced in its time components.
-    The slicing info is inferred by the group name (see `parse_t_info`).
-    Also the slicing meta info is stored in the resulting output file in the "meta_info"
-    group (same place as "local_current").
+    The slicing info is inferred by the group name (see `parse_t_info`) and cut according
+    using `slice_array`.
+    Also the slicing meta info is stored in the resulting output file in the `meta`
+    attribute of `local_current`.
 
     **Arguments**
         file_address_in: str
@@ -159,6 +160,7 @@ def slice_file(  # pylint: disable=R0914
         with h5py.File(file_address_out) as h5f_out:
             for name, dset in dsets.items():
 
+                meta = None
                 if has_match(name, dset_patterns, match_all=True):
                     LOGGER.debug("Start slicing dset `%s`", name)
 
@@ -205,6 +207,8 @@ def slice_file(  # pylint: disable=R0914
                     out = dset[()]
 
                 create_dset(h5f_out, name, out, overwrite=overwrite)
+                if meta:
+                    h5f_out[name].attrs["meta"] = meta
 
 
 def get_t_slices(  # pylint: disable=C0103
