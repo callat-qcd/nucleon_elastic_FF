@@ -192,7 +192,7 @@ def slice_file(  # pylint: disable=R0914
                     meta += "&".join([f"{key}=={val}" for key, val in t_info.items()])
 
                     slice_index, _ = get_t_slices(**t_info)
-                    out = slice_fact * dset[()][slice_index]
+                    out = dset[()][slice_index]
 
                     LOGGER.debug("\tShifting to source origin")
                     info = parse_file_info(file_address_in, convert_numeric=True)
