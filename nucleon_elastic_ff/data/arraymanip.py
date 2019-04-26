@@ -79,8 +79,8 @@ def get_fft(
     LOGGER.debug("Executing fft on axes `%s`", axes)
     if cuda and USE_CUPY:
         array_d = cp.asarray(array)
-        fft_d = cp.fft.fftn(array_d, axes=axes)
+        fft_d = cp.fft.ifftn(array_d, axes=axes)
         fft = cp.asnumpy(fft_d)
     else:
-        fft = np.fft.fftn(array, axes=axes)
+        fft = np.fft.ifftn(array, axes=axes)
     return fft
