@@ -210,7 +210,9 @@ def slice_file(  # pylint: disable=R0914, R0913
                     slice_index, boundary_fact = get_t_slices(**t_info)
                     out = dset[()][slice_index]
                     if boundary_sign_flip:
-                        out *= boundary_fact
+                        out *= boundary_fact.reshape(
+                            [t_info["tsep"] + 1] + [1] * (len(dset.shape) - 1)
+                        )
 
                     LOGGER.debug("\tShifting to source origin")
                     info = parse_file_info(file_address_in, convert_numeric=True)
