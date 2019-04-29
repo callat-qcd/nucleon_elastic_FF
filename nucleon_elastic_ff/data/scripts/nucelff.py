@@ -69,6 +69,19 @@ PARSER.add_argument(
     " sources in one average group is different than specified.",
 )
 
+PARSER.add_argument(
+    "--boundary-sign-flip",
+    "-b",
+    action="store_true",
+    default=None,
+    help="Flip sign of correlator when hopping over (temporal) boundaries."
+    " Form factor correlators come with this sign already implemented"
+    " (do not use this factor)."
+    " Spectrum files need this factor."
+    " If you do not specify this flag, it autodetects the correct behavior based on"
+    " the name of the file.",
+)
+
 
 def main():
     """Runs src average and or tslice.
@@ -79,6 +92,9 @@ def main():
 
     if args.slice:
         if args.tslice_fact is not None:
+            boundary_sign_flip = (
+                True if args.boundary_sign_flip is None else args.boundary_sign_flip
+            )
             tslice.tslice(
                 args.root,
                 name_input="spec_4D",
@@ -86,10 +102,18 @@ def main():
                 overwrite=args.overwrite,
                 tslice_fact=args.tslice_fact,
                 dset_patterns=["4D_correlator/x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+"],
+                boundary_sign_flip=boundary_sign_flip,
             )
 
         else:
-            tslice.tslice(args.root, overwrite=args.overwrite)
+            boundary_sign_flip = (
+                False if args.boundary_sign_flip is None else args.boundary_sign_flip
+            )
+            tslice.tslice(
+                args.root,
+                overwrite=args.overwrite,
+                boundary_sign_flip=boundary_sign_flip,
+            )
 
     if args.average:
         average.source_average(

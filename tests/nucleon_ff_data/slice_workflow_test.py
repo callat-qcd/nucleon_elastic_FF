@@ -131,6 +131,7 @@ class SliceWorkFlowTest(TestCase):
                         overwrite=overwrite,
                         tslice_fact=None,
                         dset_patterns=("local_current",),
+                        boundary_sign_flip=False,
                     )
                 )
 

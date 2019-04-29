@@ -32,6 +32,7 @@ def tslice(  # pylint: disable=R0913
     overwrite: bool = False,
     tslice_fact: Optional[float] = None,
     dset_patterns: List[str] = ("local_current",),
+    boundary_sign_flip: bool = False,
 ):
     """Recursively scans dir for files, slices in time and shifts in all directions.
 
@@ -64,6 +65,10 @@ def tslice(  # pylint: disable=R0913
         dset_patterns: List[str] = ("local_current",),
             Pattern dsets must matched in order to be sliced.
 
+        boundary_sign_flip: bool = False
+            Applies minus sign to correlator if hopping over temporal boundaries after
+            tslicing (in any direction).
+
     **Raises**
         ValueError:
             If ``tslice_fact`` is not ``None`` but one is able to parse ``tsep``
@@ -77,6 +82,11 @@ def tslice(  # pylint: disable=R0913
         name_input,
         name_output,
     )
+    if overwrite:
+        LOGGER.info("Overwriting existing file.")
+
+    if boundary_sign_flip:
+        LOGGER.info("Flipping sign of correlator if hopping over boundary.")
 
     all_files = find_all_files(
         root,
@@ -106,17 +116,19 @@ def tslice(  # pylint: disable=R0913
             overwrite=overwrite,
             tslice_fact=tslice_fact,
             dset_patterns=dset_patterns,
+            boundary_sign_flip=boundary_sign_flip,
         )
 
     LOGGER.info("Done")
 
 
-def slice_file(  # pylint: disable=R0914
+def slice_file(  # pylint: disable=R0914, R0913
     file_address_in: str,
     file_address_out: str,
     overwrite: bool = False,
     tslice_fact: Optional[float] = None,
     dset_patterns: List[str] = ("local_current",),
+    boundary_sign_flip: bool = False,
 ):
     """Reads input file and writes time-sliced data to output file.
 
@@ -145,6 +157,10 @@ def slice_file(  # pylint: disable=R0914
 
         dset_patterns: List[str] = ("local_current",),
             Pattern dsets must matched in order to be sliced.
+
+        boundary_sign_flip: bool = False
+            Applies minus sign to correlator if hopping over temporal boundaries after
+            tslicing (in any direction).
 
     **Raises**
         ValueError:
@@ -191,8 +207,10 @@ def slice_file(  # pylint: disable=R0914
                     meta = str(meta) + "&" if meta else ""
                     meta += "&".join([f"{key}=={val}" for key, val in t_info.items()])
 
-                    slice_index, _ = get_t_slices(**t_info)
+                    slice_index, boundary_fact = get_t_slices(**t_info)
                     out = dset[()][slice_index]
+                    if boundary_sign_flip:
+                        out *= boundary_fact
 
                     LOGGER.debug("\tShifting to source origin")
                     info = parse_file_info(file_address_in, convert_numeric=True)
@@ -215,8 +233,7 @@ def get_t_slices(  # pylint: disable=C0103
 
     List elements are counted modulo the maximal time extend nt.
     This function returns the new indices and the factor associated with the indices.
-    E.g., if ``tsep`` is negative (T is applied), all entries but ``t0`` are multiplied
-    by minus one. Also, entries which hop the boundaries are multiplied by minus one.
+    E.g., entries which hop the boundaries are multiplied by minus one.
 
     **Arguments**
         t0: int
@@ -236,9 +253,6 @@ def get_t_slices(  # pylint: disable=C0103
     fact = np.ones(len(index_t), dtype=int)
     for n, t in enumerate(actual_t):
         if t < 0 or t >= nt:
-            fact[n] *= -1
-
-        if tsep < 0 and t != t0:
             fact[n] *= -1
 
     return index_t, fact
