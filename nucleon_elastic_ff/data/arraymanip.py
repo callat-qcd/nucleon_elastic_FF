@@ -77,10 +77,15 @@ def get_fft(
             Use cupy to do fft transformation.
     """
     LOGGER.debug("Executing fft on axes `%s`", axes)
+
+    norm = 1
+    for ind in axes:
+        norm *= array.shape[ind]
+
     if cuda and USE_CUPY:
         array_d = cp.asarray(array)
         fft_d = cp.fft.ifftn(array_d, axes=axes)
         fft = cp.asnumpy(fft_d)
     else:
         fft = np.fft.ifftn(array, axes=axes)
-    return fft
+    return fft * norm
