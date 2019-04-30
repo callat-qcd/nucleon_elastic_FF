@@ -164,7 +164,7 @@ def fft_file(  # pylint: disable = R0914, R0913
 
     **Raises**
         KeyError:
-            If no
+            If no dset was transformed.
     """
     LOGGER.info("Sclicing\n\t  `%s`\n\t->`%s`", file_address_in, file_address_out)
 
