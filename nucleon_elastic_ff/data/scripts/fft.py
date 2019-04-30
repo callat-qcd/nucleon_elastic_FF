@@ -114,7 +114,11 @@ def fft_file(  # pylint: disable = R0914, R0913
     file_address_in: str,
     file_address_out: str,
     max_momentum: Optional[int] = None,
-    dset_patterns: List[str] = ("local_current",),
+    dset_patterns: List[str] = (
+        "local_current",
+        "x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+",
+        "4D_correlator",
+    ),
     overwrite: bool = False,
     cuda: bool = True,
 ):
@@ -145,16 +149,26 @@ def fft_file(  # pylint: disable = R0914, R0913
         max_momentum: Optional[int] = None
             The momentum at which the FT is cutoff in each spatial dimension.
 
-        dset_patterns: List[str] = ("local_current",),
-            List of regex patterns data sets must match to be ffted.
+        dset_patterns: List[str] = (
+            "local_current",
+            "x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+",
+            "4D_correlator",
+        ),
+            List of regex patterns data sets must match to be ffted (needs to match one).
 
         overwrite: bool = False
             Overwrite existing sliced file.
 
         cuda: bool = True
             Use `cupy` to run fft if possible.
+
+    **Raises**
+        KeyError:
+            If no
     """
     LOGGER.info("Sclicing\n\t  `%s`\n\t->`%s`", file_address_in, file_address_out)
+
+    transformed_dstes = 0
 
     with h5py.File(file_address_in, "r") as h5f:
         dsets = get_dsets(h5f, load_dsets=False)
@@ -163,8 +177,9 @@ def fft_file(  # pylint: disable = R0914, R0913
         with h5py.File(file_address_out) as h5f_out:
             for name, dset in dsets.items():
 
-                if has_match(name, dset_patterns, match_all=True):
-                    name = name.replace("local_current", "momentum_current")
+                if has_match(name, dset_patterns, match_all=False):
+                    if "local_current" in name:
+                        name = name.replace("local_current", "momentum_current")
                     LOGGER.debug("Start fft procedure for dset `%s`", name)
                     shape = dset.shape
 
@@ -210,6 +225,8 @@ def fft_file(  # pylint: disable = R0914, R0913
                             )
                             out = np.take(out, slice_index, axis=axis)
 
+                    transformed_dstes += 1
+
                 else:
                     meta = None
                     out = dset[()]
@@ -217,6 +234,12 @@ def fft_file(  # pylint: disable = R0914, R0913
                 create_dset(h5f_out, name, out, overwrite=overwrite)
                 if meta:
                     h5f_out[name].attrs["meta"] = meta
+
+    if transformed_dstes == 0:
+        raise KeyError(
+            "Could not identify any dsets to parse."
+            "Must match one out of `%s`" % dset_patterns
+        )
 
 
 def main():
