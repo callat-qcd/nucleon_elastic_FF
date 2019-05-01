@@ -5,6 +5,8 @@ The logic of the tests are the same:
 2. Check if the right folders and files have been created
 3. Check if the file match the legacy files.
 """
+from typing import List
+
 import os
 import subprocess
 
@@ -27,11 +29,11 @@ class CommandTest(TestCase):
     deletes tmp files.
     """
 
-    link_files = {}
-    check_files = {}
-    command = []
-    atol = 0.0
-    rtol = 1.0e-8
+    link_files: List[str] = []
+    check_files: List[str] = []
+    command: List[str] = []
+    atol: float = 0.0
+    rtol: float = 1.0e-8
 
     def check_command(self):
         """Runs the command and checks the files
@@ -41,9 +43,9 @@ class CommandTest(TestCase):
         process.communicate()
 
         LOGGER.info("Checking created files")
-        for expected, created in self.check_files.items():
-            created_path = os.path.join(TMPDIR, created)
-            expected_path = os.path.join(DATAROOT, expected)
+        for file in self.check_files:
+            created_path = os.path.join(TMPDIR, file)
+            expected_path = os.path.join(DATAROOT, file)
 
             LOGGER.info("\t%s", created_path)
             self.assertTrue(
@@ -61,21 +63,21 @@ class CommandTest(TestCase):
             LOGGER.info("Creating temp dir `%s`", TMPDIR)
             os.makedirs(TMPDIR)
 
-        for source, target in self.link_files:
-            target_path = os.path.join(TMPDIR, target)
+        for file in self.link_files:
+            target_path = os.path.join(TMPDIR, file)
             target_dir = os.path.dirname(target_path)
             if not os.path.exists(target_dir):
                 LOGGER.info("Creating `%s`", target_dir)
                 os.makedirs(TMPDIR)
 
-            source_path = os.path.join(DATAROOT, source)
+            source_path = os.path.join(DATAROOT, file)
             LOGGER.info("Linking `%s` ->  `%s` ", source_path, target_path)
             os.link(source_path, target_path)
 
     def tearDown(self):  # pylint: disable=R0912, C0103
         """Deletes all created and all linked directories and files
         """
-        for target in self.link_files.values():
+        for target in self.link_files:
             target_path = os.path.join(TMPDIR, target)
             LOGGER.info("Removing `%s`", target_path)
             if TMPDIR in target_path and not DATAROOT in target_path:
@@ -86,7 +88,7 @@ class CommandTest(TestCase):
                     + " Check the `link_files` of the test!"
                 )
 
-        for created in self.check_files.values():
+        for created in self.check_files:
             created_path = os.path.join(TMPDIR, created)
             LOGGER.info("Removing `%s`", created_path)
             if TMPDIR in created_path and not DATAROOT in created_path:
@@ -97,7 +99,7 @@ class CommandTest(TestCase):
                     + " Check the `check_files` of the test!"
                 )
 
-        for target in self.link_files.values():
+        for target in self.link_files:
             target_path = os.path.join(TMPDIR, target)
             target_dir = os.path.dirname(target_path)
             if os.path.exists(target_dir):
@@ -110,7 +112,7 @@ class CommandTest(TestCase):
                         + " Check the `link_files` of the test!"
                     )
 
-        for created in self.check_files.values():
+        for created in self.check_files:
             created_path = os.path.join(TMPDIR, created)
             created_dir = os.path.dirname(created_path)
             if os.path.exists(created_dir):
