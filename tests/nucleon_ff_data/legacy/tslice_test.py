@@ -29,3 +29,31 @@ class FormfacTsliceTest(CommandTest, TestCase):
         """
         LOGGER.info("Running `tslice`")
         tslice(join(TMPDIR, "formfac_4D"), overwrite=False, boundary_sign_flip=False)
+
+
+class SpecTsliceTest(CommandTest, TestCase):
+    """Runs tslice on legacy ``spec_4D`` files and compares results"""
+
+    link_files = [
+        join("spec_4D", "spec_4D_px0py0pz0_Nsnk1_x0y1z2t2.h5"),
+        join("spec_4D", "spec_4D_px0py0pz0_Nsnk1_x3y1z2t4.h5"),
+    ]
+    check_files = [
+        join("spec_4D_tslice", "spec_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t2.h5"),
+        join("spec_4D_tslice", "spec_4D_tslice_px0py0pz0_Nsnk1_x3y1z2t4.h5"),
+    ]
+
+    @staticmethod
+    def command():
+        """Command which will be executed by the unittest.
+        """
+        LOGGER.info("Running `tslice`")
+        tslice(
+            join(TMPDIR, "spec_4D"),
+            name_input="spec_4D",
+            name_output="spec_4D_tslice",
+            overwrite=False,
+            tslice_fact=0.5,
+            dset_patterns=["4D_correlator/x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+"],
+            boundary_sign_flip=True,
+        )
