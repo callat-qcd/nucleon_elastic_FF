@@ -88,7 +88,6 @@ if args.fout:
     fout_name = args.fout
 else:
     fout_name = ff_data_dir+'/avg/formfac_'+ens_s+'_avg.h5'
-f5_out = h5.open_file(fout_name,'a')
 for corr in params['particles']:
     for fs in flav_spin:
         for tsep in params['t_seps']:
@@ -98,6 +97,7 @@ for corr in params['particles']:
                 dt = '-'+dt
             for curr in params['curr_4d']:
                 print(corr,fs,dt,curr)
+                f5_out = h5.open_file(fout_name,'a')
                 h5_out_path =  h5_root_path+'/'+corr+'_'+fs+'_tsep_'+dt
                 h5_out_path += '_sink_mom_px'+m0+'_py'+m1+'_pz'+m2
                 fin_path =  corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px'+m0+'_py'+m1+'_pz'+m2
@@ -138,5 +138,4 @@ for corr in params['particles']:
                     f5_out.flush()
                 else:
                     print('data exists and overwrite = False')
-
-f5_out.close()
+                f5_out.close()

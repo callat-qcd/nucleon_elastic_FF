@@ -146,7 +146,8 @@ for corr in params['particles']:
                         ''' perform time-reversal on neg par correlators '''
                         if '_np' in corr:
                             print('PERFORMING TIME_REVERSAL:',corr)
-                            data = utils.time_reverse(data,phase=-1,time_axis=1)
+                            # FORMFAC files already have -1 applied
+                            data = utils.time_reverse(data,phase=1,time_axis=1)
                         print('    Nc=%4d, Ns=%.7f' %(cfgs_srcs.shape[0],cfgs_srcs.mean(axis=0)[1]))
                         if mom in f5_out.get_node(curr_dir):
                             f5_out.remove_node(curr_dir,mom,recursive=True)

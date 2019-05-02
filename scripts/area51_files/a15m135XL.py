@@ -1,6 +1,8 @@
 import socket
 import sources
 
+hn = socket.gethostname()
+
 params = dict()
 params['tuning_mq'] = False
 params['run_ff'] = True
@@ -8,9 +10,14 @@ params['run_ff'] = True
 # Lassen has done srcs 0 - 15, OA on [0 , 32, 16, 48, 8 , 40, 24, 56]
 # Summit will do srcs 16 - 32, OA on [4 , 36, 20, 52, 12, 44, 28, 60]
 # they have to be run in batches of 8 so that the t0 are spaced far enough apart to not interefere in the coherent sink
-params['si'] = 16
-params['sf'] = 23
-params['ds'] = 1
+if any(host in hn for host in ['lassen']):
+    params['si'] = 0
+    params['sf'] = 7
+    params['ds'] = 1
+elif any(host in hn for host in ['login','batch']):
+    params['si'] = 16
+    params['sf'] = 23
+    params['ds'] = 1
 
 params['ENS_ABBR'] = 'a15m135XL'
 params['NL']   = '48'
@@ -49,7 +56,6 @@ params['RSD_TOL']    = '80'
 params['SP_EXTENSION'] = 'lime'
 
 params['seed'] = dict()
-hn = socket.gethostname()
 if any(host in hn for host in ['lassen']):
     random_run = '1'
 elif any(host in hn for host in ['login','batch']):
@@ -108,7 +114,8 @@ def mpirun_params(machine):
         params['gpu_nodes']   = 0
         params['gpu_gpus']    = 12
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 70
+        params['prop_time']   = 150
+        params['seqprop_time']    = 80
 
         params['gpu_nrs']     = '--nrs 3'
         params['gpu_rs_node'] = '-r1'
@@ -135,11 +142,12 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = ''
 
-        params['gpu_nodes']   = 2
-        params['gpu_metaq_nodes']= 0
-        params['gpu_gpus']    = 12
-        params['gpu_maxcus']  = 1
-        params['prop_time']   = 150
+        params['gpu_nodes']       = 2
+        params['gpu_metaq_nodes'] = 0
+        params['gpu_gpus']        = 12
+        params['gpu_maxcus']      = 1
+        params['prop_time']       = 150
+        params['seqprop_time']    = 80
 
         params['gpu_nrs']     = '--nrs 2'
         params['gpu_rs_node'] = '-r1'
