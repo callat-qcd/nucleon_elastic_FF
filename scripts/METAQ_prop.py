@@ -71,9 +71,9 @@ params['MQ'] = params['MV_L']
 
 params = area51.mpirun_params(c51.machine)
 params['NODES']       = params['gpu_nodes']
-params['METAQ_NODES'] = params['gpu_nodes']
+params['METAQ_NODES'] = params['gpu_metaq_nodes']
 params['METAQ_GPUS']  = params['gpu_gpus']
-params['WALL_TIME']   = params['gflow_time']
+params['WALL_TIME']   = params['prop_time']
 params['ENS_DIR']     = c51.ens_dir % params
 params['SCRIPT_DIR']  = c51.script_dir
 params['MAXCUS']      = params['gpu_maxcus']
