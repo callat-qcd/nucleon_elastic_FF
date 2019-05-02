@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Main interface to data scripts
 """
 from argparse import ArgumentParser
