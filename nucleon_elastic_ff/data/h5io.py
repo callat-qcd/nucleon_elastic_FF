@@ -142,8 +142,15 @@ def assert_h5files_equal(  # pylint: disable=R0913
 
             if actual_keys != expected_keys:
                 raise AssertionError(
-                    "Files have different datasets: `%s` vs `%s`"
-                    % (actual_keys, expected_keys)
+                    (
+                        "Files have different datasets:"
+                        "\n---Dsets in actual but not in expected---\n\t%s"
+                        "\n---Dsets in expected but not in actual---\n\t%s"
+                    )
+                    % (
+                        "\n\t".join(actual_keys.difference(expected_keys)),
+                        "\n\t".join(expected_keys.difference(actual_keys)),
+                    )
                 )
 
             for key in actual_keys:

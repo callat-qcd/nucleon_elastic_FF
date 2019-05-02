@@ -2,6 +2,14 @@ import sources
 
 params = dict()
 params['ENS_ABBR'] = 'a15m310L'
+
+params['tuning_mq'] = False
+params['run_ff'] = True
+
+params['si'] = 0
+params['sf'] = 8
+params['ds'] = 1
+
 params['NL']   = '24'
 params['NT']   = '48'
 params['U0']   = '0.85535'

@@ -30,8 +30,8 @@ def group_files(
     """Collects files by properties which are not allowed to differ.
 
     Parses the information from file names and groups them according to similar
-    parameters.
-    Labes in `keys` are allowed to differ.
+    parameters and uses `nucleon_elastic_ff.data.parsing.parse_file_info` under the hood.
+    Labes in `keys` are allowed to differ and must match the output of `parse_file_info`.
 
     **Arguments**
         all_files: List[str]
@@ -62,9 +62,20 @@ def group_files(
 
 
 def parse_dset_address(
-    address, dset_replace_patterns: Optional[Dict[str, str]] = None
+    address: str, dset_replace_patterns: Optional[Dict[str, str]] = None
 ) -> Tuple[str, Dict[str, str]]:
     """Adjust address of file with substitutions and extract substitution information
+
+    **Arguments**
+        address: str
+            The address to process.
+
+        dset_replace_patterns: Optional[Dict[str, str]] = None
+            Map for replacements. Must have regex capture groups, e.g., "(?P<x>[0-9]+)"
+            to extract meta info.
+
+    **Returns**
+        The address after substitututions and a dictionary for parsed meta information.
     """
     out_grp = address
     meta_info = {}
@@ -87,6 +98,45 @@ def dset_avg(  # pylint: disable=R0914
     """Reads h5 files and exports the average of datasets across files.
 
     Each group in the file list will be averaged over files.
+
+    Also the average meta info is stored in the resulting output file in the `meta`
+    attribute of `local_current`.
+
+    .. Example:: Suppose you pass two h5 files `files = ["file1.h5", "file2.h5"]`.
+        to write to the out file `out_file = "out.h5"`. Lets assume the dset structure
+        is as follows
+        ```file1.h5
+        /x1y1
+        /x1y2
+        ```
+        and also
+        ```file2.h5
+        /x2y1
+        /x2y2
+        ```
+        If you pass the `dset_replace_patterns = {"x[0-9]y1": "x_avg_y1"}`, this will
+        create the file
+        ```out.h5
+        /x_avg_y1
+        ```
+        where the dset `x_avg_y1` is the average over `file1.h5/x1y1` and
+        `file1.h5/x2y1`. `file1.h5/x1y2` and `file2.h5/x2y2` are ignored because they
+        don't match the patterns.
+
+        **Arguments**
+        files: List[str]
+            List of h5 file address which will be read into memory and averaged over.
+
+        out_file: str
+            The name of the file which will contain the averages.
+
+        dset_replace_patterns: Dict[str, str]
+            A map for how dsets in the input files are used to write to the output file.
+            The routine only averages over dsets which match all keys of
+            dset_replace_patterns.
+
+        overwrite: bool = False
+            Overwrite existing sliced files.
     """
     dsets_acc = {}
     n_dsets = {}
@@ -167,7 +217,6 @@ def source_average(
             Added control to pass excepted number of sources.
             If given and sources in one group is less than a certain number, raises
             ValueError.
-
     """
     LOGGER.info("Running source average")
 
@@ -182,6 +231,77 @@ def source_average(
     }
 
     file_patterns = [r".*\.h5$", "formfac_4D_tslice"]
+    file_patterns += list(file_replace_pattern.keys())
+
+    files = find_all_files(
+        root,
+        file_patterns=file_patterns,
+        exclude_file_patterns=list(file_replace_pattern.values()),
+        match_all=True,
+    )
+
+    file_groups = group_files(files, keys=avg_over_file_keys)
+
+    for file_group in file_groups.values():
+        out_file = file_group[0]
+
+        if n_expected_sources:
+            if len(file_group) != n_expected_sources:
+                raise ValueError(
+                    "Expected %d sources in one average group but only received %d"
+                    % (n_expected_sources, len(file_group))
+                )
+
+        for pat, subs in file_replace_pattern.items():
+            out_file = re.sub(pat, subs, out_file)
+
+        base_dir = os.path.dirname(out_file)
+        if not os.path.exists(base_dir):
+            LOGGER.info("Creating `%s`", base_dir)
+            os.makedirs(base_dir)
+
+        dset_avg(file_group, out_file, dset_replace_pattern, overwrite=overwrite)
+
+
+def spec_average(
+    root: str, overwrite: bool = False, n_expected_sources: Optional[int] = None
+):  # pylint: disable=R0913
+    """Recursively scans directory for files and averages matches which over specified
+    component.
+
+    Averages over source, spin and parity without shifting or slicing. Thus, the data
+    must already be in the correct shape.
+
+    The input files must be h5 files (ending with ".h5") and must have `spec_4D_tslice`
+    in their file name. Files which have `spec_4D_tslice_avg` as name are excluded.
+    Also, this routine ignores exporting to files which already exist.
+
+    **Arguments**
+        root: str
+            The directory to look for files.
+
+        overwrite: bool = False
+            Overwrite existing sliced files.
+
+        n_expected_sources: Optional[int] = None
+            Added control to pass excepted number of sources.
+            If given and sources in one group is less than a certain number, raises
+            ValueError.
+
+    """
+    LOGGER.info("Running source average")
+
+    avg_over_file_keys = ("x", "y", "z", "t")
+    file_replace_pattern = {
+        "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg",
+        "spec_4D_tslice": "spec_4D_tslice_avg",
+    }
+    dset_replace_pattern = {
+        r"x(?P<x>[0-9]+)_y(?P<y>[0-9]+)_z(?P<z>[0-9]+)_t(?P<t>[0-9]+)": "src_avg",
+        r"spin_(?:up|dn)": "spin_avg",
+    }
+
+    file_patterns = [r".*\.h5$", "spec_4D_tslice"]
     file_patterns += list(file_replace_pattern.keys())
 
     files = find_all_files(
