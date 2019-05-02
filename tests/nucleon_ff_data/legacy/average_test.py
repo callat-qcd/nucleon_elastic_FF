@@ -12,7 +12,7 @@ from nucleon_elastic_ff.data.scripts.average import source_average
 from nucleon_elastic_ff.data.scripts.average import spec_average
 
 
-class FormfacTsliceTest(CommandTest, TestCase):
+class FormfacAverageTest(CommandTest, TestCase):
     """Runs average on legacy ``formfac_4D`` files and compares results"""
 
     link_files = [
@@ -36,7 +36,7 @@ class FormfacTsliceTest(CommandTest, TestCase):
         )
 
 
-class SpecTsliceTest(CommandTest, TestCase):
+class SpecAverageTest(CommandTest, TestCase):
     """Runs average on legacy ``spec_4D`` files and compares results"""
 
     link_files = [
