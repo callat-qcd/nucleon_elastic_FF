@@ -10,8 +10,6 @@ from typing import List
 import os
 import subprocess
 
-from unittest import TestCase
-
 from nucleon_elastic_ff.utilities import set_up_logger
 from nucleon_elastic_ff.data.h5io import assert_h5files_equal
 
@@ -24,23 +22,27 @@ TMPDIR = os.path.join(os.getcwd(), "tests", "temp")
 DATAROOT = os.path.join(os.getcwd(), "data")
 
 
-class CommandTest(TestCase):
+class CommandTest:
     """Abstract class which creates temporary dirs, runs a command, checks output and
     deletes tmp files.
     """
 
-    link_files: List[str] = []
-    check_files: List[str] = []
-    command: List[str] = []
+    link_files = []
+    check_files = []
     atol: float = 0.0
     rtol: float = 1.0e-8
 
-    def check_command(self):
+    @staticmethod
+    def command():
+        """Command which will be executed by the unittest.
+        """
+        LOGGER.info("Running command")
+
+    def test_01_check_command(self):
         """Runs the command and checks the files
         """
-        LOGGER.info("Running `%s`", " ".join(self.command))
-        process = subprocess.Popen(self.command, stdout=subprocess.PIPE)
-        process.communicate()
+        LOGGER.info("Running `command`")
+        self.command()
 
         LOGGER.info("Checking created files")
         for file in self.check_files:
@@ -48,12 +50,11 @@ class CommandTest(TestCase):
             expected_path = os.path.join(DATAROOT, file)
 
             LOGGER.info("\t%s", created_path)
-            self.assertTrue(
-                os.path.exists(created_path), msg="Could not locate `%s`" % created_path
-            )
+
             assert_h5files_equal(
                 created_path, expected_path, atol=self.atol, rtol=self.rtol
             )
+            LOGGER.info("\tFiles agree")
 
     def setUp(self):  # pylint: disable=C0103
         """Creates all required directories and links all required files
@@ -68,7 +69,7 @@ class CommandTest(TestCase):
             target_dir = os.path.dirname(target_path)
             if not os.path.exists(target_dir):
                 LOGGER.info("Creating `%s`", target_dir)
-                os.makedirs(TMPDIR)
+                os.makedirs(target_dir)
 
             source_path = os.path.join(DATAROOT, file)
             LOGGER.info("Linking `%s` ->  `%s` ", source_path, target_path)
@@ -125,7 +126,6 @@ class CommandTest(TestCase):
                         + " Check the `link_files` of the test!"
                     )
 
-        LOGGER.info("Checking if temp dir `%s` exists", TMPDIR)
         if os.path.exists(TMPDIR):
             LOGGER.info("Removing temp dir `%s`", TMPDIR)
             os.removedirs(TMPDIR)
