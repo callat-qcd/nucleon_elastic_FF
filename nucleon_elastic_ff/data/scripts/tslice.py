@@ -1,9 +1,13 @@
 """Script for time slicing correlator data
 """
+from typing import Tuple
 from typing import List
+from typing import Optional
 
 import os
+import re
 
+import numpy as np
 import h5py
 
 from nucleon_elastic_ff.utilities import set_up_logger
@@ -16,17 +20,19 @@ from nucleon_elastic_ff.data.h5io import create_dset
 from nucleon_elastic_ff.data.parsing import parse_t_info
 from nucleon_elastic_ff.data.parsing import parse_file_info
 
-from nucleon_elastic_ff.data.arraymanip import slice_array
 from nucleon_elastic_ff.data.arraymanip import shift_array
 
 LOGGER = set_up_logger("nucleon_elastic_ff")
 
 
-def tslice(
+def tslice(  # pylint: disable=R0913
     root: str,
     name_input: str = "formfac_4D",
     name_output: str = "formfac_4D_tslice",
     overwrite: bool = False,
+    tslice_fact: Optional[float] = None,
+    dset_patterns: List[str] = ("local_current",),
+    boundary_sign_flip: bool = False,
 ):
     """Recursively scans dir for files, slices in time and shifts in all directions.
 
@@ -50,6 +56,24 @@ def tslice(
         overwrite: bool = False
             Overwrite existing sliced files.
 
+        tslice_fact: Optional[float] = None
+            User interface for controlling factor for determening sclicing size.
+            E.g., if a a file has ``NT = 48`` and ``tslice_fact`` is 0.5, only time
+            slices from 0 to 23 are exported to the output file. Note that the source
+            location is shifted before slicing.
+
+        dset_patterns: List[str] = ("local_current",),
+            Pattern dsets must matched in order to be sliced.
+
+        boundary_sign_flip: bool = False
+            Applies minus sign to correlator if hopping over temporal boundaries after
+            tslicing (in any direction).
+
+    **Raises**
+        ValueError:
+            If ``tslice_fact`` is not ``None`` but one is able to parse ``tsep``
+            information from the file string. This is a safeguard against accidentally
+            slicing files which shall not be sliced.
     """
     LOGGER.info("Starting slicing of files")
     LOGGER.info("Looking into `%s`", root)
@@ -58,6 +82,11 @@ def tslice(
         name_input,
         name_output,
     )
+    if overwrite:
+        LOGGER.info("Overwriting existing file.")
+
+    if boundary_sign_flip:
+        LOGGER.info("Flipping sign of correlator if hopping over boundary.")
 
     all_files = find_all_files(
         root,
@@ -81,20 +110,34 @@ def tslice(
         file_address_out = file_address.replace(name_input, name_output)
         if not os.path.exists(os.path.dirname(file_address_out)):
             os.makedirs(os.path.dirname(file_address_out))
-        slice_file(file_address, file_address_out, overwrite=overwrite)
+        slice_file(
+            file_address,
+            file_address_out,
+            overwrite=overwrite,
+            tslice_fact=tslice_fact,
+            dset_patterns=dset_patterns,
+            boundary_sign_flip=boundary_sign_flip,
+        )
 
     LOGGER.info("Done")
 
 
-def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = False):
+def slice_file(  # pylint: disable=R0914, R0913
+    file_address_in: str,
+    file_address_out: str,
+    overwrite: bool = False,
+    tslice_fact: Optional[float] = None,
+    dset_patterns: List[str] = ("local_current",),
+    boundary_sign_flip: bool = False,
+):
     """Reads input file and writes time-sliced data to output file.
 
     This methods scans all datasets within the file.
     If a data set has "local_current" in its name it is sliced in its time components.
     The slicing info is inferred by the group name (see `parse_t_info`) and cut according
     using `slice_array`.
-    Also the slicing meta info is stored in the resulting output file in the "meta_info"
-    group (same place as "local_current").
+    Also the slicing meta info is stored in the resulting output file in the `meta`
+    attribute of `local_current`.
 
     **Arguments**
         file_address_in: str
@@ -105,6 +148,25 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
 
         overwrite: bool = False
             Overwrite existing sliced file.
+
+        tslice_fact: Optional[float] = None
+            User interface for controlling factor for determening sclicing size.
+            E.g., if a a file has ``NT = 48`` and ``tslice_fact`` is 0.5, only time
+            slices from 0 to 23 are exported to the output file. Note that the source
+            location is shifted before slicing.
+
+        dset_patterns: List[str] = ("local_current",),
+            Pattern dsets must matched in order to be sliced.
+
+        boundary_sign_flip: bool = False
+            Applies minus sign to correlator if hopping over temporal boundaries after
+            tslicing (in any direction).
+
+    **Raises**
+        ValueError:
+            If ``tslice_fact`` is not ``None`` but one is able to parse ``tsep``
+            information from the file string. This is a safeguard against accidentally
+            slicing files which shall not be sliced.
     """
     LOGGER.info("Sclicing\n\t  `%s`\n\t->`%s`", file_address_in, file_address_out)
 
@@ -114,19 +176,43 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
         with h5py.File(file_address_out) as h5f_out:
             for name, dset in dsets.items():
 
-                if has_match(name, ["local_current"]):
+                meta = None
+                if has_match(name, dset_patterns, match_all=True):
                     LOGGER.debug("Start slicing dset `%s`", name)
+
+                    pattern = ".*(?:proton|neutron)(?:_(?P<parity>np))?"
+                    match = re.match(pattern, name)
+                    if not match:
+                        raise ValueError("Could not infer parity of dset `%s`" % name)
+                    negative_parity = match.groupdict()["parity"] == "np"
 
                     t_info = parse_t_info(name)
                     t_info["nt"] = dset.shape[0]
+                    if tslice_fact is not None:
+                        if "tsep" in t_info:
+                            raise ValueError(
+                                "Found `tsep = %s` in file `%s`"
+                                " but user specified `tslice_fact`. Abort."
+                                % (t_info["tsep"], name)
+                            )
+                        else:
+                            t_info["tsep"] = int(t_info["nt"] * tslice_fact)
+
+                    if negative_parity and t_info["tsep"] > 0:
+                        t_info["tsep"] *= -1
+
                     LOGGER.debug("\tExtract temporal info `%s`", t_info)
 
                     meta = dset.attrs.get("meta", None)
                     meta = str(meta) + "&" if meta else ""
                     meta += "&".join([f"{key}=={val}" for key, val in t_info.items()])
 
-                    slice_index = get_t_slices(**t_info)
-                    out = slice_array(dset[()], slice_index)
+                    slice_index, boundary_fact = get_t_slices(**t_info)
+                    out = dset[()][slice_index]
+                    if boundary_sign_flip:
+                        out *= boundary_fact.reshape(
+                            [t_info["tsep"] + 1] + [1] * (len(dset.shape) - 1)
+                        )
 
                     LOGGER.debug("\tShifting to source origin")
                     info = parse_file_info(file_address_in, convert_numeric=True)
@@ -138,12 +224,18 @@ def slice_file(file_address_in: str, file_address_out: str, overwrite: bool = Fa
                     out = dset[()]
 
                 create_dset(h5f_out, name, out, overwrite=overwrite)
+                if meta:
+                    h5f_out[name].attrs["meta"] = meta
 
 
-def get_t_slices(t0: int, tsep: int, nt: int) -> List[int]:  # pylint: disable=C0103
+def get_t_slices(  # pylint: disable=C0103
+    t0: int, tsep: int, nt: int
+) -> Tuple[List[int], np.ndarray]:
     """Returns range `[t0, t0 + tsep + step]` where `step` is defined by sign of `tsep`.
 
     List elements are counted modulo the maximal time extend nt.
+    This function returns the new indices and the factor associated with the indices.
+    E.g., entries which hop the boundaries are multiplied by minus one.
 
     **Arguments**
         t0: int
@@ -156,4 +248,13 @@ def get_t_slices(t0: int, tsep: int, nt: int) -> List[int]:  # pylint: disable=C
             Maximum time slice.
     """
     step = tsep // abs(tsep)
-    return [ind % nt for ind in range(t0, t0 + tsep + step, step)]
+
+    actual_t = range(t0, t0 + tsep + step, step)
+    index_t = [ind % nt for ind in actual_t]
+
+    fact = np.ones(len(index_t), dtype=int)
+    for n, t in enumerate(actual_t):
+        if t < 0 or t >= nt:
+            fact[n] *= -1
+
+    return index_t, fact
