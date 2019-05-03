@@ -29,6 +29,8 @@ def make_task(task,mtype,params,folder='todo',task_type='metaq'):
     if task_type == 'metaq':
         shebang = """#!/usr/bin/env bash\n\n"""
         print(params['METAQ_DIR']+'/'+folder+'/'+mtype+'/'+task)
+        if not os.path.exists(params['METAQ_DIR']+'/'+folder+'/'+mtype):
+            os.makedirs(params['METAQ_DIR']+'/'+folder+'/'+mtype)
         metaQ = open(params['METAQ_DIR']+'/'+folder+'/'+mtype+'/'+task,'w')
         metaQ.write(shebang)
         metaQ.write(metaq_tags % params)

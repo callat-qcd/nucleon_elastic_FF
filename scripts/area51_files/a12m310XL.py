@@ -103,6 +103,9 @@ def mpirun_params(machine):
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
     if machine == 'summit':
+        # split tasks to todo/cgpu_n where n = nodes?
+        params['metaq_split'] = True
+        # other params
         params['cpu_nodes']   = 1
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
@@ -119,7 +122,6 @@ def mpirun_params(machine):
         params['cpu_bind']    = ''
 
         params['gpu_nodes']   = 1
-        params['gpu_metaq_split'] = True
         params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 6
         params['gpu_maxcus']  = 1

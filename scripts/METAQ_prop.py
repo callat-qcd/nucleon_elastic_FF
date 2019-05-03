@@ -126,8 +126,8 @@ for c in cfgs_run:
                         metaq = prop_name+'.sh'
                         t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
                         try:
-                            if params['gpu_metaq_split']:
-                                t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+params['gpu_nodes'],params,folder=q,overwrite=args.o)
+                            if params['metaq_split']:
+                                t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['gpu_nodes']),params,folder=q,overwrite=args.o)
                                 t_w = t_w or t_w2
                                 t_e = t_e or t_e2
                         except:
@@ -177,8 +177,8 @@ for c in cfgs_run:
                                 params['CLEANUP']  += 'sleep 5'
                             mtype = args.mtype
                             try:
-                                if params['gpu_metaq_split']:
-                                    mtype = mtype + '_'+params['gpu_nodes']
+                                if params['metaq_split']:
+                                    mtype = mtype + '_'+str(params['gpu_nodes'])
                             except:
                                 pass
                             scheduler.make_task(metaq,mtype,params,folder=q)
