@@ -56,10 +56,9 @@ mv_l = params['MV_L']
 
 print('MINING MRES and PHI_QQ')
 print('ens_stream = ',ens_s)
-print('ci:cf:dc = %d:%d:%d' %(ni,nf,dn))
 params['MQ'] = params['MV_L']
 
-for cfg in cfgs:
+for cfg in cfgs_run:
     no = str(cfg)
     print(no)
     params['CFG'] = no
@@ -81,7 +80,7 @@ for cfg in cfgs:
             print('    corrupt:',prop_xml)
             shutil.move(prop_xml,params['corrupt']+'/'+prop_xml.split('/')[-1])
         else:
-            f5 = h5.open_file(data_dir+'/'+ens+'_'+no+'.h5','a')
+            f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
             mpdir   = '/'+val_p+'/dwf_jmu/mq'+mq+'/midpoint_pseudo'
             ppdir   = '/'+val_p+'/dwf_jmu/mq'+mq+'/pseudo_pseudo'
             phi_dir = '/'+val_p+'/phi_qq/mq'+mq
@@ -102,7 +101,7 @@ for cfg in cfgs:
             if args.o and (src in f5.get_node(mpdir) or src in f5.get_node(ppdir) or src in f5.get_node(phi_dir)):
                 get_data = True
             if get_data:
-                with open(ftmp) as file:
+                with open(prop_xml) as file:
                     f = file.readlines()
                 have_data = False; l = 0
                 while not have_data:
