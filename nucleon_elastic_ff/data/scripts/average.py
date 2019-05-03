@@ -240,8 +240,9 @@ def source_average(
     """Recursively scans directory for files and averages matches which over specified
     component.
 
-    The input files must be h5 files (ending with ".h5") and must have `name_input`
-    in their file name. Files which have `name_output` as name are excluded.
+    The input files must be h5 files (ending with ".h5") and must have
+    `formfac_4D_tslice`in their file name.
+    Files which have `formfac_4D_tslice_src_avg` as name are excluded.
     Also, this routine ignores exporting to files which already exist.
 
     **Arguments**
