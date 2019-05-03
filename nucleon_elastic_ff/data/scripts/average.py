@@ -260,7 +260,7 @@ def source_average(
             After files have been grouped, checks if all strings in this list are
             present in the file group.
             This also overwrites ``n_expected_sources``.
-            If not all sources are found in the group, raises ValueError.
+            If not all sources are found in the group, raises AssertionError.
     """
     LOGGER.info("Running source average")
 
