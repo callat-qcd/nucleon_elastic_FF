@@ -218,11 +218,11 @@ for c in cfgs_run:
                                     params['PROP_NAME'] = prop_name
 
                                     ''' make 3pt contractions '''
-                                    params['CURR_P'] = ''
-                                    for ci,curr in enumerate(params['curr_p']):
-                                        params['CURR_P'] += '        <elem>'+curr+'</elem>'
-                                        if ci < len(params['curr_p'])-1:
-                                            params['CURR_P'] += '\n'
+                                    #params['CURR_P'] = ''
+                                    #for ci,curr in enumerate(params['curr_p']):
+                                    #    params['CURR_P'] += '        <elem>'+curr+'</elem>'
+                                    #    if ci < len(params['curr_p'])-1:
+                                    #        params['CURR_P'] += '\n'
                                     params['CURR_4D'] = ''
                                     for ci,curr in enumerate(params['curr_4d']):
                                         params['CURR_4D'] += '        <elem>'+curr+'</elem>'
