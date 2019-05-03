@@ -125,6 +125,13 @@ for c in cfgs_run:
                         print('  making ',prop_file)
                         metaq = prop_name+'.sh'
                         t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
+                        try:
+                            if params['gpu_metaq_split']:
+                                t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+params['gpu_nodes'],params,folder=q,overwrite=args.o)
+                                t_w = t_w or t_w2
+                                t_e = t_e or t_e2
+                        except:
+                            pass
                         if not t_e or (args.o and not t_w):
                             xmlini = params['xml'] +'/'+(c51.names['prop_xml'] %params)+'.ini.xml'
                             fin = open(xmlini,'w')
@@ -168,7 +175,13 @@ for c in cfgs_run:
                                     params['CLEANUP'] += 'python '+params['SCRIPT_DIR']+'/METAQ_seqsource.py '
                                     params['CLEANUP'] += params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
                                 params['CLEANUP']  += 'sleep 5'
-                            scheduler.make_task(metaq,args.mtype,params,folder=q)
+                            mtype = args.mtype
+                            try:
+                                if params['gpu_metaq_split']:
+                                    mtype = mtype + '_'+params['gpu_nodes']
+                            except:
+                                pass
+                            scheduler.make_task(metaq,mtype,params,folder=q)
                         else:
                             if args.verbose:
                                 print('    task is in use or overwrite is false')

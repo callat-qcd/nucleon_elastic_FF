@@ -119,6 +119,7 @@ def mpirun_params(machine):
         params['cpu_bind']    = ''
 
         params['gpu_nodes']   = 1
+        params['gpu_metaq_split'] = True
         params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 6
         params['gpu_maxcus']  = 1
