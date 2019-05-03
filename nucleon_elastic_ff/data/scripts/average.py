@@ -196,8 +196,46 @@ def dset_avg(  # pylint: disable=R0914
             h5f[key].attrs["meta"] = dset_meta[key]
 
 
+def assert_sources_present(expected_sources: List[str], file_group: List[str]):
+    """Checks if all ``expected_sources`` can be found in ``file_group``.
+
+    Iterates over all files of ``file_group`` and checks if the strings in
+    ``expected_sources`` are present in the file name.
+
+    **Raises**
+        AssertionError: If not all expected sources are present or a expected source is
+        present more then once.
+    """
+    present_sources = set()
+    for file in file_group:
+        for expected_source in expected_sources:
+            if expected_source in file:
+                if not expected_source in present_sources:
+                    present_sources.add(expected_source)
+                    break
+                else:
+                    raise AssertionError(
+                        "Found expected source `%s` twice in file group\n\t"
+                        % expected_source
+                        + "Expected sources\n\t"
+                        + "\n\t".join(file_group)
+                    )
+
+    if present_sources != set(expected_sources):
+        raise AssertionError(
+            "Did not find all expected sources in in file group\n"
+            "Expected sources which are missing:\n\t"
+            + "\n\t".join(set(expected_sources).difference(present_sources))
+            + "\nFile group:\n\t"
+            + "\n\t".join(file_group)
+        )
+
+
 def source_average(
-    root: str, overwrite: bool = False, n_expected_sources: Optional[int] = None
+    root: str,
+    overwrite: bool = False,
+    n_expected_sources: Optional[int] = None,
+    expected_sources: Optional[List[str]] = None,
 ):  # pylint: disable=R0913
     """Recursively scans directory for files and averages matches which over specified
     component.
@@ -217,6 +255,12 @@ def source_average(
             Added control to pass excepted number of sources.
             If given and sources in one group is less than a certain number, raises
             ValueError.
+
+        expected_sources: Optional[List[str]] = None
+            After files have been grouped, checks if all strings in this list are
+            present in the file group.
+            This also overwrites ``n_expected_sources``.
+            If not all sources are found in the group, raises ValueError.
     """
     LOGGER.info("Running source average")
 
@@ -240,6 +284,10 @@ def source_average(
         match_all=True,
     )
 
+    n_expected_sources = (
+        len(expected_sources) if expected_sources else n_expected_sources
+    )
+
     file_groups = group_files(files, keys=avg_over_file_keys)
 
     for file_group in file_groups.values():
@@ -251,6 +299,9 @@ def source_average(
                     "Expected %d sources in one average group but only received %d"
                     % (n_expected_sources, len(file_group))
                 )
+
+        if expected_sources:
+            assert_sources_present(expected_sources, file_group)
 
         for pat, subs in file_replace_pattern.items():
             out_file = re.sub(pat, subs, out_file)
