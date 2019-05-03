@@ -91,7 +91,7 @@ for corr in params['particles']:
             if '_np' in corr:
                 dt = '-'+dt
             h5_path = h5_root_path+'/'+corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
-            for curr in params['curr_p'] + params['curr_0p']:
+            for curr in params['curr_0p']:
                 f5_out = h5.open_file(f_out,'a')
                 curr_dir = h5_path +'/'+curr
                 try:
@@ -99,10 +99,7 @@ for corr in params['particles']:
                     f5_out.flush()
                 except:
                     pass
-                if curr in params['curr_0p']:
-                    p_lst = ['px0_py0_pz0']
-                else:
-                    p_lst = utils.p_simple_lst(n=4)
+                p_lst = ['px0_py0_pz0']
                 for mom in p_lst:
                     mom_dir = curr_dir+'/'+mom
                     print(mom_dir)
