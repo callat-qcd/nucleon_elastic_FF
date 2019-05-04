@@ -77,6 +77,8 @@ for cfg in cfgs_run:
         params['T_SEP'] = tsep
         files = []
         params['N_SEQ'] = len(srcs[cfg])
+        if ens_s == 'a15m310Lindvdl_a':
+            params['N_SEQ'] = 1
         for src in srcs[cfg]:
             params['SRC'] = src
             ff_name = c51.names['coherent_ff'] % params
