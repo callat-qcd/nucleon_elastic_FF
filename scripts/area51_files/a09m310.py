@@ -46,7 +46,7 @@ params['file_time_delete'] = 10
 
 
 params['MESONS_PSQ_MAX']  = 5
-params['BARYONS_PSQ_MAX'] = 5
+params['BARYONS_PSQ_MAX'] = 0
 
 params['t_seps']  = [2,3,4,5,6,7,8,9,10,11,12,13,14]
 params['flavs']   = ['UU','DD']
