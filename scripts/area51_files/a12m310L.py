@@ -30,6 +30,9 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.0126'
 params['MV_S'] = '0.0693'
 
+params['spec_size'] = 826000
+params['ff_size']   = 429000
+
 params['MAX_ITER']   = '4000'
 params['RSD_TARGET'] = '1.e-7'
 params['Q_DELTA']    = '0.1'
@@ -47,7 +50,7 @@ params['generator'] = sources.oa(int(params['NL']))
 params['file_time_delete'] = 10.
 
 params['MESONS_PSQ_MAX']  = 5
-params['BARYONS_PSQ_MAX'] = 5
+params['BARYONS_PSQ_MAX'] = 0
 
 params['run_3pt'] = True
 params['t_seps']  = [3,4,5,6,7,8,9,10,11,12]
