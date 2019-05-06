@@ -34,6 +34,8 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.0126'
 params['MV_S'] = '0.0693'
 
+params['spec_size'] = 200000
+
 params['MAX_ITER']   = '4000'
 params['RSD_TARGET'] = '1.e-7'
 params['Q_DELTA']    = '0.1'

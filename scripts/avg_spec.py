@@ -103,7 +103,9 @@ for mom in p_lst:
                 tmp.append(src.read())
                 ns += 1
             if args.v:
-                print(corr,mq,mom,no,'Ns = ',ns)
+                sys.stdout.write('%s %s %s %s Ns = %.2f\r' %(corr,mq,mom,no,ns))
+                sys.stdout.flush()
+                #print(corr,mq,mom,no,'Ns = ',ns)
             tmp = np.array(tmp)
             if first_data:
                 spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
@@ -168,7 +170,9 @@ for corr in par:
                         tmp.append(src.read())
                         ns += 1
                     if args.v:
-                        print(corr,s,mq,no,mom,'Ns = ',ns)
+                        sys.stdout.write('%s %s %s %s %s Ns = %.2f\r' %(corr,so,mq,mom,no,ns))
+                        sys.stdout.flush()
+                        #print(corr,s,mq,no,mom,'Ns = ',ns)
                     tmp = np.array(tmp)
                     if first_data:
                         spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
