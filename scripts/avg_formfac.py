@@ -34,6 +34,7 @@ print('ENSEMBLE:',ens_s)
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
 parser.add_argument('--fout',type=str,help='name of output file')
@@ -83,6 +84,13 @@ params['M2']=m2
 params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
 h5_root_path = '/'+val_p+'/formfac/ml'+params['MV_L'].replace('.','p')
+
+if args.t_sep == None:
+    pass
+else:
+    params['t_seps'] = args.t_sep
+print('getting t_sep values')
+print(params['t_seps'])
 
 for corr in params['particles']:
     for fs in flav_spin:

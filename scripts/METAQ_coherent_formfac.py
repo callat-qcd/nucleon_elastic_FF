@@ -171,7 +171,7 @@ for c in cfgs_run:
                         if (now-file_time)/60 > params['file_time_delete']:
                             print('DELETING:',coherent_formfac_file)
                             shutil.move(coherent_formfac_file,params['corrupt']+'/'+coherent_formfac_file.split('/')[-1])
-                    if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                    if not os.path.exists(coherent_formfac_file) or not os.path.exists(coherent_formfac_file_4D):
                         # loop over FLAV and SPIN as all in 1 file
                         metaq  = coherent_formfac_name+'.sh'
                         t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
