@@ -368,39 +368,3 @@ $APRUNVAR -i $ini -o $out > $stdout 2>&1
 #BSUB -W 140
 
 '''
-
-hisq_spec = '''#!/bin/bash
-
-#METAQ NODES 4
-#METAQ GPUS 16
-#METAQ MIN_WC_TIME 20:00
-#METAQ LOG %(METAQ_LOG)s
-#METAQ PROJECT hisq_spec_a12m180L_a
-
-#BSUB -nnodes 4
-#BSUB -q pbatch
-#BSUB -G latticgc
-#BSUB -W 20
-#BSUB -core isolation 2
-#BSUB -alloc_flags smt4
-
-#source /usr/workspace/coldqcd/software/lassen_smpi_RR/install/env.sh
-%(ENV)s
-
-#export QUDA_RESOURCE_PATH=/p/gpfs1/walkloud/c51/x_files/project_2/quda_resource_RR
-#export OMP_NUM_THREADS=4
-
-APP=%(APP)s
-EXE=/usr/workspace/coldqcd/software/lassen_smpi/install/lattice_milc_qcd/ks_spectrum_hisq
-
-ini=%(HISQ_IN)s
-out=%(HISQ_OUT)s
-PROG="$EXE -qmp%(GEOM)s -qmp-logic-map 3 2 1 0 -qmp-alloc-map 3 2 1 0"
-#APRUNVAR="jsrun -p16 -g1 -M \"-gpu\" --bind=none $APP $PROG"
-APRUNVAR="jsrun %(GPU_P)s -g1 --bind=none $APP $PROG"
-echo "TIME STAMP: START `date`" > $out
-$APRUNVAR $ini >> $out 2>&1
-echo "TIME STAMP: END `date`" >> $out
-
-'''
-

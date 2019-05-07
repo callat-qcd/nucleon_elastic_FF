@@ -76,6 +76,9 @@ for cfg in cfgs_run:
         f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
         params['T_SEP'] = tsep
         files = []
+        params['N_SEQ'] = len(srcs[cfg])
+        if ens_s == 'a15m310Lindvdl_a':
+            params['N_SEQ'] = 1
         for src in srcs[cfg]:
             params['SRC'] = src
             ff_name = c51.names['coherent_ff'] % params
@@ -98,11 +101,8 @@ for cfg in cfgs_run:
                 for fs in flav_spin:
                     ff_in  = corr+'_'+fs+'_t0_'+t_src+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
                     ff_out = corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
-                    for curr in params['curr_p'] + params['curr_0p']:
-                        if curr in params['curr_0p']:
-                            p_lst = ['px0_py0_pz0']
-                        else:
-                            p_lst = utils.p_simple_lst(n=4)
+                    for curr in params['curr_0p']:
+                        p_lst = ['px0_py0_pz0']
                         get_data = True
                         for mom in p_lst:
                             try:
@@ -136,6 +136,6 @@ for cfg in cfgs_run:
                             print(ff_in,curr)
                             print('    data exists and overwrite=False')
             f_in.close()
-            print('I/O break: 1 second')
-            time.sleep(1)
+            #print('I/O break: 1 second')
+            #time.sleep(1)
         f5.close()

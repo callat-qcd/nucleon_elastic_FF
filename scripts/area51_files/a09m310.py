@@ -46,7 +46,7 @@ params['file_time_delete'] = 10
 
 
 params['MESONS_PSQ_MAX']  = 5
-params['BARYONS_PSQ_MAX'] = 5
+params['BARYONS_PSQ_MAX'] = 0
 
 params['t_seps']  = [2,3,4,5,6,7,8,9,10,11,12,13,14]
 params['flavs']   = ['UU','DD']
@@ -55,8 +55,8 @@ params['snk_mom'] = ['0 0 0']
 params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
 params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P']
-params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
-params['curr_0p'] = ['T34','T12','CHROMO_MAG']
+#params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
+params['curr_0p'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S','T34','T12','CHROMO_MAG']
 
 ''' SCHEDULING PARAMETERS '''
 

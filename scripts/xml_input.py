@@ -322,6 +322,87 @@ add_8_coherent_sinks='''
 
 lalibe_formfac='''<elem>
 <annotation>
+  4D CORRELATORS
+</annotation>
+<Name>LALIBE_BAR3PTFN</Name>
+<Frequency>1</Frequency>
+<Param>
+    <version>7</version>
+    <j_decay>3</j_decay>
+    <currents>
+%(CURR_4D)s
+    </currents>
+    <h5_file_name>%(THREE_PT_FILE_4D)s</h5_file_name>
+    <path>/</path>
+</Param>
+<NamedObject>
+    <gauge_id>default_gauge_field</gauge_id>
+    <prop_id>%(PROP_NAME)s</prop_id>
+    <seqprops>
+        <elem>
+            <seqprop_id>%(SEQPROP_UU_up_up)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(SEQPROP_UU_dn_dn)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(SEQPROP_DD_up_up)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(SEQPROP_DD_dn_dn)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+    </seqprops>
+</NamedObject>
+</elem>
+
+<elem>
+<annotation>
+  0 MOMENTUM for all charges
+</annotation>
+<Name>LALIBE_BAR3PTFN</Name>
+<Frequency>1</Frequency>
+<Param>
+    <version>7</version>
+    <j_decay>3</j_decay>
+    <currents>
+%(CURR_0P)s
+    </currents>
+    <p2_max>0</p2_max>
+    <h5_file_name>%(THREE_PT_FILE)s</h5_file_name>
+    <path>/</path>
+</Param>
+<NamedObject>
+    <gauge_id>default_gauge_field</gauge_id>
+    <prop_id>%(PROP_NAME)s</prop_id>
+    <seqprops>
+        <elem>
+            <seqprop_id>%(SEQPROP_UU_up_up)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(SEQPROP_UU_dn_dn)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(SEQPROP_DD_up_up)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+        <elem>
+            <seqprop_id>%(SEQPROP_DD_dn_dn)s</seqprop_id>
+            <gamma_insertion>0</gamma_insertion>
+        </elem>
+    </seqprops>
+</NamedObject>
+</elem>
+
+'''
+
+lalibe_formfac_old='''<elem>
+<annotation>
   SPECIFIED MOMENTUM
 </annotation>
 <Name>LALIBE_BAR3PTFN</Name>

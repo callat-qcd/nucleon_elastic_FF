@@ -133,6 +133,13 @@ for c in cfgs_run:
                 if not os.path.exists(src_file):
                     metaq = src_name + '.sh'
                     t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
+                    try:
+                        if params['metaq_split']:
+                            t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['cpu_nodes']),params,folder=q,overwrite=args.o)
+                            t_w = t_w or t_w2
+                            t_e = t_e or t_e2
+                        except:
+                            pass
                     if not t_e or (args.o and not t_w):
                         xmlini = params['xml'] +'/'+src_name+'.'+'ini.xml'
                         fin = open(xmlini,'w')
@@ -162,7 +169,13 @@ for c in cfgs_run:
                         params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
                         params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
                         params['CLEANUP']  += 'sleep 5'
-                        scheduler.make_task(metaq,args.mtype,params,folder=q)
+                        mtype = args.mtype
+                        try:
+                            if params['metaq_split']:
+                                mtype = mtype + '_'+str(params['cpu_nodes'])
+                        except:
+                            pass
+                        scheduler.make_task(metaq,mtype,params,folder=q)
                 else:
                     if args.verbose:
                         print('src exists',src_file)

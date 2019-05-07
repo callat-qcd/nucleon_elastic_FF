@@ -11,13 +11,13 @@ def ens_base():
 
 hn = socket.gethostname()
 if any(host in hn for host in ['oslic','pascal']):
-    manage    = '/p/lustre1/walkloud/c51/x_files/project_2'
+    manage    = '/usr/workspace/coldqcd/c51/x_files/project_2'
     scratch   = '/p/lustre1/walkloud/c51/x_files/project_2'
     machine   = 'pascal'
     env       = ''
     bind_dir  = ''
 elif any(host in hn for host in ['lassen']):
-    manage    = '/p/gpfs1/walkloud/c51/x_files/project_2'
+    manage    = '/usr/workspace/coldqcd/c51/x_files/project_2'
     scratch   = '/p/gpfs1/walkloud/c51/x_files/project_2'
     machine   = 'lassen'
     env       = 'source /usr/workspace/coldqcd/software/lassen_smpi_RR/install/env.sh'
@@ -57,7 +57,7 @@ ens_long = {
     'a12m350'  :'l2464f211b600m0130m0509m635',
     'a12m310'  :'l2464f211b600m0102m0509m635',
     'a12m310L' :'l3264f211b600m0102m0509m635',
-    'a12m310XL':'',
+    'a12m310XL':'l4864f211b600m0102m0509m635',
     'a12m260'  :'',
     'a12m220'  :'l3264f211b600m00507m0507m628',
     'a12m220S' :'l2464f211b600m00507m0507m628',
