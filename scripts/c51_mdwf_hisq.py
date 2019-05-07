@@ -62,7 +62,7 @@ ens_long = {
     'a12m220'  :'l3264f211b600m00507m0507m628',
     'a12m220S' :'l2464f211b600m00507m0507m628',
     'a12m220L' :'l4064f211b600m00507m0507m628',
-    'a12m180L' :'',
+    'a12m180L' :'l4864f211b600m00339m0507m628',
     'a12m130'  :'l4864f211b600m00184m0507m628',
     'a12m135XL':'',
     'a09m400'  :'l3264f211b630m0124m037m440',
@@ -91,7 +91,7 @@ def ensemble(params):
     ''' DIRECTORIES '''
     params['METAQ_DIR']   = metaq_dir
     dirs    = ['cfgs_flow','corrupt','src','quda_resource']
-    dirs_no = ['xml','stdout','prop','spec','spec_4D','seqsrc','seqprop','formfac','formfac_4D',]
+    dirs_no = ['xml','stdout','prop','spec','spec_4D','seqsrc','seqprop','formfac','formfac_4D','hisq_spec']
     for d in dirs:
         params[d] = params['prod']+'/'+d
     for d in dirs_no:
@@ -112,6 +112,7 @@ names['prop_xml']         = 'prop_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%
 names['prop_xml']        += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_%(SRC)s'
 names['spec']             = 'spec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['spec']            += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
+names['hisq_spec']        = 'hisq_spec_ml%(ML)s_ms%(MS)s_%(SRC)s'
 names['seqsrc']           = 'seqsrc_%(ENS_S)s_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s'
 names['seqsrc']          += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
 names['seqsrc']          += '_%(MOM)s_%(SRC)s_%(SS_PS)s'
