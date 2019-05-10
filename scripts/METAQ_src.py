@@ -138,8 +138,8 @@ for c in cfgs_run:
                             t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['cpu_nodes']),params,folder=q,overwrite=args.o)
                             t_w = t_w or t_w2
                             t_e = t_e or t_e2
-                        except:
-                            pass
+                    except:
+                        pass
                     if not t_e or (args.o and not t_w):
                         xmlini = params['xml'] +'/'+src_name+'.'+'ini.xml'
                         fin = open(xmlini,'w')
