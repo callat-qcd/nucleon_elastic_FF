@@ -37,3 +37,9 @@ nucelff -h [to get a help message]
 nucelff formfac_4D/300 -s [to slice only cfg 300]
 nucelff formfac_4D_tslice/300 -a --n-expected-sources 24
 ```
+
+Then - to slice the spectrum
+```
+nucelff spec_4D/500 -s --tslice-fact 0.5
+```
+The `0.5` will slice the time exten by half.
