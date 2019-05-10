@@ -103,7 +103,7 @@ def mpirun_params(machine):
         params['src_time']    = 5
         params['spec_time']   = 10
 
-        params['cpu_nrs']     = '--nrs 3'
+        params['cpu_nrs']     = '--nrs 6'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a18'
         params['cpu_g_rs']    = ''
@@ -111,7 +111,8 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = 'lassen_bind_cpu.N36.sh'
 
-        params['gpu_nodes']   = 0
+        params['gpu_nodes']   = 3
+        params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 12
         params['gpu_maxcus']  = 1
         params['prop_time']   = 150
