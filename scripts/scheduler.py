@@ -50,7 +50,7 @@ def make_task(task,mtype,params,folder='todo',task_type='metaq'):
 metaq_tags = """
 #METAQ NODES %(METAQ_NODES)s
 #METAQ GPUS %(METAQ_GPUS)s
-#METAQ MIN_WC_TIME %(WALL_TIME)s
+#METAQ MIN_WC_TIME %(WALL_TIME)s:00
 #METAQ LOG %(METAQ_LOG)s
 #METAQ PROJECT %(METAQ_PROJECT)s
 
