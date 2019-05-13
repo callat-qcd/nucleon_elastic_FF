@@ -28,12 +28,12 @@ params['C5']     = '0.5'
 params['alpha5'] = '1.5'
 
 params['MV_L'] = '0.00600'
-params['MV_S'] = 
+params['MV_S'] = '0.0693'
 
-params['spec_size'] = 
-params['ff_size']   = 
+params['spec_size'] = 1
+params['ff_size']   = 1
 
-params['MAX_ITER']   = '4000'
+params['MAX_ITER']   = '8000'
 params['RSD_TARGET'] = '1.e-7'
 params['Q_DELTA']    = '0.1'
 params['RSD_TOL']    = '80'
@@ -71,6 +71,7 @@ params['OMP_NUM_THREADS'] = '4'
 
 def mpirun_params(machine):
     if machine == 'lassen':
+        params['metaq_split'] = True
         params['cpu_nodes']   = 1
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
