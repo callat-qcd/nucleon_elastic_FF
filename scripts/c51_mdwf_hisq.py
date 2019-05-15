@@ -73,12 +73,13 @@ ens_long = {
     'a09m130'  :'l6496f211b630m0012m0363m432',
     }
 
-base_dir   = scratch+'/production/%(ENS_S)s'
-ens_dir    = manage +'/production/%(ENS_S)s'
-script_dir = manage +'/production/nucleon_elastic_FF/scripts'
-metaq_dir  = manage +'/metaq'
+base_dir    = scratch+'/production/%(ENS_S)s'
+ens_dir     = manage +'/production/%(ENS_S)s'
+script_dir  = manage +'/production/nucleon_elastic_FF/scripts'
+metaq_dir   = manage +'/metaq'
 #data_dir   = manage +'/production/%(ENS_S)s/data'
-data_dir   = scratch+'/production/%(ENS_S)s/data'
+data_dir    = scratch+'/production/%(ENS_S)s/data'
+data_dir_4d = scratch+'/production/%(ENS_S)s/data_4D'
 ff_data_dir = scratch+'/production/%(ENS_S)s/ff4D_data'
 
 def ensemble(params):

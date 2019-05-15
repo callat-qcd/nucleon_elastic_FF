@@ -25,7 +25,7 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.00449'
 params['MV_S'] = '0.0491'
 
-params['spec_size'] = 51312
+params['spec_size'] = 51000
 params['ff_size']   = 0
 
 params['MAX_ITER']   = '5000'

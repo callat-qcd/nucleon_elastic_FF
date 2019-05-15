@@ -43,7 +43,9 @@ print(args)
 print('')
 
 dtype = np.complex64
-data_dir = c51.data_dir_4d % params
+data_dir = c51.data_dir % params
+if not os.path.exists(data_dir+'/avg'):
+    os.makedirs(data_dir+'/avg')
 utils.ensure_dirExists(data_dir)
 
 # give empty '' to in place of args.src to generate all srcs/cfg
@@ -67,23 +69,19 @@ par = ['proton','proton_np']
 if args.fout:
     fout_name = args.fout
 else:
-    fout_name = data_dir+'/spec_4D_'+ens_s+'_avg.h5'
+    fout_name = data_dir+'/avg/spec_4D_'+ens_s+'_avg.h5'
+f5_out = h5.open_file(fout_name,'a')
 for corr in params['particles']:
     print(corr)
-    fin_path = '/sh/'+corr+'/spin_avg/4D_correlator/src_avg'
-
-    f5_out = h5.open_file(fout_name,'a')
     try:
         f5_out.create_group(h5_root_path,corr,createparents=True)
     except:
         pass
     h5_out_path = h5_root_path+'/'+corr
+    fin_path = '/sh/'+corr+'/spin_avg/4D_correlator/src_avg'
     get_data = True
     if '4D_correlator' in f5_out.get_node(h5_out_path) and not args.o:
         get_data = False
-    if '4D_correlator' in f5_out.get_node(h5_out_path) and args.o:
-        f5_out.remove_node(h5_out_path,'4D_correlator',recursive=True)
-    f5_out.close()
     if get_data:
         cfgs_srcs = []
         first_data = True
@@ -97,24 +95,21 @@ for corr in params['particles']:
                 tmp = fin.get_node('/'+fin_path).read()
                 n_srcs = len(fin.get_node('/'+fin_path)._v_attrs['meta'].split('\n')) / 2
                 fin.close()
-                f5_out = h5.open_file(fout_name,'a')
                 if first_data:
-                    shape = (0,)+tmp.shape
                     data = np.zeros((1,)+tmp.shape,dtype=tmp.dtype)
                     data[0] = tmp
-                    f5_out.create_earray(h5_out_path+'/4D_correlator','spin_avg',shape=shape,createparents=True,obj=data)
                     first_data = False
                 else:
-                    data = f5_out.get_node(h5_out_path+'/4D_correlator/spin_avg')
-                    data.append(np.array([tmp]))
-                f5_out.close()
+                    data = np.append(data,[tmp],axis=0)
                 cfgs_srcs.append([cfg,int(n_srcs)])
         cfgs_srcs = np.array(cfgs_srcs)
         print('    Nc=%4d, Ns=%.7f' %(cfgs_srcs.shape[0],cfgs_srcs.mean(axis=0)[1]))
-        #f5_out.create_group(h5_out_path,'4D_correlator')
+        if '4D_correlators' in f5_out.get_node(h5_out_path):
+            f5_out.remove_node(h5_out_path,'4D_correlator',recursive=True)
+        f5_out.create_group(h5_out_path,'4D_correlator')
         #f5_out.create_array(h5_out_path+'/'+'4D_correlator','cfgs_srcs',cfgs_srcs)
-        #f5_out.create_array(h5_out_path+'/'+'4D_correlator','spin_avg',data)
-        #f5_out.flush()
+        f5_out.create_array(h5_out_path+'/'+'4D_correlator','spin_avg',data)
+        f5_out.flush()
     else:
         print('data exists and overwrite = False')
 
