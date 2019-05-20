@@ -37,7 +37,7 @@ def check_file(f_name,f_size,time_delete,bad_file_dir):
     return os.path.exists(f_name)
 
 def parse_cfg_argument(cfg_arg, params):
-    if cfg_arg == []:
+    if not cfg_arg:
         ci = params['cfg_i']
         cf = params['cfg_f']
         dc = params['cfg_d']

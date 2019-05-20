@@ -1,6 +1,17 @@
 import sources
 
 params = dict()
+params['tuning_mq'] = False
+params['run_ff'] = True
+
+params['si'] = 0
+params['sf'] = 7
+params['ds'] = 1
+
+params['cfg_i'] = 300
+params['cfg_f'] = 6300
+params['cfg_d'] = 6
+
 params['ENS_ABBR'] = 'a09m220'
 params['ENS_LONG'] = 'l4896f211b630m00363m0363m430'
 params['NL']   = '48'
