@@ -89,7 +89,7 @@ for c in cfgs_run:
             if not os.path.exists(s_file):
                 if args.verbose: print('missing:',s_file)
                 all_srcs = False
-                missing.write(s_file)            
+                missing.write(s_file+'\n')            
         elif dtype == 'formfac':
             for t_sep in params['t_seps']:
                 params['T_SEP'] = str(t_sep)
@@ -99,5 +99,5 @@ for c in cfgs_run:
                 if not os.path.exists(s_file):
                     if args.verbose: print('missing:',s_file)
                     all_srcs = False
-                    missing.write(s_file)            
+                    missing.write(s_file+'\n')            
 missing.close()                
