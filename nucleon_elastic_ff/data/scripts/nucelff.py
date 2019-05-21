@@ -97,8 +97,7 @@ PARSER.add_argument(
     "--file-name-addition",
     type=str,
     default=None,
-    help="Flag only used for averaging of time sliced files."
-    " Appends string to the file name."
+    help="Appends string to the file name."
     " Flag only used for averaging of time sliced files.",
 )
 
