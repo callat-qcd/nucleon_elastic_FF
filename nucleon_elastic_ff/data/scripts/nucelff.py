@@ -83,6 +83,23 @@ PARSER.add_argument(
     " the name of the file.",
 )
 
+PARSER.add_argument(
+    "--expected-sources",
+    nargs="+",
+    default=None,
+    help="Flag only used for averaging of time sliced files."
+    " Checks named sources prior averaging. Only averages over expected sources and"
+    " raises exception if not all sources are found."
+    " If this flag is set, also the ``file-name-addition`` flag must be set.",
+)
+PARSER.add_argument(
+    "--file-name-addition",
+    type=str,
+    default=None,
+    help="Flag only used for averaging of time sliced files."
+    " Appends string to the file name.",
+)
+
 
 def main():
     """Runs src average and or tslice.
@@ -121,6 +138,8 @@ def main():
             args.root,
             overwrite=args.overwrite,
             n_expected_sources=args.n_expected_sources,
+            expected_sources=args.expected_sources,
+            file_name_addition=args.file_name_addition,
         )
 
     if args.average_spec:
@@ -128,6 +147,8 @@ def main():
             args.root,
             overwrite=args.overwrite,
             n_expected_sources=args.n_expected_sources,
+            expected_sources=args.expected_sources,
+            file_name_addition=args.file_name_addition,
         )
 
 
