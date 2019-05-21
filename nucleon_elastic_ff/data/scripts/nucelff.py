@@ -87,17 +87,19 @@ PARSER.add_argument(
     "--expected-sources",
     nargs="+",
     default=None,
-    help="Flag only used for averaging of time sliced files."
+    help=""
     " Checks named sources prior averaging. Only averages over expected sources and"
-    " raises exception if not all sources are found."
-    " If this flag is set, also the ``file-name-addition`` flag must be set.",
+    " raises exception if not all or more sources are found."
+    " If this flag is set, also the ``file-name-addition`` flag must be set."
+    " Flag only used for averaging of time sliced files.",
 )
 PARSER.add_argument(
     "--file-name-addition",
     type=str,
     default=None,
     help="Flag only used for averaging of time sliced files."
-    " Appends string to the file name.",
+    " Appends string to the file name."
+    " Flag only used for averaging of time sliced files.",
 )
 
 
@@ -132,6 +134,11 @@ def main():
                 overwrite=args.overwrite,
                 boundary_sign_flip=boundary_sign_flip,
             )
+
+    if args.expected_sources is not None and args.file_name_addition is None:
+        raise ValueError(
+            "You must set `--file-name-addition` if you set `--expected-sources`"
+        )
 
     if args.average:
         average.source_average(
