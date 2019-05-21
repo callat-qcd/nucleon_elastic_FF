@@ -157,7 +157,7 @@ class AvgWorkFlowTest(TestCase):
         """Tests if avaraging fails if the number of sources is incorrect
         """
         LOGGER.info("--- Running `test_01_avg_raise_expected_source_exception` ---")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             average.source_average(TMPDIR, overwrite=False, n_expected_sources=3)
 
     def test_02_dset_avg_call_args(self):  # pylint: disable=R0914

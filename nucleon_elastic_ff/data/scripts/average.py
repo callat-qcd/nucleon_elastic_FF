@@ -259,10 +259,11 @@ def source_average(  # pylint: disable=R0913, R0914
             ValueError.
 
         expected_sources: Optional[List[str]] = None
-            After files have been grouped, checks if all strings in this list are
-            present in the file group.
+            Adds expected sources to file filter patterns.
+            After files have been filtered and grouped, checks if all strings in this
+            list are present in the file group.
             This also overwrites ``n_expected_sources``.
-            If not all sources are found in the group, raises AssertionError.
+            If not exactly all sources are found in the group, raises AssertionError.
 
         file_name_addition: Optional[str] = None
             Appends this string to the file name if not None.
@@ -289,6 +290,8 @@ def source_average(  # pylint: disable=R0913, R0914
         exclude_file_patterns=list(file_replace_pattern.values()),
         match_all=True,
     )
+    if expected_sources is not None:
+        files = [file for file in files if has_match(file, expected_sources)]
 
     n_expected_sources = (
         len(expected_sources) if expected_sources else n_expected_sources
@@ -301,7 +304,7 @@ def source_average(  # pylint: disable=R0913, R0914
 
         if n_expected_sources:
             if len(file_group) != n_expected_sources:
-                raise ValueError(
+                raise AssertionError(
                     "Expected %d sources in one average group but only received %d"
                     % (n_expected_sources, len(file_group))
                 )
@@ -347,13 +350,14 @@ def spec_average(  # pylint: disable=R0913, R0914
         n_expected_sources: Optional[int] = None
             Added control to pass excepted number of sources.
             If given and sources in one group is less than a certain number, raises
-            ValueError.
+            AssertionError.
 
         expected_sources: Optional[List[str]] = None
-            After files have been grouped, checks if all strings in this list are
-            present in the file group.
+            Adds expected sources to file filter patterns.
+            After files have been filtered and grouped, checks if all strings in this
+            list are present in the file group.
             This also overwrites ``n_expected_sources``.
-            If not all sources are found in the group, raises AssertionError.
+            If not exactly all sources are found in the group, raises AssertionError.
 
         file_name_addition: Optional[str] = None
             Appends this string to the file name if not None.
@@ -380,6 +384,8 @@ def spec_average(  # pylint: disable=R0913, R0914
         exclude_file_patterns=list(file_replace_pattern.values()),
         match_all=True,
     )
+    if expected_sources is not None:
+        files = [file for file in files if has_match(file, expected_sources)]
 
     n_expected_sources = (
         len(expected_sources) if expected_sources else n_expected_sources
@@ -392,7 +398,7 @@ def spec_average(  # pylint: disable=R0913, R0914
 
         if n_expected_sources:
             if len(file_group) != n_expected_sources:
-                raise ValueError(
+                raise AssertionError(
                     "Expected %d sources in one average group but only received %d"
                     % (n_expected_sources, len(file_group))
                 )

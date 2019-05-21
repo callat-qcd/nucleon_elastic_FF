@@ -88,8 +88,8 @@ PARSER.add_argument(
     nargs="+",
     default=None,
     help=""
-    " Checks named sources prior averaging. Only averages over expected sources and"
-    " raises exception if not all or more sources are found."
+    " Checks named sources prior averaging. Only averages over expected sources,"
+    " ignores other sources  and raises exception if not all sources are found."
     " If this flag is set, also the ``file-name-addition`` flag must be set."
     " Flag only used for averaging of time sliced files.",
 )
