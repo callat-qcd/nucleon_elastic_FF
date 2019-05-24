@@ -196,14 +196,54 @@ def dset_avg(  # pylint: disable=R0914
             h5f[key].attrs["meta"] = dset_meta[key]
 
 
-def source_average(
-    root: str, overwrite: bool = False, n_expected_sources: Optional[int] = None
-):  # pylint: disable=R0913
+def assert_sources_present(expected_sources: List[str], file_group: List[str]):
+    """Checks if all ``expected_sources`` can be found in ``file_group``.
+
+    Iterates over all files of ``file_group`` and checks if the strings in
+    ``expected_sources`` are present in the file name.
+
+    **Raises**
+        AssertionError: If not all expected sources are present or a expected source is
+        present more then once.
+    """
+    present_sources = set()
+    for file in file_group:
+        for expected_source in expected_sources:
+            if has_match(file, expected_source):
+                if not expected_source in present_sources:
+                    present_sources.add(expected_source)
+                    break
+                else:
+                    raise AssertionError(
+                        "Found expected source `%s` twice in file group\n\t"
+                        % expected_source
+                        + "Expected sources\n\t"
+                        + "\n\t".join(file_group)
+                    )
+
+    if present_sources != set(expected_sources):
+        raise AssertionError(
+            "Did not find all expected sources in in file group\n"
+            "Expected sources which are missing:\n\t"
+            + "\n\t".join(set(expected_sources).difference(present_sources))
+            + "\nFile group:\n\t"
+            + "\n\t".join(file_group)
+        )
+
+
+def source_average(  # pylint: disable=R0913, R0914
+    root: str,
+    overwrite: bool = False,
+    n_expected_sources: Optional[int] = None,
+    expected_sources: Optional[List[str]] = None,
+    file_name_addition: Optional[str] = None,
+):
     """Recursively scans directory for files and averages matches which over specified
     component.
 
-    The input files must be h5 files (ending with ".h5") and must have `name_input`
-    in their file name. Files which have `name_output` as name are excluded.
+    The input files must be h5 files (ending with ".h5") and must have
+    `formfac_4D_tslice`in their file name.
+    Files which have `formfac_4D_tslice_src_avg` as name are excluded.
     Also, this routine ignores exporting to files which already exist.
 
     **Arguments**
@@ -217,12 +257,23 @@ def source_average(
             Added control to pass excepted number of sources.
             If given and sources in one group is less than a certain number, raises
             ValueError.
+
+        expected_sources: Optional[List[str]] = None
+            Adds expected sources to file filter patterns.
+            After files have been filtered and grouped, checks if all strings in this
+            list are present in the file group.
+            This also overwrites ``n_expected_sources``.
+            If not exactly all sources are found in the group, raises AssertionError.
+
+        file_name_addition: Optional[str] = None
+            Appends this string to the file name if not None.
     """
     LOGGER.info("Running source average")
 
     avg_over_file_keys = ("x", "y", "z", "t")
     file_replace_pattern = {
-        "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg",
+        "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"
+        + (file_name_addition if file_name_addition is not None else ""),
         "formfac_4D_tslice": "formfac_4D_tslice_src_avg",
     }
     dset_replace_pattern = {
@@ -239,6 +290,12 @@ def source_average(
         exclude_file_patterns=list(file_replace_pattern.values()),
         match_all=True,
     )
+    if expected_sources is not None:
+        files = [file for file in files if has_match(file, expected_sources)]
+
+    n_expected_sources = (
+        len(expected_sources) if expected_sources else n_expected_sources
+    )
 
     file_groups = group_files(files, keys=avg_over_file_keys)
 
@@ -247,10 +304,13 @@ def source_average(
 
         if n_expected_sources:
             if len(file_group) != n_expected_sources:
-                raise ValueError(
+                raise AssertionError(
                     "Expected %d sources in one average group but only received %d"
                     % (n_expected_sources, len(file_group))
                 )
+
+        if expected_sources:
+            assert_sources_present(expected_sources, file_group)
 
         for pat, subs in file_replace_pattern.items():
             out_file = re.sub(pat, subs, out_file)
@@ -263,9 +323,13 @@ def source_average(
         dset_avg(file_group, out_file, dset_replace_pattern, overwrite=overwrite)
 
 
-def spec_average(
-    root: str, overwrite: bool = False, n_expected_sources: Optional[int] = None
-):  # pylint: disable=R0913
+def spec_average(  # pylint: disable=R0913, R0914
+    root: str,
+    overwrite: bool = False,
+    n_expected_sources: Optional[int] = None,
+    expected_sources: Optional[List[str]] = None,
+    file_name_addition: Optional[str] = None,
+):
     """Recursively scans directory for files and averages matches which over specified
     component.
 
@@ -286,14 +350,24 @@ def spec_average(
         n_expected_sources: Optional[int] = None
             Added control to pass excepted number of sources.
             If given and sources in one group is less than a certain number, raises
-            ValueError.
+            AssertionError.
 
+        expected_sources: Optional[List[str]] = None
+            Adds expected sources to file filter patterns.
+            After files have been filtered and grouped, checks if all strings in this
+            list are present in the file group.
+            This also overwrites ``n_expected_sources``.
+            If not exactly all sources are found in the group, raises AssertionError.
+
+        file_name_addition: Optional[str] = None
+            Appends this string to the file name if not None.
     """
     LOGGER.info("Running source average")
 
     avg_over_file_keys = ("x", "y", "z", "t")
     file_replace_pattern = {
-        "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg",
+        "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"
+        + (file_name_addition if file_name_addition is not None else ""),
         "spec_4D_tslice": "spec_4D_tslice_avg",
     }
     dset_replace_pattern = {
@@ -310,6 +384,12 @@ def spec_average(
         exclude_file_patterns=list(file_replace_pattern.values()),
         match_all=True,
     )
+    if expected_sources is not None:
+        files = [file for file in files if has_match(file, expected_sources)]
+
+    n_expected_sources = (
+        len(expected_sources) if expected_sources else n_expected_sources
+    )
 
     file_groups = group_files(files, keys=avg_over_file_keys)
 
@@ -318,10 +398,13 @@ def spec_average(
 
         if n_expected_sources:
             if len(file_group) != n_expected_sources:
-                raise ValueError(
+                raise AssertionError(
                     "Expected %d sources in one average group but only received %d"
                     % (n_expected_sources, len(file_group))
                 )
+
+        if expected_sources:
+            assert_sources_present(expected_sources, file_group)
 
         for pat, subs in file_replace_pattern.items():
             out_file = re.sub(pat, subs, out_file)
