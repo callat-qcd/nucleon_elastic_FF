@@ -4,6 +4,10 @@ params = dict()
 params['tuning_mq'] = False
 params['run_ff'] = False
 
+params['si'] = 0
+params['sf'] = 7
+params['ds'] = 1
+
 params['ENS_ABBR'] = 'a12m310L'
 params['NL']   = '32'
 params['NT']   = '64'
