@@ -35,6 +35,7 @@ params['MV_L'] = '0.0126'
 params['MV_S'] = '0.0693'
 
 params['spec_size'] = 200000
+params['ff_size']   = 429000
 
 params['MAX_ITER']   = '4000'
 params['RSD_TARGET'] = '1.e-7'
