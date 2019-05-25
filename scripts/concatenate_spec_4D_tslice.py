@@ -68,7 +68,7 @@ par = ['proton','proton_np']
 if args.fout:
     fout_name = args.fout
 else:
-    fout_name = data_dir+'/spec_4D_'+ens_s+'_avg.h5'
+    fout_name = data_dir+'/spec_4D_'+ens_s+'_avg'+src_ext+'.h5'
 print('out file')
 print(fout_name)
 for corr in params['particles']:

@@ -75,6 +75,8 @@ else:
 missing = open('missing_'+args.data+'.lst','w')
 for c in cfgs_run:
     no = str(c)
+    sys.stdout.write('    cfg=%4d\r' %(c))
+    sys.stdout.flush()
     params['CFG'] = no
     params['N_SEQ'] = str(len(srcs[c]))
     ''' set up ensemble and make sure all dirs exist '''
