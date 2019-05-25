@@ -30,8 +30,8 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.00600'
 params['MV_S'] = '0.0693'
 
-params['spec_size'] = 1
-params['ff_size']   = 1
+params['spec_size'] = 200000
+params['ff_size']   = 386000
 
 params['MAX_ITER']   = '8000'
 params['RSD_TARGET'] = '1.e-7'
