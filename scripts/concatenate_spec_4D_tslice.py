@@ -48,6 +48,7 @@ utils.ensure_dirExists(data_dir)
 
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
+src_ext = "%d-%d" %(params['si'],params['sf'])
 if 'indvdl' in ens:
     params['N_SEQ'] = 1
 else:
@@ -68,10 +69,11 @@ if args.fout:
     fout_name = args.fout
 else:
     fout_name = data_dir+'/spec_4D_'+ens_s+'_avg.h5'
+print('out file')
+print(fout_name)
 for corr in params['particles']:
     print(corr)
     fin_path = '/sh/'+corr+'/spin_avg/4D_correlator/src_avg'
-
     f5_out = h5.open_file(fout_name,'a')
     try:
         f5_out.create_group(h5_root_path,corr,createparents=True)
@@ -91,7 +93,7 @@ for corr in params['particles']:
             sys.stdout.write('    cfg=%4d\r' %(cfg))
             sys.stdout.flush()
             no = str(cfg)
-            cfg_file = data_dir+'/../spec_4D_tslice_avg/'+no+'/spec_4D_tslice_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_src_avg.h5'
+            cfg_file = data_dir+'/../spec_4D_tslice_avg/'+no+'/spec_4D_tslice_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_src_avg'+src_ext+'.h5'
             if os.path.exists(cfg_file):
                 fin = h5.open_file(cfg_file,'r')
                 tmp = fin.get_node('/'+fin_path).read()

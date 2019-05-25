@@ -48,6 +48,7 @@ utils.ensure_dirExists(ff_data_dir)
 
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
+src_ext = "%d-%d" %(params['si'],params['sf'])
 if 'indvdl' in ens:
     params['N_SEQ'] = 1
 else:
@@ -115,7 +116,7 @@ for corr in params['particles']:
                         sys.stdout.write('    cfg=%4d\r' %(cfg))
                         sys.stdout.flush()
                         no = str(cfg)
-                        fin_file = ff_data_dir+'/../formfac_4D_tslice_src_avg/'+no+'/formfac_4D_tslice_src_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_px0py0pz0_dt'+str(tsep)+'_Nsnk'+str(params['N_SEQ'])+'_src_avg_SS.h5'
+                        fin_file = ff_data_dir+'/../formfac_4D_tslice_src_avg/'+no+'/formfac_4D_tslice_src_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_px0py0pz0_dt'+str(tsep)+'_Nsnk'+str(params['N_SEQ'])+'_src_avg'+src_ext+'_SS.h5'
                         if os.path.exists(fin_file):
                             fin = h5.open_file(fin_file,'r')
                             tmp = fin.get_node('/'+fin_path).read()
