@@ -169,8 +169,11 @@ for c in cfgs_run:
                         now = time.time()
                         file_time = os.stat(coherent_formfac_file).st_mtime
                         if (now-file_time)/60 > params['file_time_delete']:
-                            print('DELETING:',coherent_formfac_file)
+                            print('MOVING TO CORRUPT:',coherent_formfac_file)
                             shutil.move(coherent_formfac_file,params['corrupt']+'/'+coherent_formfac_file.split('/')[-1])
+                    if os.path.exists(coherent_formfac_file_4D) and not os.path.exists(coherent_formfac_file):
+                        print('MOVING TO CORRUPT:',coherent_formfac_file_4D)
+                        shutil.move(coherent_formfac_file_4D,params['corrupt']+'/'+coherent_formfac_file_4D.split('/')[-1])
                     if not os.path.exists(coherent_formfac_file) or not os.path.exists(coherent_formfac_file_4D):
                         # loop over FLAV and SPIN as all in 1 file
                         metaq  = coherent_formfac_name+'.sh'
