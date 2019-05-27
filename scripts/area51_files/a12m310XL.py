@@ -57,7 +57,7 @@ params['MESONS_PSQ_MAX']  = 5
 params['BARYONS_PSQ_MAX'] = 0
 
 params['run_3pt'] = True
-params['t_seps']  = [3,4,5,6,7,8,9,10]
+params['t_seps']  = [3,4,5,6,7,8,9,10,11,12,13]
 params['flavs']   = ['UU','DD']
 params['spins']   = ['up_up','dn_dn']
 params['snk_mom'] = ['0 0 0']
