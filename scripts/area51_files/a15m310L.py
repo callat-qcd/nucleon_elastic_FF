@@ -7,7 +7,7 @@ params['tuning_mq'] = False
 params['run_ff'] = True
 
 params['si'] = 0
-params['sf'] = 8
+params['sf'] = 7
 params['ds'] = 1
 
 params['NL']   = '24'
