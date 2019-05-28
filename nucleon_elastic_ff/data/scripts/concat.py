@@ -17,7 +17,6 @@ from nucleon_elastic_ff.utilities import has_match
 from nucleon_elastic_ff.data.h5io import get_dsets
 from nucleon_elastic_ff.data.h5io import create_dset
 
-from nucleon_elastic_ff.data.scripts.utilities import group_files
 from nucleon_elastic_ff.data.scripts.utilities import parse_dset_address
 from nucleon_elastic_ff.data.scripts.utilities import assert_patterns_present
 
@@ -41,8 +40,8 @@ def concat_dsets(  # pylint: disable=R0913, R0914
     Also the contatenation meta info is stored in the resulting output file in the `meta`
     attribute of `local_current`.
 
-    .. note:: Suppose you pass two h5 files ``files = ["file1.h5", "file2.h5"]``.
-        to write to the out file ``out_file = "out.h5"``. Lets assume the dset structure
+    .. note:: Suppose you pass two h5 files `files = ["file1.h5", "file2.h5"]`.
+        to write to the out file `out_file = "out.h5"`. Lets assume the dset structure
         is as follows
 
         .. code-block:: bash
@@ -65,7 +64,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
             /x1y1
             /x1y2
 
-        where the dset ``x1y1`` is ``np.append(file1.h5/x1y1, file2.h5/x1y1, axis=axis)``
+        where the dset `x1y1` is `np.append(file1.h5/x1y1, file2.h5/x1y1, axis=axis)`
         and so on.
 
         **Arguments**
@@ -163,7 +162,7 @@ def concatenate(  # pylint: disable=R0913, R0914
     """Recursively scans directory for files and concatinates them.
 
     Finds files and all files which will be considered for grouping and feeds them to
-    ``concat_dsets``.
+    `concat_dsets`.
 
     The concatinated dset will be ordered according to the file names.
 
@@ -256,6 +255,28 @@ def concatenate(  # pylint: disable=R0913, R0914
 
 def main():
     """Command line run script for concat module
+
+    Example usage of command line script
+    ``h5concat .
+        -g x[0-9]+y[0-9]+z[0-9]+t[0-9]+
+        -r concatinated
+        -a 0
+        -m formfac_4D_tslice
+        -e formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t2.h5
+           formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t3.h5
+    ``
+
+    This recursively looks up all files matching `formfac_4D_tslice` (`-m` flag) and
+    files which match `x[0-9]+y[0-9]+z[0-9]+t[0-9]+` (`-g` flag).
+    The files are then grouped by `x[0-9]+y[0-9]+z[0-9]+t[0-9]+` (`-g` flag) and
+    concatinated along their `0` axis (`-a` flag).
+    The output file name will be their full input name where the pattern
+    `x[0-9]+y[0-9]+z[0-9]+t[0-9]+` is replaced by `concatinated` (`-r` flag).
+    This example only considers the two files
+    `formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t2.h5` and
+    `formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t3.h5` (`-e` flag).
+    Other files are ignored.
+    If one of those files is not present, the concatination fails.
     """
     import argparse
 
@@ -263,6 +284,32 @@ def main():
         description="Interface for `concatenate`."
         " Recursively scans directory for files and concatinates them."
         " The concatinated dset will be ordered according to the file names."
+        "\nExample usage:"
+        "\n``\nh5concat ."
+        "\n    --concatenation-group x[0-9]+y[0-9]+z[0-9]+t[0-9]+"
+        "\n    --concatenation-replacement concatinated"
+        "\n    --axis 0"
+        "\n    --file-match-patterns formfac_4D_tslice"
+        "\n    --expected-file-patterns formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t2.h5"
+        "\n       formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t3.h5"
+        "\n```"
+        "\nThis recursively looks up all files matching `formfac_4D_tslice`"
+        " (`--file-match-patterns` flag) and"
+        " files which match `x[0-9]+y[0-9]+z[0-9]+t[0-9]+`"
+        " (`--concatenation-group` flag)."
+        " The files are then grouped by `x[0-9]+y[0-9]+z[0-9]+t[0-9]+`"
+        " (`--concatenation-group` flag) and"
+        " concatinated along their `0` axis (`--axis` flag)."
+        " The output file name will be their full input name where the pattern"
+        " `x[0-9]+y[0-9]+z[0-9]+t[0-9]+` is replaced by `concatinated`"
+        " (`--concatenation-replacement` flag)."
+        " This example only considers the two files"
+        " `formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t2.h5` and"
+        " `formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t3.h5`"
+        " (`--expected-file-patterns` flag)."
+        " Other files are ignored."
+        " If one of those files is not present, the concatination fails.",
+        formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument(
         "root",
