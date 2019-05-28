@@ -318,7 +318,7 @@ def main():
     args = parser.parse_args()
     concatenate(
         root=args.root,
-        concatenation_pattern={args.concatenation_group, args.concatenation_replacement},
+        concatenation_pattern={args.concatenation_group: args.concatenation_replacement},
         axis=args.axis,
         file_match_patterns=args.file_match_patterns,
         dset_replace_patterns=None,
