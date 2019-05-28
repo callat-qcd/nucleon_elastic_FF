@@ -1,4 +1,4 @@
-"""Script for time averaging correlator data
+"""More specialised utility scripts which help grouping similar files.
 """
 from typing import List
 from typing import Union

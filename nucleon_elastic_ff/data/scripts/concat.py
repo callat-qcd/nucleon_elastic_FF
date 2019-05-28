@@ -17,9 +17,9 @@ from nucleon_elastic_ff.utilities import has_match
 from nucleon_elastic_ff.data.h5io import get_dsets
 from nucleon_elastic_ff.data.h5io import create_dset
 
-from nucleon_elastic_ff.data.scripts.utility import group_files
-from nucleon_elastic_ff.data.scripts.utility import parse_dset_address
-from nucleon_elastic_ff.data.scripts.utility import assert_patterns_present
+from nucleon_elastic_ff.data.scripts.utilities import group_files
+from nucleon_elastic_ff.data.scripts.utilities import parse_dset_address
+from nucleon_elastic_ff.data.scripts.utilities import assert_patterns_present
 
 
 LOGGER = set_up_logger("nucleon_elastic_ff")
@@ -240,3 +240,12 @@ def concatinate(  # pylint: disable=R0913, R0914
             ignore_containers=ignore_containers,
             overwrite=overwrite,
         )
+
+
+def main():
+    """Command line run script for concat module
+    """
+
+
+if __name__ == "__main__":
+    main()
