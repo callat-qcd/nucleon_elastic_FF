@@ -81,36 +81,43 @@ def parse_dset_address(
     return out_grp, meta_info
 
 
-def assert_sources_present(expected_sources: List[str], file_group: List[str]):
-    """Checks if all ``expected_sources`` can be found in ``file_group``.
+def assert_patterns_present(expected_patterns: List[str], file_group: List[str]):
+    """Checks if all ``expected_patterns`` can be found in ``file_group``.
 
     Iterates over all files of ``file_group`` and checks if the strings in
-    ``expected_sources`` are present in the file name.
+    ``expected_patterns`` have matches in the file name.
+
+    **Arguments**
+        expected_patterns: List[str]
+            List of regex expression.
+
+        file_group: List[str]
+            List of file names to check.
 
     **Raises**
         AssertionError: If not all expected sources are present or a expected source is
         present more then once.
     """
-    present_sources = set()
+    present_patterns = set()
     for file in file_group:
-        for expected_source in expected_sources:
-            if has_match(file, expected_source):
-                if not expected_source in present_sources:
-                    present_sources.add(expected_source)
+        for expected_pattern in expected_patterns:
+            if has_match(file, expected_pattern):
+                if not expected_pattern in present_patterns:
+                    present_patterns.add(expected_pattern)
                     break
                 else:
                     raise AssertionError(
                         "Found expected source `%s` twice in file group\n\t"
-                        % expected_source
+                        % expected_pattern
                         + "Expected sources\n\t"
                         + "\n\t".join(file_group)
                     )
 
-    if present_sources != set(expected_sources):
+    if present_patterns != set(expected_patterns):
         raise AssertionError(
             "Did not find all expected sources in in file group\n"
             "Expected sources which are missing:\n\t"
-            + "\n\t".join(set(expected_sources).difference(present_sources))
+            + "\n\t".join(set(expected_patterns).difference(present_patterns))
             + "\nFile group:\n\t"
             + "\n\t".join(file_group)
         )

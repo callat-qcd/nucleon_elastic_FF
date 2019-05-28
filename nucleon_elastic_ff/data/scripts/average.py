@@ -18,7 +18,7 @@ from nucleon_elastic_ff.data.h5io import create_dset
 
 from nucleon_elastic_ff.data.scripts.utility import group_files
 from nucleon_elastic_ff.data.scripts.utility import parse_dset_address
-from nucleon_elastic_ff.data.scripts.utility import assert_sources_present
+from nucleon_elastic_ff.data.scripts.utility import assert_patterns_present
 
 LOGGER = set_up_logger("nucleon_elastic_ff")
 
@@ -218,7 +218,7 @@ def source_average(  # pylint: disable=R0913, R0914
                 )
 
         if expected_sources:
-            assert_sources_present(expected_sources, file_group)
+            assert_patterns_present(expected_sources, file_group)
 
         for pat, subs in file_replace_pattern.items():
             out_file = re.sub(pat, subs, out_file)
@@ -312,7 +312,7 @@ def spec_average(  # pylint: disable=R0913, R0914
                 )
 
         if expected_sources:
-            assert_sources_present(expected_sources, file_group)
+            assert_patterns_present(expected_sources, file_group)
 
         for pat, subs in file_replace_pattern.items():
             out_file = re.sub(pat, subs, out_file)
