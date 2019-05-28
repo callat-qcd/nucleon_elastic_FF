@@ -69,6 +69,7 @@ def parse_dset_address(
     **Returns**
         The address after substitututions and a dictionary for parsed meta information.
     """
+    dset_replace_patterns = dset_replace_patterns or {}
     out_grp = address
     meta_info = {}
     for pat, subs in dset_replace_patterns.items():
