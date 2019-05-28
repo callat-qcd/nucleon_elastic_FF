@@ -149,9 +149,9 @@ def concat_dsets(  # pylint: disable=R0913, R0914
             h5f[key].attrs["meta"] = dsets_meta[key]
 
 
-def concatinate(  # pylint: disable=R0913, R0914
+def concatenate(  # pylint: disable=R0913, R0914
     root: str,
-    concatination_pattern: Dict[str, str],
+    concatenation_pattern: Dict[str, str],
     axis: int = 0,
     file_match_patterns: Optional[List[str]] = None,
     dset_replace_patterns: Optional[Dict[str, str]] = None,
@@ -159,31 +159,34 @@ def concatinate(  # pylint: disable=R0913, R0914
     ignore_containers: Optional[List[str]] = None,
     overwrite: bool = False,
 ):
-    """Recursively scans directory for files and averages matches which over specified
-    component.
+    """Recursively scans directory for files and concatinates them.
 
     Finds files and all files which will be considered for grouping and feeds them to
     ``concat_dsets``.
 
+    The concatinated dset will be ordered according to the file names.
+
     **Arguments**
         root: str
-            The directory to recursively look for files.
+            Root directory to recursively scan for files to concatinate.
 
-        concatination_pattern: Dict[str, str]
-            The patterns to consider for concatinating.
+        concatenation_pattern: Dict[str, str]
+            The regex patterns to use for consider for concatinating.
+            The input files must match the key which will be replaced by the value.
+            Only files with similar pattern will be concatinated.
 
         axis: int = 0
             The axis to concatinate over.
 
         file_match_patterns: Optional[List[str]] = None
-            The patterns which file must match in order to be found.
-            Extended by concationation pattern keys.
+            The regex patterns which file must match in order to be found.
+            This list is extended by concationation pattern keys.
 
         dset_replace_patterns: Optional[Dict[str, str]] = None
             The patterns for dsets to be replaced after concationaion.
 
         expected_file_patterns: Optional[List[str]] = None
-            Adds expected patterns to file filter patterns.
+            Adds expected regex patterns to file filter patterns.
             After files have been filtered and grouped, checks if all strings in this
             list are present in the file group.
             If not exactly all sources are found in the group, raises AssertionError.
@@ -195,21 +198,21 @@ def concatinate(  # pylint: disable=R0913, R0914
         overwrite: bool = False
             Overwrite existing sliced files.
     """
-    LOGGER.info("Running source average")
+    LOGGER.info("Running concatenate")
 
     file_match_patterns = file_match_patterns or []
 
     files = find_all_files(
         root,
-        file_patterns=file_match_patterns + list(concatination_pattern.keys()),
-        exclude_file_patterns=list(concatination_pattern.values()),
+        file_patterns=file_match_patterns + list(concatenation_pattern.keys()),
+        exclude_file_patterns=list(concatenation_pattern.values()),
         match_all=True,
     )
     if expected_file_patterns is not None:
         files = [file for file in files if has_match(file, expected_file_patterns)]
     n_expected_sources = len(expected_file_patterns)
 
-    file_groups = group_files(files, keys=concatination_pattern.keys())
+    file_groups = group_files(files, keys=concatenation_pattern.keys())
 
     for file_group in file_groups.values():
         out_file = file_group[0]
@@ -224,7 +227,7 @@ def concatinate(  # pylint: disable=R0913, R0914
         if expected_file_patterns:
             assert_patterns_present(expected_file_patterns, file_group)
 
-        for pat, subs in concatination_pattern.items():
+        for pat, subs in concatenation_pattern.items():
             out_file = re.sub(pat, subs, out_file)
 
         base_dir = os.path.dirname(out_file)
@@ -245,6 +248,84 @@ def concatinate(  # pylint: disable=R0913, R0914
 def main():
     """Command line run script for concat module
     """
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Interface for `concatenate`."
+        " Recursively scans directory for files and concatinates them."
+        " The concatinated dset will be ordered according to the file names."
+    )
+    parser.add_argument(
+        "root",
+        type=str,
+        help="Root directory to recursively scan for files to concatenate.",
+    )
+    parser.add_argument(
+        "--concatenation-group",
+        "-g",
+        type=str,
+        help="The regex patterns to use for consider for concatinating."
+        " The input files must match this string."
+        " Only files with similar pattern will be concatinated.",
+    )
+    parser.add_argument(
+        "--concatenation-replacement",
+        "-r",
+        type=str,
+        default="",
+        help="The name for replacing matched patterns (`concatenation-group` flag)."
+        " E.g. `file_{concatenation-group}.h5 -> file_{concatenation-replacement}.h5`."
+        " [default='%(default)s']",
+    )
+    parser.add_argument(
+        "--axis",
+        "-a",
+        type=int,
+        default=0,
+        help="The axis to concatenate over. [default='%(default)s']",
+    )
+    parser.add_argument(
+        "--file-match-patterns",
+        "-m",
+        type=str,
+        nargs="+",
+        default=None,
+        help="The regex patterns which file must match in order to be found"
+        " (space separted list)."
+        " This list is extended by the concatenation-group flag."
+        " [default='%(default)s']",
+    )
+    parser.add_argument(
+        "--expected-file-patterns",
+        "-e",
+        type=str,
+        nargs="+",
+        default=None,
+        help="Adds expected regex patterns to file filter patterns."
+        " (space separted list)."
+        " After files have been filtered and grouped, checks if all strings in this"
+        " list are present in the file group."
+        " If not exactly all sources are found in the group, raises AssertionError."
+        " [default='%(default)s']",
+    )
+    parser.add_argument(
+        "--overwrite",
+        "-f",
+        action="store_true",
+        default=False,
+        help="Overwrite hdf5 files if they already exist. [default=%(default)s]",
+    )
+    args = parser.parse_args()
+    concatenate(
+        root=args.root,
+        concatenation_pattern={args.concatenation_group, args.concatenation_replacement},
+        axis=args.axis,
+        file_match_patterns=args.file_match_patterns,
+        dset_replace_patterns=None,
+        expected_file_patterns=args.expected_file_patterns,
+        ignore_containers=None,
+        overwrite=args.overwrite,
+    )
 
 
 if __name__ == "__main__":
