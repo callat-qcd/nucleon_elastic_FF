@@ -91,6 +91,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
                 Overwrite existing files.
     """
     ignore_containers = ignore_containers or []
+    dset_replace_patterns = dset_replace_patterns or {}
 
     dsets_list = {}
     dsets_meta = {}
@@ -212,7 +213,15 @@ def concatenate(  # pylint: disable=R0913, R0914
         files = [file for file in files if has_match(file, expected_file_patterns)]
     n_expected_sources = len(expected_file_patterns)
 
-    file_groups = group_files(files, keys=concatenation_pattern.keys())
+    file_groups = {}
+    for file in files:
+        new_file_name = file
+        for pattern, replacement in concatenation_pattern.items():
+            new_file_name = re.sub(pattern, replacement, new_file_name)
+        if new_file_name in file_groups:
+            file_groups[new_file_name] += [file]
+        else:
+            file_groups[new_file_name] = [file]
 
     for file_group in file_groups.values():
         out_file = file_group[0]
