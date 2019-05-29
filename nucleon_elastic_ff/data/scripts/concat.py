@@ -87,6 +87,11 @@ def concat_dsets(  # pylint: disable=R0913, R0914
                 Ignores the following h5 containers (groups or dsets) when concatinating.
                 (dont write them at all).
 
+            write_unpaired_dsets: bool = False
+                Also write group of data sets where the number of data sets is fewer or
+                more then the number of input files.
+                Prints warning to stdout if numbers don't match in any case.
+
             overwrite: bool = False
                 Overwrite existing files.
     """
@@ -280,13 +285,16 @@ def concatenate(  # pylint: disable=R0913, R0914
 
 
 def main():
-    """Concatenate list of files
+    """Command line interface for concatenatenating list of h5 files
     """
 
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Concatenates list of h5 files to one file along axis for all dsets."
+        description="Concatenates data sets of several h5 files along axis."
+        " Only concatenates data sets with same name."
+        " Warns if it finds group of data sets which have fewer or more data sets then"
+        " files. Concatenated data sets are ordered by the file names."
     )
 
     parser.add_argument(
@@ -295,10 +303,14 @@ def main():
         type=str,
         nargs="+",
         default=None,
-        help="Files to concatinate (list)" " [default='%(default)s']",
+        help="Files to concatenate (list). Must be given." " [default='%(default)s']",
     )
     parser.add_argument(
-        "--output", "-o", type=str, default=None, help="Name of the output file."
+        "--output",
+        "-o",
+        type=str,
+        default=None,
+        help="Name of the output file. Must be given.",
     )
     parser.add_argument(
         "--axis",
@@ -327,137 +339,6 @@ def main():
         out_file=args.output,
         axis=args.axis,
         dset_replace_patterns=None,
-        ignore_containers=None,
-        overwrite=args.overwrite,
-    )
-
-
-def main_walk_dir():
-    """Command line run script for concat module
-
-    Example usage of command line script
-    ``h5concat .
-        -g x[0-9]+y[0-9]+z[0-9]+t[0-9]+
-        -r concatinated
-        -a 0
-        -m formfac_4D_tslice
-        -e formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t2.h5
-           formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t3.h5
-    ``
-
-    This recursively looks up all files matching `formfac_4D_tslice` (`-m` flag) and
-    files which match `x[0-9]+y[0-9]+z[0-9]+t[0-9]+` (`-g` flag).
-    The files are then grouped by `x[0-9]+y[0-9]+z[0-9]+t[0-9]+` (`-g` flag) and
-    concatinated along their `0` axis (`-a` flag).
-    The output file name will be their full input name where the pattern
-    `x[0-9]+y[0-9]+z[0-9]+t[0-9]+` is replaced by `concatinated` (`-r` flag).
-    This example only considers the two files
-    `formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t2.h5` and
-    `formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t3.h5` (`-e` flag).
-    Other files are ignored.
-    If one of those files is not present, the concatination fails.
-    """
-    import argparse
-
-    parser = argparse.ArgumentParser(
-        description="Interface for `concatenate`."
-        " Recursively scans directory for files and concatinates them."
-        " The concatinated dset will be ordered according to the file names."
-        "\nExample usage:"
-        "\n``\nh5concat ."
-        "\n    --concatenation-group x[0-9]+y[0-9]+z[0-9]+t[0-9]+"
-        "\n    --concatenation-replacement concatinated"
-        "\n    --axis 0"
-        "\n    --file-match-patterns formfac_4D_tslice"
-        "\n    --expected-file-patterns formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t2.h5"
-        "\n       formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t3.h5"
-        "\n```"
-        "\nThis recursively looks up all files matching `formfac_4D_tslice`"
-        " (`--file-match-patterns` flag) and"
-        " files which match `x[0-9]+y[0-9]+z[0-9]+t[0-9]+`"
-        " (`--concatenation-group` flag)."
-        " The files are then grouped by `x[0-9]+y[0-9]+z[0-9]+t[0-9]+`"
-        " (`--concatenation-group` flag) and"
-        " concatinated along their `0` axis (`--axis` flag)."
-        " The output file name will be their full input name where the pattern"
-        " `x[0-9]+y[0-9]+z[0-9]+t[0-9]+` is replaced by `concatinated`"
-        " (`--concatenation-replacement` flag)."
-        " This example only considers the two files"
-        " `formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t2.h5` and"
-        " `formfac_4D_tslice_px0py0pz0_Nsnk1_x0y1z2t3.h5`"
-        " (`--expected-file-patterns` flag)."
-        " Other files are ignored."
-        " If one of those files is not present, the concatination fails.",
-        formatter_class=argparse.RawTextHelpFormatter,
-    )
-    parser.add_argument(
-        "root",
-        type=str,
-        help="Root directory to recursively scan for files to concatenate.",
-    )
-    parser.add_argument(
-        "--concatenation-group",
-        "-g",
-        type=str,
-        help="The regex patterns to use for consider for concatinating."
-        " The input files must match this string."
-        " Only files with similar pattern will be concatinated.",
-    )
-    parser.add_argument(
-        "--concatenation-replacement",
-        "-r",
-        type=str,
-        default="",
-        help="The name for replacing matched patterns (`concatenation-group` flag)."
-        " E.g. `file_{concatenation-group}.h5 -> file_{concatenation-replacement}.h5`."
-        " [default='%(default)s']",
-    )
-    parser.add_argument(
-        "--axis",
-        "-a",
-        type=int,
-        default=0,
-        help="The axis to concatenate over. [default='%(default)s']",
-    )
-    parser.add_argument(
-        "--file-match-patterns",
-        "-m",
-        type=str,
-        nargs="+",
-        default=None,
-        help="The regex patterns which file must match in order to be found"
-        " (space separted list)."
-        " This list is extended by the concatenation-group flag."
-        " [default='%(default)s']",
-    )
-    parser.add_argument(
-        "--expected-file-patterns",
-        "-e",
-        type=str,
-        nargs="+",
-        default=None,
-        help="Adds expected regex patterns to file filter patterns."
-        " (space separted list)."
-        " After files have been filtered and grouped, checks if all strings in this"
-        " list are present in the file group."
-        " If not exactly all sources are found in the group, raises AssertionError."
-        " [default='%(default)s']",
-    )
-    parser.add_argument(
-        "--overwrite",
-        "-f",
-        action="store_true",
-        default=False,
-        help="Overwrite hdf5 files if they already exist. [default=%(default)s]",
-    )
-    args = parser.parse_args()
-    concatenate(
-        root=args.root,
-        concatenation_pattern={args.concatenation_group: args.concatenation_replacement},
-        axis=args.axis,
-        file_match_patterns=args.file_match_patterns,
-        dset_replace_patterns=None,
-        expected_file_patterns=args.expected_file_patterns,
         ignore_containers=None,
         overwrite=args.overwrite,
     )
