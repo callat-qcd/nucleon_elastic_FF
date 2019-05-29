@@ -30,6 +30,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
     axis: int = 0,
     dset_replace_patterns: Optional[Dict[str, str]] = None,
     ignore_containers: Optional[List[str]] = None,
+    write_unpaired_dsets: bool = False,
     overwrite: bool = False,
 ):
     """Reads h5 files and exports the contatenation of datasets across files.
@@ -95,6 +96,8 @@ def concat_dsets(  # pylint: disable=R0913, R0914
     dsets_list = {}
     dsets_meta = {}
 
+    n_files = len(files)
+
     LOGGER.info(
         "Starting concatenating over `%d` files with hdf5 group/dset substitutions",
         len(files),
@@ -137,16 +140,41 @@ def concat_dsets(  # pylint: disable=R0913, R0914
     LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_list), out_file)
     with h5py.File(out_file) as h5f:
         for key, dset_list in dsets_list.items():
-            LOGGER.debug(
-                "Concatinating dsets `%s` (list of %d dsets) with meta info:\n\t`%s`",
-                key,
-                len(dset_list),
-                dsets_meta[key],
-            )
-            create_dset(
-                h5f, key, np.concatenate(dset_list, axis=axis), overwrite=overwrite
-            )
-            h5f[key].attrs["meta"] = dsets_meta[key]
+            if len(dset_list) == n_files:
+                LOGGER.debug(
+                    "Concatinating dsets `%s` (list of %d dsets)"
+                    " with meta info:\n\t`%s`",
+                    key,
+                    len(dset_list),
+                    dsets_meta[key],
+                )
+                create_dset(
+                    h5f, key, np.concatenate(dset_list, axis=axis), overwrite=overwrite
+                )
+                h5f[key].attrs["meta"] = dsets_meta[key]
+            else:
+                dset_string = "\n\t".join(dset_list)
+                LOGGER.warning(
+                    "Found only %d dsets with same name for key `%s`\n\t%s",
+                    len(dset_list),
+                    key,
+                    dset_string,
+                )
+                if write_unpaired_dsets:
+                    LOGGER.debug(
+                        "Concatinating dsets `%s` (list of %d dsets)"
+                        " with meta info:\n\t`%s`",
+                        key,
+                        len(dset_list),
+                        dsets_meta[key],
+                    )
+                    create_dset(
+                        h5f,
+                        key,
+                        np.concatenate(dset_list, axis=axis),
+                        overwrite=overwrite,
+                    )
+                    h5f[key].attrs["meta"] = dsets_meta[key]
 
 
 def concatenate(  # pylint: disable=R0913, R0914
@@ -331,6 +359,7 @@ def main_walk_dir():
     Other files are ignored.
     If one of those files is not present, the concatination fails.
     """
+    import argparse
 
     parser = argparse.ArgumentParser(
         description="Interface for `concatenate`."
