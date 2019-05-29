@@ -65,7 +65,8 @@ def concat_dsets(  # pylint: disable=R0913, R0914
             /x1y1
             /x1y2
 
-        where the dset `x1y1` is `np.append(file1.h5/x1y1, file2.h5/x1y1, axis=axis)`
+        where the dset `x1y1` is
+        `np.concatenate([file1.h5/x1y1, file2.h5/x1y1], axis=axis)`
         and so on.
 
         **Arguments**
