@@ -154,7 +154,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
                 h5f[key].attrs["meta"] = dsets_meta[key]
             else:
                 LOGGER.warning(
-                    "Found only %d dsets with same name for key `%s`\n\t%s",
+                    "Found only %d dsets with same name for key `%s`",
                     len(dset_list),
                     key,
                 )
