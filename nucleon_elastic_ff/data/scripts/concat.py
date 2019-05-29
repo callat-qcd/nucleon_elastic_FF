@@ -254,6 +254,59 @@ def concatenate(  # pylint: disable=R0913, R0914
 
 
 def main():
+    """Concatenate list of files
+    """
+
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Concatenates list of h5 files to one file along axis for all dsets."
+    )
+
+    parser.add_argument(
+        "--input",
+        "-i",
+        type=str,
+        nargs="+",
+        default=None,
+        help="Files to concatinate (list)" " [default='%(default)s']",
+    )
+    parser.add_argument(
+        "--output", "-o", type=str, default=None, help="Name of the output file."
+    )
+    parser.add_argument(
+        "--axis",
+        "-a",
+        type=int,
+        default=0,
+        help="The axis to concatenate over. [default='%(default)s']",
+    )
+    parser.add_argument(
+        "--overwrite",
+        "-f",
+        action="store_true",
+        default=False,
+        help="Overwrite hdf5 files if they already exist. [default=%(default)s]",
+    )
+    args = parser.parse_args()
+
+    if args.input is None:
+        raise ValueError("You must specify concatenatenation inputs.")
+
+    if args.output is None:
+        raise ValueError("You must specify concatenatenation output file.")
+
+    concat_dsets(
+        files=args.input,
+        out_file=args.output,
+        axis=args.axis,
+        dset_replace_patterns=None,
+        ignore_containers=None,
+        overwrite=args.overwrite,
+    )
+
+
+def main_walk_dir():
     """Command line run script for concat module
 
     Example usage of command line script
@@ -278,7 +331,6 @@ def main():
     Other files are ignored.
     If one of those files is not present, the concatination fails.
     """
-    import argparse
 
     parser = argparse.ArgumentParser(
         description="Interface for `concatenate`."
