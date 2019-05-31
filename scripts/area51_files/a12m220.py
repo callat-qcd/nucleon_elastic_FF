@@ -77,7 +77,7 @@ def mpirun_params(machine):
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 15
         params['src_time']    = 5
-        params['spec_time']   = 10
+        params['spec_time']   = 13
 
         params['cpu_nrs']     = '--nrs 2'
         params['cpu_rs_node'] = '-r2'
