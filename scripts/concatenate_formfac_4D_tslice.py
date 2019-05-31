@@ -86,7 +86,7 @@ for particle in particles:
 if args.fout:
     fout_name = args.fout
 else:
-    fout_name = ff_data_dir+'/formfac_'+ens_s+'_avg.h5'
+    fout_name = ff_data_dir+'/formfac_'+ens_s+'_avg'+src_ext+'.h5'
 for corr in params['particles']:
     for fs in flav_spin:
         for tsep in params['t_seps']:
@@ -97,18 +97,20 @@ for corr in params['particles']:
             for curr in params['curr_4d']:
                 print(corr,fs,dt,curr)
                 f5_out = h5.open_file(fout_name,'a')
-                h5_out_path =  h5_root_path+'/'+corr+'_'+fs+'_tsep_'+dt
+                try:
+                    f5_out.create_group(h5_root_path,corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px'+m0+'_py'+m1+'_pz'+m2,createparents=True)
+                except:
+                    pass
+                h5_out_path  = h5_root_path +'/'+corr+'_'+fs+'_tsep_'+dt
                 h5_out_path += '_sink_mom_px'+m0+'_py'+m1+'_pz'+m2
                 fin_path =  corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px'+m0+'_py'+m1+'_pz'+m2
                 fin_path += '/'+curr+'/src_avg/4D_correlator/local_current'
-                try:
-                    f5_out.create_group(h5_out_path,curr,createparents=True)
-                except:
-                    pass
-                h5_out_path = h5_out_path
                 get_data = True
-                if 'local_current' in f5_out.get_node(h5_out_path+'/'+curr) and not args.o:
+                if curr in f5_out.get_node(h5_out_path) and not args.o:
                     get_data = False
+                if curr in f5_out.get_node(h5_out_path) and args.o:
+                    f5_out.remove_node(h5_out_path,curr,recursive=True)
+                f5_out.close()
                 if get_data:
                     cfgs_srcs = []
                     first_data = True
@@ -121,24 +123,22 @@ for corr in params['particles']:
                             fin = h5.open_file(fin_file,'r')
                             tmp = fin.get_node('/'+fin_path).read()
                             fin.close()
+                            f5_out = h5.open_file(fout_name,'a')
                             if first_data:
+                                shape = (0,)+tmp.shape
                                 data = np.zeros((1,)+tmp.shape,dtype=tmp.dtype)
                                 data[0] = tmp
+                                f5_out.create_earray(h5_out_path+'/'+curr,'local_current',shape=shape,createparents=True,obj=data,expectedrows=len(cfgs_run))
                                 first_data = False
                             else:
-                                data = np.append(data,[tmp],axis=0)
+                                data = f5_out.get_node(h5_out_path+'/'+curr+'/local_current')
+                                data.append(np.array([tmp]))
+                            f5_out.close()
                             cfgs_srcs.append([cfg,params['N_SEQ']])
                         else:
-                            print(fin_file)
+                            print('missing',fin_file)
                     #print(cfgs_srcs)
                     cfgs_srcs = np.array(cfgs_srcs)
                     print('    Nc=%4d, Ns=%.7f' %(cfgs_srcs.shape[0],cfgs_srcs.mean(axis=0)[1]))
-                    if curr in f5_out.get_node(h5_out_path):
-                        f5_out.remove_node(h5_out_path,curr,recursive=True)
-                    f5_out.create_group(h5_out_path,curr)
-                    f5_out.create_array(h5_out_path+'/'+curr,'cfgs_srcs',cfgs_srcs)
-                    f5_out.create_array(h5_out_path+'/'+curr,'local_current',data)
-                    f5_out.flush()
                 else:
                     print('data exists and overwrite = False')
-                f5_out.close()

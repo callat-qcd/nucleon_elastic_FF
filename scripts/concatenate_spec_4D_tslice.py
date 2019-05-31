@@ -104,7 +104,7 @@ for corr in params['particles']:
                     shape = (0,)+tmp.shape
                     data = np.zeros((1,)+tmp.shape,dtype=tmp.dtype)
                     data[0] = tmp
-                    f5_out.create_earray(h5_out_path+'/4D_correlator','spin_avg',shape=shape,createparents=True,obj=data)
+                    f5_out.create_earray(h5_out_path+'/4D_correlator','spin_avg',shape=shape,createparents=True,obj=data,expectedrows=len(cfgs_run))
                     first_data = False
                 else:
                     data = f5_out.get_node(h5_out_path+'/4D_correlator/spin_avg')
@@ -120,4 +120,3 @@ for corr in params['particles']:
     else:
         print('data exists and overwrite = False')
 
-f5_out.close()
