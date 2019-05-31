@@ -108,6 +108,9 @@ n_flav = len(params['flavs'])
 n_spin = len(params['spins'])
 n_par  = len(params['particles'])
 coherent_ff_size_4d = n_curr * n_flav * n_spin * n_par *int(nt)*int(nl)**3 * 2*8
+src_ext = "%d-%d" %(params['si'],params['sf'])
+
+
 
 for c in cfgs_run:
     no = str(c)
@@ -162,116 +165,131 @@ for c in cfgs_run:
                     coherent_formfac_name  = c51.names['coherent_ff'] % params
                     coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
                     coherent_formfac_file_4D = coherent_formfac_file.replace('formfac','formfac_4D')
-                    params['THREE_PT_FILE'] = coherent_formfac_file
-                    params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
-                    utils.check_file(coherent_formfac_file_4D,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'])
-                    if os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
-                        now = time.time()
-                        file_time = os.stat(coherent_formfac_file).st_mtime
-                        if (now-file_time)/60 > params['file_time_delete']:
-                            print('MOVING TO CORRUPT:',coherent_formfac_file)
-                            shutil.move(coherent_formfac_file,params['corrupt']+'/'+coherent_formfac_file.split('/')[-1])
-                    if os.path.exists(coherent_formfac_file_4D) and not os.path.exists(coherent_formfac_file):
-                        print('MOVING TO CORRUPT:',coherent_formfac_file_4D)
-                        shutil.move(coherent_formfac_file_4D,params['corrupt']+'/'+coherent_formfac_file_4D.split('/')[-1])
-                    if not os.path.exists(coherent_formfac_file) or not os.path.exists(coherent_formfac_file_4D):
-                        # loop over FLAV and SPIN as all in 1 file
-                        metaq  = coherent_formfac_name+'.sh'
-                        t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
-                        try:
-                            if params['metaq_split']:
-                                t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['cpu_nodes']),params,folder=q,overwrite=args.o)
-                                t_w = t_w or t_w2
-                                t_e = t_e or t_e2
-                        except:
-                            pass
-                        if not t_e or (args.o and not t_w):
-                            prop_name = c51.names['prop'] % params
-                            prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
-                            if os.path.exists(prop_file):
-                                xmlini = coherent_formfac_file.replace('/formfac/','/xml/').replace('.h5','.ini.xml')
-                                fin = open(xmlini,'w')
-                                fin.write(xml_input.head)
-                                ''' read all props '''
-                                #for s0 in srcs[c]:
-                                params['H5_FILE']=prop_file
-                                params['H5_PATH']=''
-                                params['H5_OBJ_NAME']='propagator'
-                                params['LIME_FILE'] = prop_file
-                                params['OBJ_ID']    = prop_name
-                                params['OBJ_TYPE']  = 'LatticePropagator'
-                                fin.write(xml_input.qio_read % params)
-
-                                ''' read all seq props and do contractions '''
-                                for particle in params['particles']:
-                                    params['PARTICLE'] = particle
-                                    if '_np' in particle:
-                                        t_sep = '-'+dt
-                                    else:
-                                        t_sep = dt
-                                    params['T_SEP'] = t_sep
-                                    for fs in flav_spin:
-                                        flav,snk_spin,src_spin=fs.split('_')
-                                        params['FLAV']=flav
-                                        params['SOURCE_SPIN']=snk_spin
-                                        params['SINK_SPIN']=src_spin
-                                        spin = snk_spin+'_'+src_spin
-                                        params['FLAV_SPIN']=fs
-                                        seqprop_name  = c51.names['seqprop'] %params
-                                        seqprop_file  = params['seqprop']+'/'+seqprop_name+'.'+params['SP_EXTENSION']
-                                        params['LIME_FILE'] = seqprop_file
-                                        params['OBJ_ID']    = seqprop_name
-                                        params['SEQPROP_'+fs] = seqprop_name
-                                        fin.write(xml_input.qio_read % params)
+                    coherent_ff_4D_tslice = coherent_formfac_file_4D.replace('formfac_4D','formfac_4D_tslice')
+                    coherent_ff_4D_tslice_avg = coherent_ff_4D_tslice.replace('formfac_4D_tslice','formfac_4D_tslice_src_avg').replace(s0,'src_avg'+src_ext)
+                    if not (os.path.exists(coherent_ff_4D_tslice) or os.path.exists(coherent_ff_4D_tslice_avg)):
+                        params['THREE_PT_FILE'] = coherent_formfac_file
+                        params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
+                        utils.check_file(coherent_formfac_file_4D,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'])
+                        utils.check_file(coherent_formfac_file,params['ff_size'],params['file_time_delete'],params['corrupt'])
+                        if os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                            now = time.time()
+                            file_time = os.stat(coherent_formfac_file).st_mtime
+                            if (now-file_time)/60 > params['file_time_delete']:
+                                print('MOVING TO CORRUPT:',coherent_formfac_file)
+                                shutil.move(coherent_formfac_file,params['corrupt']+'/'+coherent_formfac_file.split('/')[-1])
+                        if os.path.exists(coherent_formfac_file_4D) and not os.path.exists(coherent_formfac_file):
+                            print('MOVING TO CORRUPT:',coherent_formfac_file_4D)
+                            shutil.move(coherent_formfac_file_4D,params['corrupt']+'/'+coherent_formfac_file_4D.split('/')[-1])
+                        if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                            # loop over FLAV and SPIN as all in 1 file
+                            metaq  = coherent_formfac_name+'.sh'
+                            t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
+                            try:
+                                if params['metaq_split']:
+                                    t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['cpu_nodes']),params,folder=q,overwrite=args.o)
+                                    t_w = t_w or t_w2
+                                    t_e = t_e or t_e2
+                            except:
+                                pass
+                            if not t_e or (args.o and not t_w):
+                                prop_name = c51.names['prop'] % params
+                                prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
+                                if os.path.exists(prop_file):
+                                    xmlini = coherent_formfac_file.replace('/formfac/','/xml/').replace('.h5','.ini.xml')
+                                    fin = open(xmlini,'w')
+                                    fin.write(xml_input.head)
+                                    ''' read all props '''
                                     #for s0 in srcs[c]:
-                                    prop_name = c51.names['prop'] % params
-                                    params['PROP_NAME'] = prop_name
+                                    params['H5_FILE']=prop_file
+                                    params['H5_PATH']=''
+                                    params['H5_OBJ_NAME']='propagator'
+                                    params['LIME_FILE'] = prop_file
+                                    params['OBJ_ID']    = prop_name
+                                    params['OBJ_TYPE']  = 'LatticePropagator'
+                                    fin.write(xml_input.qio_read % params)
 
-                                    ''' make 3pt contractions '''
-                                    #params['CURR_P'] = ''
-                                    #for ci,curr in enumerate(params['curr_p']):
-                                    #    params['CURR_P'] += '        <elem>'+curr+'</elem>'
-                                    #    if ci < len(params['curr_p'])-1:
-                                    #        params['CURR_P'] += '\n'
-                                    params['CURR_4D'] = ''
-                                    for ci,curr in enumerate(params['curr_4d']):
-                                        params['CURR_4D'] += '        <elem>'+curr+'</elem>'
-                                        if ci < len(params['curr_4d']) -1:
-                                            params['CURR_4D'] += '\n'
-                                    params['CURR_0P'] = ''
-                                    for ci,curr in enumerate(params['curr_0p']):
-                                        params['CURR_0P'] += '        <elem>'+curr+'</elem>'
-                                        if ci < len(params['curr_0p']) -1:
-                                            params['CURR_0P'] += '\n'
-                                    fin.write(xml_input.lalibe_formfac % params)
-                                    ''' erase seqprops to reduce memory footprint '''
-                                    for fs in flav_spin:
-                                        fin.write(xml_input.qio_erase %{'OBJ_ID':params['SEQPROP_'+fs]})
+                                    ''' read all seq props and do contractions '''
+                                    for particle in params['particles']:
+                                        params['PARTICLE'] = particle
+                                        if '_np' in particle:
+                                            t_sep = '-'+dt
+                                        else:
+                                            t_sep = dt
+                                        params['T_SEP'] = t_sep
+                                        for fs in flav_spin:
+                                            flav,snk_spin,src_spin=fs.split('_')
+                                            params['FLAV']=flav
+                                            params['SOURCE_SPIN']=snk_spin
+                                            params['SINK_SPIN']=src_spin
+                                            spin = snk_spin+'_'+src_spin
+                                            params['FLAV_SPIN']=fs
+                                            seqprop_name  = c51.names['seqprop'] %params
+                                            seqprop_file  = params['seqprop']+'/'+seqprop_name+'.'+params['SP_EXTENSION']
+                                            params['LIME_FILE'] = seqprop_file
+                                            params['OBJ_ID']    = seqprop_name
+                                            params['SEQPROP_'+fs] = seqprop_name
+                                            fin.write(xml_input.qio_read % params)
+                                        #for s0 in srcs[c]:
+                                        prop_name = c51.names['prop'] % params
+                                        params['PROP_NAME'] = prop_name
 
-                                fin.write(xml_input.tail % params)
-                                fin.close()
+                                        ''' make 3pt contractions '''
+                                        #params['CURR_P'] = ''
+                                        #for ci,curr in enumerate(params['curr_p']):
+                                        #    params['CURR_P'] += '        <elem>'+curr+'</elem>'
+                                        #    if ci < len(params['curr_p'])-1:
+                                        #        params['CURR_P'] += '\n'
+                                        params['CURR_4D'] = ''
+                                        for ci,curr in enumerate(params['curr_4d']):
+                                            params['CURR_4D'] += '        <elem>'+curr+'</elem>'
+                                            if ci < len(params['curr_4d']) -1:
+                                                params['CURR_4D'] += '\n'
+                                        params['CURR_0P'] = ''
+                                        for ci,curr in enumerate(params['curr_0p']):
+                                            params['CURR_0P'] += '        <elem>'+curr+'</elem>'
+                                            if ci < len(params['curr_0p']) -1:
+                                                params['CURR_0P'] += '\n'
+                                        fin.write(xml_input.lalibe_formfac % params)
+                                        ''' erase seqprops to reduce memory footprint '''
+                                        for fs in flav_spin:
+                                            fin.write(xml_input.qio_erase %{'OBJ_ID':params['SEQPROP_'+fs]})
 
-                                ''' Make METAQ task '''
-                                params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
-                                params['INI']       = xmlini
-                                params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
-                                params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                                params['CLEANUP']   = ''
-                                mtype = args.mtype
-                                try:
-                                    if params['metaq_split']:
-                                        mtype = mtype + '_'+str(params['cpu_nodes'])
-                                except:
-                                    pass
-                                scheduler.make_task(metaq,mtype,params,folder=q)
+                                    fin.write(xml_input.tail % params)
+                                    fin.close()
+
+                                    ''' Make METAQ task '''
+                                    params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
+                                    params['INI']       = xmlini
+                                    params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
+                                    params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
+                                    params['CLEANUP']   = ''
+                                    mtype = args.mtype
+                                    try:
+                                        if params['metaq_split']:
+                                            mtype = mtype + '_'+str(params['cpu_nodes'])
+                                    except:
+                                        pass
+                                    scheduler.make_task(metaq,mtype,params,folder=q)
+                                else:
+                                    print('MISSING prop',prop_file)
                             else:
-                                print('MISSING prop',prop_file)
+                                if args.verbose:
+                                    print('  task exists:',metaq)
+                        elif not (os.path.exists(coherent_formfac_file) and os.path.exists(coherent_formfac_file_4D)):
+                            if args.verbose:
+                                print('check logic: either coherent_formfac_file OR coherent_formfac_file_4D exists')
+                                print(coherent_formfac_file,os.path.exists(coherent_formfac_file))
+                                print(coherent_formfac_file_4D,os.path.exists(coherent_formfac_file_4D))
                         else:
                             if args.verbose:
-                                print('  task exists:',metaq)
+                                print('exists:',coherent_formfac_name)
                     else:
                         if args.verbose:
-                            print('    exists:',coherent_formfac_file)
+                            print('tslice or tslice_src_avg exists')
+                            print(coherent_ff_4D_tslice.split('/')[-1])
+                            print(coherent_ff_4D_tslice_avg.split('/')[-1])
+                        
             else:
                 print('    missing FLAV or SPIN seqprops, dt=',dt)
         if not have_all_seqprops:
