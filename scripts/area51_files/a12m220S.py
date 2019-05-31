@@ -5,7 +5,7 @@ params['tuning_mq'] = False
 params['run_ff'] = True
 
 params['ENS_ABBR'] = 'a12m220'
-params['NL']   = '32'
+params['NL']   = '24'
 params['NT']   = '64'
 params['U0']   = '0.86372'
 params['MS_L'] = '0.00507'
@@ -30,8 +30,8 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.00600'
 params['MV_S'] = '0.0693'
 
-params['spec_size'] = 200000
-params['ff_size']   = 386000
+params['spec_size'] = 1
+params['ff_size']   = 1
 
 params['MAX_ITER']   = '8000'
 params['RSD_TARGET'] = '1.e-7'
@@ -49,7 +49,7 @@ params['generator'] = sources.oa(int(params['NL']))
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10.
 
-params['MESONS_PSQ_MAX']  = 5
+params['MESONS_PSQ_MAX']  = 0
 params['BARYONS_PSQ_MAX'] = 0
 
 params['run_3pt'] = True
@@ -129,6 +129,6 @@ def mpirun_params(machine):
         params['gpu_g_rs']    = '-g6'
         params['gpu_c_rs']    = '-c6'
         params['gpu_latency'] = '-l gpu-cpu'
-        params['gpu_geom']    = ' -geom 1 1 1 6'
+        params['gpu_geom']    = ' -geom 1 1 3 2'
 
     return params
