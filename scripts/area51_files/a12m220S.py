@@ -129,6 +129,7 @@ def mpirun_params(machine):
         params['gpu_gpus']    = 6
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10
+        params['seqprop_time']   = 8
 
         params['gpu_nrs']     = '--nrs 1'
         params['gpu_rs_node'] = '-r1'
