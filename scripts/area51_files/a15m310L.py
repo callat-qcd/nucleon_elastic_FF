@@ -10,6 +10,10 @@ params['si'] = 0
 params['sf'] = 7
 params['ds'] = 1
 
+params['cfg_i'] = 300
+params['cfg_f'] = 5295
+params['cfg_d'] = 5
+
 params['NL']   = '24'
 params['NT']   = '48'
 params['U0']   = '0.85535'
