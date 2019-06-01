@@ -377,14 +377,16 @@ def spec_average(  # pylint: disable=R0913, R0914
     file_replace_pattern = {
         "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"
         + (file_name_addition if file_name_addition is not None else ""),
-        "spec_4D_tslice": "spec_4D_tslice_avg",
+        #"spec_4D_tslice": "spec_4D_tslice_avg",
+        "spec_4D": "spec_4D_avg",
     }
     dset_replace_pattern = {
         r"x(?P<x>[0-9]+)_y(?P<y>[0-9]+)_z(?P<z>[0-9]+)_t(?P<t>[0-9]+)": "src_avg",
         r"spin_(?:up|dn)": "spin_avg",
     }
 
-    file_patterns = [r".*\.h5$", "spec_4D_tslice"]
+    #file_patterns = [r".*\.h5$", "spec_4D_tslice"]
+    file_patterns = [r".*\.h5$", "spec_4D"]
     file_patterns += list(file_replace_pattern.keys())
 
     files = find_all_files(
