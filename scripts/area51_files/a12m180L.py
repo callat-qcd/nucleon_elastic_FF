@@ -6,6 +6,10 @@ params['run_ff'] = True
 
 #l4864f211b600m00339m0507m628a.
 
+params['si'] = 0
+params['sf'] = 7
+params['ds'] = 1
+
 params['ENS_ABBR'] = 'a12m180XL'
 params['NL']   = '48'
 params['NT']   = '64'

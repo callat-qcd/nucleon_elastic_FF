@@ -94,6 +94,7 @@ for corr in params['particles']:
             sys.stdout.flush()
             no = str(cfg)
             cfg_file = data_dir+'/../spec_4D_tslice_avg/'+no+'/spec_4D_tslice_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_src_avg'+src_ext+'.h5'
+            cfg_file = data_dir+'/../spec_4D_avg/'+no+'/spec_4D_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_src_avg'+src_ext+'.h5'
             if os.path.exists(cfg_file):
                 fin = h5.open_file(cfg_file,'r')
                 tmp = fin.get_node('/'+fin_path).read()
