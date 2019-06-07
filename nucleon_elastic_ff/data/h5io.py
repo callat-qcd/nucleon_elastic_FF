@@ -5,6 +5,7 @@ from typing import Optional
 from typing import Union
 from typing import List
 from typing import Any
+from typing import Iterable
 
 import os
 
@@ -161,3 +162,33 @@ def assert_h5files_equal(  # pylint: disable=R0913
                     rtol=rtol,
                     err_msg="Dataset `%s` has unequal values." % key,
                 )
+
+
+def get_dset_chunks(dset: h5py.Dataset, chunk_size: int) -> Iterable[np.ndarray]:
+    """Returns components of data sliced in chunks determined by the chunk size.
+
+    This reduces the memory size when loading the array.
+
+    **Argumets**
+        dset: h5py.Dataset
+            Input data set to read.
+
+        chunk_size: int
+            Size of the chunks to load in. Slices the first dimension of the input
+            dataset. Must be smaller or equal to the size of the first data set
+            dimension.
+    """
+    n_chunks = dset.shape[0] // chunk_size
+    if n_chunks < 1:
+        raise ValueError("Received ``chunck_size`` such that ``n_chunks < 1``.")
+
+    chunks = [
+        (n_chunk * chunk_size, (n_chunk + 1) * chunk_size) for n_chunk in range(n_chunks)
+    ]
+    if chunks[-1][1] < dset.shape[0]:
+        chunks.append((chunks[-1][1], dset.shape[0]))
+
+    LOGGER.debug("Iterating `%s` in chunks `%s`", dset, chunks)
+
+    for n_start, n_end in chunks:
+        yield dset[n_start:n_end]
