@@ -105,19 +105,19 @@ echo "START  "$(date "+%%Y-%%m-%%dT%%H:%%M")
 mpirun = dict()
 mpirun['lassen'] = '''
 %(APP)s
-jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
+jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s -b none -d packed $APP $PROG %(IO_OUT)s
 
 '''
 
 mpirun['summit'] = '''
 %(APP)s
-jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s %(L_GPU_CPU)s -b packed:smt:%(OMP_NUM_THREADS)s $PROG -i $ini -o $out > $stdout 2>&1
+jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s %(L_GPU_CPU)s -b packed:smt:%(OMP_NUM_THREADS)s $PROG %(IO_OUT)s
 
 '''
 
 mpirun['pascal'] = '''
 %(APP)s
-#srun -NN -nn %(PROG)s -i $ini -o $out > $stdout 2>&1
+#srun -NN -nn %(PROG)s %(IO_OUT)s
 
 '''
 

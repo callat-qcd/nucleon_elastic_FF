@@ -35,6 +35,7 @@ print('ENSEMBLE:',ens_s)
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
 parser.add_argument('-s','--src',type=str,help='src [xXyYzZtT] None=All')
+parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('--move',default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
@@ -66,6 +67,13 @@ params['M0']=m0
 params['M1']=m1
 params['M2']=m2
 params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
+
+if args.t_sep == None:
+    pass
+else:
+    params['t_seps'] = args.t_sep
+print('getting t_sep values')
+print(params['t_seps'])
 
 for cfg in cfgs_run:
     no = str(cfg)

@@ -20,6 +20,7 @@ ens,stream = c51.ens_base()
 ens_s = ens+'_'+stream
 
 area51 = importlib.import_module(ens)
+
 params = area51.params
 params['machine'] = c51.machine
 params['ENS_LONG'] = c51.ens_long[ens]
@@ -107,6 +108,7 @@ params['A_RS']        = params['gpu_a_rs']
 params['G_RS']        = params['gpu_g_rs']
 params['C_RS']        = params['gpu_c_rs']
 params['L_GPU_CPU']   = params['gpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 for c in cfgs_run:
     no = str(c)

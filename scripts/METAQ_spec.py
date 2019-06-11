@@ -84,6 +84,7 @@ params['A_RS']        = params['cpu_a_rs']
 params['G_RS']        = params['cpu_g_rs']
 params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 for c in cfgs_run:
     no = str(c)

@@ -102,6 +102,7 @@ params['A_RS']        = params['cpu_a_rs']
 params['G_RS']        = params['cpu_g_rs']
 params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 n_curr = len(params['curr_4d'])
 n_flav = len(params['flavs'])

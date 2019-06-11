@@ -10,15 +10,17 @@ params['si'] = 0
 params['sf'] = 7
 params['ds'] = 1
 
-params['ENS_ABBR'] = 'a12m180XL'
+params['ENS_ABBR'] = 'a12m180L'
 params['NL']   = '48'
 params['NT']   = '64'
 params['U0']   = '0.86372'
 params['MS_L'] = '0.00339'
 params['MS_S'] = '0.0507'
 params['MS_C'] = '0.628'
+params['naik'] = '-0.2248'
+params['save_hisq_prop'] = False
 params['cfg_i'] = 300    #*
-params['cfg_f'] = 5560   #*
+params['cfg_f'] = 1795   #*
 params['cfg_d'] = 5
 
 params['FLOW_TIME'] = '1.0'
@@ -36,8 +38,8 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.0126'
 params['MV_S'] = '0.0693'
 
-params['spec_size'] = 826000
-params['ff_size']   = 4046000
+params['spec_size'] = 1
+params['ff_size']   = 1
 
 params['MAX_ITER']   = '4000'
 params['RSD_TARGET'] = '1.e-7'
@@ -51,6 +53,7 @@ params['seed']['a'] = '1a'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
 params['t_shifts'] = [ 0, 32  , 16  , 48     ]
 params['generator'] = sources.oa(int(params['NL']))
+params['t_hisq']   = [0,  8, 16, 24, 32, 40, 48, 56]
 
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10
@@ -110,6 +113,7 @@ def mpirun_params(machine):
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
     if machine == 'summit':
+        params['metaq_split'] = True
         params['cpu_nodes']   = 1
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
@@ -124,7 +128,8 @@ def mpirun_params(machine):
         params['cpu_c_rs']    = '-c16'
         params['cpu_latency'] = '-l cpu-cpu'
 
-        params['gpu_nodes']   = 0
+        params['gpu_nodes']   = 1
+        params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 6
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10
@@ -136,5 +141,21 @@ def mpirun_params(machine):
         params['gpu_c_rs']    = '-c6'
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 1 6'
+        params['gpu_bind']    = ''
+
+        params['hisq_nodes']  = 1
+        params['hisq_metaq_nodes'] = 0
+        params['hisq_gpus']   = 6
+        params['hisq_time']   = 16
+        params['hisq_maxcus'] = 1
+
+        params['hisq_nrs']     = '--nrs 1'
+        params['hisq_rs_node'] = '-r1'
+        params['hisq_a_rs']    = '-a6'
+        params['hisq_g_rs']    = '-g6'
+        params['hisq_c_rs']    = '-c6'
+        params['hisq_latency'] = '-l gpu-cpu'
+        params['hisq_geom']    = ' -qmp-geom 1 1 3 2'
+
 
     return params
