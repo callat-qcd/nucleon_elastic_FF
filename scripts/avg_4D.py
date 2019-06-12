@@ -46,6 +46,17 @@ if args.data not in ['spec','formfac']:
     print(args.data,' not in [ spec formfac ]')
     sys.exit()
 
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
 
 src_ext = "%d-%d" %(params['si'],params['sf'])
@@ -57,21 +68,32 @@ for c in cfgs_run:
     params['CFG'] = no
     params = c51.ensemble(params)
     if args.data == 'spec':
-        # for spec_4D - we have to ensure all srcs exist
-        avg_files = True
-        for s0 in srcs[c]:
-            params['SRC'] = s0
-            spec_name    = c51.names['spec'] % params
-            spec_file    = params['spec'] +'/'+ spec_name+'.h5'
-            spec_file_4D = spec_file.replace('spec_','spec_4D_').replace('/spec/','/spec_4D/')
-            if not os.path.exists(spec_file_4D):
-                avg_files = False
-                if c not in missing_srcs: missing_srcs.append(c)
-        if avg_files:
-            d_dir = params['prod']+'/'+args.data+'_4D/'+no
-            average.spec_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext)
+        # does avg file exist already?
+        params['SRC'] = 'src_avg'+src_ext
+        spec_name    = c51.names['spec'] % params
+        spec_file    = params['spec'] +'/'+ spec_name+'.h5'
+        spec_file_4D_avg = spec_file.replace('spec_','spec_4D_avg_').replace('/spec/','/spec_4D_avg/')
+        do_avg = True
+        if os.path.exists(spec_file_4D_avg) and not args.o:
+            do_avg = False
+        if do_avg:
+            # for spec_4D - we have to ensure all srcs exist
+            avg_files = True
+            for s0 in srcs[c]:
+                params['SRC'] = s0
+                spec_name    = c51.names['spec'] % params
+                spec_file    = params['spec'] +'/'+ spec_name+'.h5'
+                spec_file_4D = spec_file.replace('spec_','spec_4D_').replace('/spec/','/spec_4D/')
+                if not os.path.exists(spec_file_4D):
+                    avg_files = False
+                    if c not in missing_srcs: missing_srcs.append(c)
+            if avg_files:
+                d_dir = params['prod']+'/'+args.data+'_4D/'+no
+                average.spec_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext)
+            else:
+                print('missing srcs on cfg = %d' %c)
         else:
-            print('missing srcs on cfg = %d' %c)
+            print('overwrite =',args.o,' and exists:',args.o,spec_file_4D_avg)
     elif args.data == 'formfac':
         # for formfac_4D_tslice - did we check all sources exist?
         d_dir = params['prod']+'/'+args.data+'_4D_tslice/'+no
