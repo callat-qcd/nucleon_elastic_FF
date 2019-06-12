@@ -246,6 +246,7 @@ def source_average(  # pylint: disable=R0913, R0914
     n_expected_sources: Optional[int] = None,
     expected_sources: Optional[List[str]] = None,
     file_name_addition: Optional[str] = None,
+    additional_file_patterns: Optional[List[str]] = None,
 ):
     """Recursively scans directory for files and averages matches which over specified
     component.
@@ -276,6 +277,9 @@ def source_average(  # pylint: disable=R0913, R0914
 
         file_name_addition: Optional[str] = None
             Appends this string to the file name if not None.
+
+        additional_file_patterns: Optional[List[str]] = None
+            Only consideres files for averaging if additional patterns are fulfilled.
     """
     LOGGER.info("Running source average")
 
@@ -292,6 +296,8 @@ def source_average(  # pylint: disable=R0913, R0914
 
     file_patterns = [r".*\.h5$", "formfac_4D_tslice"]
     file_patterns += list(file_replace_pattern.keys())
+    if additional_file_patterns is not None:
+        file_patterns += additional_file_patterns
 
     files = find_all_files(
         root,
@@ -377,7 +383,7 @@ def spec_average(  # pylint: disable=R0913, R0914
     file_replace_pattern = {
         "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"
         + (file_name_addition if file_name_addition is not None else ""),
-        #"spec_4D_tslice": "spec_4D_tslice_avg",
+        # "spec_4D_tslice": "spec_4D_tslice_avg",
         "spec_4D": "spec_4D_avg",
     }
     dset_replace_pattern = {
@@ -385,7 +391,7 @@ def spec_average(  # pylint: disable=R0913, R0914
         r"spin_(?:up|dn)": "spin_avg",
     }
 
-    #file_patterns = [r".*\.h5$", "spec_4D_tslice"]
+    # file_patterns = [r".*\.h5$", "spec_4D_tslice"]
     file_patterns = [r".*\.h5$", "spec_4D"]
     file_patterns += list(file_replace_pattern.keys())
 
