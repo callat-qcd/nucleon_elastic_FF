@@ -6,9 +6,8 @@ params['run_ff'] = True
 
 #l4864f211b600m00339m0507m628a.
 
-params['si'] = 0
-params['sf'] = 7
-params['ds'] = 1
+# the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
+# you must specify all three of these params to override the default
 
 params['ENS_ABBR'] = 'a12m180L'
 params['NL']   = '48'

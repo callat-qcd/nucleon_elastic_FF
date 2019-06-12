@@ -8,6 +8,34 @@ import numpy
 os.environ["PYTHONHASHSEED"] = "0"
 import random_patch as random
 
+hn = socket.gethostname()
+def src_start_stop(params,ens,stream):
+    # default srcs
+    params['si'] = 0
+    params['sf'] = 7
+    params['ds'] = 1
+    # ensembles with modified src start/stop info
+    if ens == 'a15m135XL':
+        if any(host in hn for host in ['lassen']):
+            if stream in ['b','c']:
+                pass
+            else:
+                print('lassen is not running stream %s now with srcs 0-7 x 1' %stream)
+                sys.exit()
+        elif any(host in hn for host in ['login','batch']):
+            if stream in ['b','c']:
+                params['si'] = 16
+                params['sf'] = 23
+                params['ds'] = 1
+            elif stream in ['e']:
+                params['si'] = 0
+                params['sf'] = 7
+                params['ds'] = 1
+            else:
+                print('summit is not set to run stream %s yet with srcs 0-7 x 1' %stream)
+                sys.exit()
+    return params
+
 def xyzt(src):
     x = src.split('x')[1].split('y')[0]
     y = src.split('y')[1].split('z')[0]

@@ -7,17 +7,8 @@ params = dict()
 params['tuning_mq'] = False
 params['run_ff'] = True
 
-# Lassen has done srcs 0 - 15, OA on [0 , 32, 16, 48, 8 , 40, 24, 56]
-# Summit will do srcs 16 - 32, OA on [4 , 36, 20, 52, 12, 44, 28, 60]
-# they have to be run in batches of 8 so that the t0 are spaced far enough apart to not interefere in the coherent sink
-if any(host in hn for host in ['lassen']):
-    params['si'] = 0
-    params['sf'] = 7
-    params['ds'] = 1
-elif any(host in hn for host in ['login','batch']):
-    params['si'] = 16
-    params['sf'] = 23
-    params['ds'] = 1
+# the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
+# you must specify all three of these params to override the default
 
 params['ENS_ABBR'] = 'a15m135XL'
 params['NL']   = '48'
