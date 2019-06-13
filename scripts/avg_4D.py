@@ -95,10 +95,42 @@ for c in cfgs_run:
         else:
             print('overwrite =',args.o,' and exists:',args.o,spec_file_4D_avg)
     elif args.data == 'formfac':
-        # for formfac_4D_tslice - did we check all sources exist?
-        d_dir = params['prod']+'/'+args.data+'_4D_tslice/'+no
-        average.source_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext)
-
+        snk_mom = params['snk_mom'][0]
+        m0,m1,m2 = snk_mom.split()
+        params['M0']=m0
+        params['M1']=m1
+        params['M2']=m2
+        params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
+        params['N_SEQ'] = len(srcs[c])
+        # loop over tseps
+        for t in params['t_seps']:
+            # does avg file exist?
+            print("printing t:", t)
+            params['T_SEP'] = str(t)
+            params['SRC'] = 'src_avg'+src_ext
+            formfac_name = c51.names['coherent_ff'] % params
+            formfac_file = params['formfac'] +'/'+ formfac_name+'.h5'
+            formfac_file_4D_avg = formfac_file.replace('formfac_','formfac_4D_tslice_src_avg_').replace('/formfac/','/formfac_4D_tslice_src_avg/')
+            do_avg = True
+            if os.path.exists(formfac_file_4D_avg) and not args.o:
+                do_avg = False
+            if do_avg:
+                avg_files = True
+                for s0 in srcs[c]:
+                    params['SRC'] = s0
+                    formfac_name = c51.names['coherent_ff'] % params
+                    formfac_file = params['formfac'] +'/'+ formfac_name+'.h5'
+                    formfac_file_4D = formfac_file.replace('formfac_','formfac_4D_tslice_').replace('/formfac/','/formfac_4D_tslice/')
+                    if not os.path.exists(formfac_file_4D):
+                        avg_files = False
+                        if c not in missing_srcs: missing_srcs.append(c)
+                if avg_files:
+                    d_dir = params['prod']+'/'+args.data+'_4D_tslice/'+no
+                    average.source_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext, additional_file_patterns='dt'+str(t)+'_')
+                else:
+                    print('missing srcs on cfg = %d' %c)
+            else:
+                print('overwrite =',args.o,' and exists:',args.o,formfac_file_4D_avg.split('/')[-1])
 if len(missing_srcs) > 0:
     f = open('missing_srcs_'+args.data+'.lst','w')
     for c in missing_srcs:
