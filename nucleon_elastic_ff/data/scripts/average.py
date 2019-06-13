@@ -297,7 +297,9 @@ def source_average(  # pylint: disable=R0913, R0914
     file_patterns = [r".*\.h5$", "formfac_4D_tslice"]
     file_patterns += list(file_replace_pattern.keys())
     if additional_file_patterns is not None:
-        file_patterns += additional_file_patterns
+        file_patterns += additional_file_patterns.split()
+    print('file patterns')
+    print(file_patterns)
 
     files = find_all_files(
         root,
