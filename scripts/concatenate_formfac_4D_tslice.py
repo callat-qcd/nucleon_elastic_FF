@@ -98,6 +98,12 @@ if args.fout:
     fout_name = args.fout
 else:
     fout_name = ff_data_dir+'/formfac_'+ens_s+'_avg'+src_ext+'.h5'
+
+print('beginning concatenation:')
+print('    ',particles,flav_spin)
+print('    ',params['curr_4d'])
+print('    cfgs:',cfgs_run[0],'-',cfgs_run[-1])
+
 for corr in params['particles']:
     for fs in flav_spin:
         for tsep in params['t_seps']:
