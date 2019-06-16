@@ -34,6 +34,7 @@ print('ENSEMBLE:',ens_s)
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific current or currents? [A3 V4 ...]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
 parser.add_argument('--fout',type=str,help='name of output file')
@@ -100,7 +101,9 @@ else:
     fout_name = ff_data_dir+'/formfac_'+ens_s+'_avg'+src_ext+'.h5'
 
 print('beginning concatenation:')
-print('    ',particles,flav_spin)
+print('    ',params['particles'],flav_spin)
+if args.current != None:
+    params['curr_4d'] = args.current
 print('    ',params['curr_4d'])
 print('    cfgs:',cfgs_run[0],'-',cfgs_run[-1])
 
