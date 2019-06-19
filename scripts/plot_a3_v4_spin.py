@@ -6,6 +6,8 @@ np.set_printoptions(linewidth=180)
 ga_nature  = 1.236
 dga_nature = 0.011
 
+dt_plot = [7,10,14]
+
 def bs_corr(corr,Nbs,Mbs,seed=None,rescale=True,return_lst=False):
     corr_bs = np.zeros(tuple([Nbs]) + corr.shape[1:],dtype=corr.dtype)
     np.random.seed(seed) # if None - it does not seed - I checked 14 May 2013
@@ -34,15 +36,15 @@ def time_reverse(corr,phase=1,time_axis=1):
 plt.ion()
 
 fig1 = plt.figure(1,figsize=(12,4))
-ax1  = plt.axes([.08, .08, .9, .9])
+ax1  = plt.axes([.08, .13, .9, .85])
 
 h5_file = h5.open_file('avg_a3_v4_spin.h5','r')
-h5_spec = h5.open_file('a09m310_e_avg.h5','r')
+h5_spec = h5.open_file('../../../data/charges/a09m310_e_avg.h5','r')
 
-proton_pp  = 0.5 * h5_spec.get_node('/gf1p0_w3p5_n45_M51p1_L56_a1p5/spectrum/ml0p00951/proton/spin_up').read()[:,:,0,0]
-proton_pp += 0.5 * h5_spec.get_node('/gf1p0_w3p5_n45_M51p1_L56_a1p5/spectrum/ml0p00951/proton/spin_dn').read()[:,:,0,0]
-proton_np  = 0.5 * h5_spec.get_node('/gf1p0_w3p5_n45_M51p1_L56_a1p5/spectrum/ml0p00951/proton_np/spin_up').read()[:,:,0,0]
-proton_np += 0.5 * h5_spec.get_node('/gf1p0_w3p5_n45_M51p1_L56_a1p5/spectrum/ml0p00951/proton_np/spin_dn').read()[:,:,0,0]
+proton_pp  = 0.5 * h5_spec.get_node('/gf1p0_w3p5_n45_M51p1_L56_a1p5/spec/ml0p00951/proton/px0_py0_pz0/spin_up').read()[:,:,0,0]
+proton_pp += 0.5 * h5_spec.get_node('/gf1p0_w3p5_n45_M51p1_L56_a1p5/spec/ml0p00951/proton/px0_py0_pz0/spin_dn').read()[:,:,0,0]
+proton_np  = 0.5 * h5_spec.get_node('/gf1p0_w3p5_n45_M51p1_L56_a1p5/spec/ml0p00951/proton_np/px0_py0_pz0/spin_up').read()[:,:,0,0]
+proton_np += 0.5 * h5_spec.get_node('/gf1p0_w3p5_n45_M51p1_L56_a1p5/spec/ml0p00951/proton_np/px0_py0_pz0/spin_dn').read()[:,:,0,0]
 proton = 0.5 * (proton_pp + time_reverse(proton_np,phase=-1,time_axis=1))
 proton_bs = bs_corr(proton,784,784,seed=10)
 h5_spec.close()
@@ -78,29 +80,35 @@ for dt in [3,4,5,6,7,8,9,10,11,12,13,14]:
     x  = np.arange(96)[1:dt]-float(dt)/2
     y  = ((a3_u-a3_d).mean(axis=0)/(v4_u+v4_d).mean(axis=0))[1:dt]
     dy = (((a3_u_bs-a3_d_bs)/(v4_u_bs+v4_d_bs)).std(axis=0))[1:dt]
-    ax1.errorbar(x,y,yerr=dy,
-        linestyle='None',marker='s',mfc='None',label=r'$t_{sep}=%d$'%(dt))
+    if dt in dt_plot:
+        ax1.errorbar(x,y,yerr=dy,linestyle='None',marker='s',mfc='None',label=r'$t_{sep}=%d$'%(dt))
 
-    x   = np.arange(96)[1:dt]-float(dt)/2-0.1
+    x   = np.arange(96)[1:dt]-float(dt)/2-0.05
     y   = ((a3_u).mean(axis=0)/(v4_u).mean(axis=0))[1:dt]
     dyu = (((a3_u_bs)/(v4_u_bs)).std(axis=0))[1:dt]
-    ax1.errorbar(x,y,yerr=dy,color='k',
-        linestyle='None',marker='o',mfc='None',alpha=.3)
+    if dt in dt_plot:
+        ax1.errorbar(x,y,yerr=dy,color='k',linestyle='None',marker='o',mfc='None',alpha=.3)
 
-    print(dt,dyu/dy/np.sqrt(2))
+    var_ratio = dy * np.sqrt(2) / dyu
+    string = str(dt)
+    for i in var_ratio:
+        string += ' &%.2f' %i
+    string = string + '\\\\'
+    print(string)
+    #print(dt,dyu/dy/np.sqrt(2))
 
-    x  = np.arange(96)[1:dt]-float(dt)/2+0.1
+    x  = np.arange(96)[1:dt]-float(dt)/2+0.05
     y  = ((-a3_d).mean(axis=0)/(v4_d).mean(axis=0))[1:dt]
     dy = (((a3_d_bs)/(v4_d_bs)).std(axis=0))[1:dt]
-    ax1.errorbar(x,y,yerr=dy,color='k',
-        linestyle='None',marker='o',mfc='None',alpha=.3)
+    if dt in dt_plot:
+        ax1.errorbar(x,y,yerr=dy,color='k',linestyle='None',marker='o',mfc='None',alpha=.3)
 
 
 #ax1.fill_between(np.arange(-11,11.1,.1),ga_nature-dga_nature,ga_nature+dga_nature,color='k',alpha=.2)
 ax1.axis([-6.5,6.5,0.95,1.3])
-ax1.legend(loc=2,ncol=4)
+ax1.legend(loc=2,ncol=4,fontsize=16)
 ax1.set_xlabel(r'$\tau-t_{sep}/2$',fontsize=16)
-ax1.set_ylabel(r'$g_A/g_V$',fontsize=16)
+ax1.set_ylabel(r'$g_A/g_V$',fontsize=20)
 plt.savefig('../fh_vs_seq/figures/gA_gV_spin_a09m310_e.pdf',transparent=True)
 
 a3_sum_bs = bs_corr(a3_sum,784,784,seed=10)
