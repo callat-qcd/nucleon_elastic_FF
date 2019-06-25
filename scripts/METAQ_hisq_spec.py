@@ -119,6 +119,7 @@ for c in cfgs_run:
     cfg_file   = params['milc_cfg']
 
     if not os.path.exists(cfg_coul):
+        params['CLEANUP']   = ' '.join(sys.argv)
         cfg_in = '''
 reload_parallel %s
 u0 %s
@@ -129,6 +130,7 @@ save_parallel %s
         t0_lst = [t_srcs[0]]
 
     else:
+        params['CLEANUP']   = ''
         cfg_in = '''
 reload_parallel %s
 u0 %s
@@ -140,7 +142,8 @@ forget
 
     params.update({'CFG_INPUT':cfg_in})
 
-    for t in t_srcs:
+    #for t in t_srcs:
+    for t in t0_lst:
         t0 = str(t)
         if save_prop:
             params.update({
@@ -189,7 +192,7 @@ forget
                 params['INI']       = in_file
                 params['OUT']       = in_file.replace('.in','.out')
                 params['STDOUT']    = in_file.replace('.in','.stdout').replace('/xml/','/stdout/')
-                params['CLEANUP']   = ''
+                #params['CLEANUP']   = ''
                 mtype = args.mtype
                 try:
                     if params['metaq_split']:
@@ -241,7 +244,7 @@ forget
                     params['INI']       = in_file
                     params['OUT']       = in_file.replace('.in','.out')
                     params['STDOUT']    = in_file.replace('.in','.stdout').replace('/xml/','/stdout/')
-                    params['CLEANUP']   = ''
+                    #params['CLEANUP']   = ''
                     scheduler.make_task(metaq,args.mtype,params,folder=q)
 
                 else:
