@@ -47,6 +47,17 @@ dtype = np.float64
 data_dir = c51.data_dir % params
 utils.ensure_dirExists(data_dir)
 
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -71,14 +82,18 @@ for cfg in cfgs_run:
         t_src = int(src.split('t')[1])
         mq = params['MQ'].replace('.','p')
         f_good = False
-        if os.path.getsize(prop_xml) > 0:
-            with open(prop_xml) as f:
-                data = f.readlines()
-                if data[-1] == '</propagator>':
-                    f_good = True
+        if os.path.exists(prop_xml):
+            if os.path.getsize(prop_xml) > 0:
+                with open(prop_xml) as f:
+                    data = f.readlines()
+                    if data[-1] == '</propagator>':
+                        f_good = True
+                    else:
+                        shutil.move(prop_xml,params['corrupt']+'/'+prop_xml.split('/')[-1])
+        else:
+            f_good = False
         if not f_good:
             print('    corrupt:',prop_xml)
-            shutil.move(prop_xml,params['corrupt']+'/'+prop_xml.split('/')[-1])
         else:
             f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
             mpdir   = '/'+val_p+'/dwf_jmu/mq'+mq+'/midpoint_pseudo'

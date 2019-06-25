@@ -14,6 +14,7 @@ def src_start_stop(params,ens,stream):
     params['si'] = 0
     params['sf'] = 7
     params['ds'] = 1
+    #print('debug',ens,stream)
     # ensembles with modified src start/stop info
     if ens == 'a15m135XL':
         if any(host in hn for host in ['lassen']):
@@ -23,11 +24,11 @@ def src_start_stop(params,ens,stream):
                 print('lassen is not running stream %s now with srcs 0-7 x 1' %stream)
                 sys.exit()
         elif any(host in hn for host in ['login','batch']):
-            if stream in ['b','c','d']:
+            if stream in ['b','c','d','e']:
                 params['si'] = 16
                 params['sf'] = 23
                 params['ds'] = 1
-            elif stream in ['e']:
+            elif stream in ['s']:
                 params['si'] = 0
                 params['sf'] = 7
                 params['ds'] = 1
