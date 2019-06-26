@@ -75,7 +75,7 @@ save_prop             = params['save_hisq_prop']
 params['NODES']       = params['hisq_nodes']
 params['METAQ_NODES'] = params['hisq_metaq_nodes']
 params['METAQ_GPUS']  = params['hisq_gpus']
-params['WALL_TIME']   = params['hisq_time']
+params['WALL_TIME']   = params['hisq_coul_spec']
 params['ENS_DIR']     = c51.ens_dir % params
 params['SCRIPT_DIR']  = c51.script_dir
 params['MAXCUS']      = params['hisq_maxcus']
@@ -119,7 +119,9 @@ for c in cfgs_run:
     cfg_file   = params['milc_cfg']
 
     if not os.path.exists(cfg_coul):
-        params['CLEANUP']   = ' '.join(sys.argv)
+        params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
+        params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_hisq_spec.py '
+        params['CLEANUP']  += params['CFG']+' '+params['PRIORITY']+'\n'
         cfg_in = '''
 reload_parallel %s
 u0 %s
@@ -130,6 +132,7 @@ save_parallel %s
         t0_lst = [t_srcs[0]]
 
     else:
+        params['WALL_TIME'] = params['hisq_spec']
         params['CLEANUP']   = ''
         cfg_in = '''
 reload_parallel %s
