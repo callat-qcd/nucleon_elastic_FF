@@ -18,7 +18,7 @@ def src_start_stop(params,ens,stream):
     # ensembles with modified src start/stop info
     if ens == 'a15m135XL':
         if any(host in hn for host in ['lassen']):
-            if stream in ['b','c']:
+            if stream in ['b','c','d']:
                 pass
             else:
                 print('lassen is not running stream %s now with srcs 0-7 x 1' %stream)
