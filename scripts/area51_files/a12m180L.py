@@ -49,6 +49,10 @@ params['SP_EXTENSION'] = 'lime'
 
 params['seed'] = dict()
 params['seed']['a'] = '1a'
+params['seed']['b'] = '1b'
+params['seed']['c'] = '1c'
+params['seed']['d'] = '1d'
+params['seed']['e'] = '1e'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
 params['t_shifts'] = [ 0, 32  , 16  , 48     ]
 params['generator'] = sources.oa(int(params['NL']))

@@ -60,6 +60,7 @@ if 'si' in params and 'sf' in params and 'ds' in params:
 else:
     params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+src_ext = "%d-%d" %(params['si'],params['sf'])
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
@@ -92,7 +93,7 @@ for cfg in cfgs_run:
     params['CFG'] = no
     params = c51.ensemble(params)
     for tsep in params['t_seps']:
-        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
+        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
         params['T_SEP'] = tsep
         files = []
         params['N_SEQ'] = len(srcs[cfg])

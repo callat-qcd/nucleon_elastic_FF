@@ -9,10 +9,6 @@ params['run_ff'] = True
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
 
-params['cfg_i'] = 300
-params['cfg_f'] = 5295
-params['cfg_d'] = 5
-
 params['NL']   = '24'
 params['NT']   = '48'
 params['U0']   = '0.85535'
