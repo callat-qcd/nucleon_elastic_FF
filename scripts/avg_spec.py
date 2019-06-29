@@ -35,6 +35,7 @@ parser = argparse.ArgumentParser(description='average phi_qq')
 parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--srcs',type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
 parser.add_argument('--fout',type=str,help='name of output file')
 args = parser.parse_args()
 print('Arguments passed')
@@ -48,17 +49,15 @@ data_avg_dir = data_dir+'/avg'
 utils.ensure_dirExists(data_avg_dir)
 
 if args.fout == None:
-    f_out = data_avg_dir+'/'+ens_s+'_avg.h5'
+    if args.srcs == None:
+        f_out = data_avg_dir+'/'+ens_s+'_avg.h5'
+    else:
+        f_out = data_avg_dir+'/'+ens_s+'_avg_'+args.srcs+'.h5'
 else:
     f_out = args.fout
 
-fin_files = glob(data_dir+'/'+ens_s+'_*.h5')
 if args.cfgs == None:
-    cfgs = []
-    for f in fin_files:
-        cfg = f.split('_')[-1].split('.')[0]
-        cfgs.append(int(cfg))
-    cfgs.sort()
+    cfgs = range(params['cfg_i'],params['cfg_f']+params['cfg_d'],params['cfg_d'])
 else:
     cfgs = utils.parse_cfg_argument(args.cfgs,params)
 
@@ -86,8 +85,12 @@ for mom in p_lst:
         no = str(cfg)
         good_cfg = False
         f_open = False
-        if os.path.exists(data_dir+'/'+ens_s+'_'+no+'.h5'):
-            fin = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','r')
+        if args.srcs == None:
+            file_in = data_dir+'/'+ens_s+'_'+no+'.h5'
+        else:
+            file_in = data_dir+'/'+ens_s+'_'+no+'_'+args.srcs+'.h5'
+        if os.path.exists(file_in):
+            fin = h5.open_file(file_in,'r')
             f_open = True
             try:
                 srcs = fin.get_node('/'+val_p+'/spec/'+mqs+'/'+corr+'/'+mom)
@@ -155,8 +158,12 @@ for corr in par:
             for cfg in cfgs:
                 no = str(cfg)
                 good_cfg = False
-                if os.path.exists(data_dir+'/'+ens_s+'_'+no+'.h5'):
-                    fin = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5')
+                if args.srcs == None:
+                    file_in = data_dir+'/'+ens_s+'_'+no+'.h5'
+                else:
+                    file_in = data_dir+'/'+ens_s+'_'+no+'_'+args.srcs+'.h5'
+                if os.path.exists(file_in):
+                    fin = h5.open_file(file_in,'r')
                     try:
                         srcs = fin.get_node('/'+val_p+'/spec/'+mqs+'/'+corr+'/'+s+'/'+mom)
                         if srcs._v_nchildren > 0:
