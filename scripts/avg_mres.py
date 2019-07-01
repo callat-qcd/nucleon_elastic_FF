@@ -89,7 +89,7 @@ for mq in mq_list:
                 if mp_srcs._v_nchildren > 0 and pp_srcs._v_nchildren > 0:
                     good_cfg = True
             except:
-                print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
+                print('ERROR reading ',file_in)
         if good_cfg:
             ns = 0
             mp_tmp = []
