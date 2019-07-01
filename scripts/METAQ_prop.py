@@ -50,6 +50,17 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 
 if args.p:
@@ -87,6 +98,7 @@ params['A_RS']        = params['gpu_a_rs']
 params['G_RS']        = params['gpu_g_rs']
 params['C_RS']        = params['gpu_c_rs']
 params['L_GPU_CPU']   = params['gpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 for c in cfgs_run:
     no = str(c)

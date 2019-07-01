@@ -47,7 +47,19 @@ dtype = np.complex64
 data_dir = c51.data_dir % params
 utils.ensure_dirExists(data_dir)
 
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+src_ext = "%d-%d" %(params['si'],params['sf'])
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
@@ -79,7 +91,7 @@ for cfg in cfgs_run:
         src_split = sources.src_split(src)
         t_src = int(src.split('t')[1])
         mq = params['MQ'].replace('.','p')
-        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
+        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
         spec_dir = '/'+val_p+'/spec/ml'+mq
         try:
             f5.create_group(spec_dir,'piplus',createparents=True)

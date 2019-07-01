@@ -46,6 +46,17 @@ dtype = np.complex64
 data_dir = c51.data_dir_4d % params
 utils.ensure_dirExists(data_dir)
 
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
 src_ext = "%d-%d" %(params['si'],params['sf'])
@@ -68,7 +79,7 @@ par = ['proton','proton_np']
 if args.fout:
     fout_name = args.fout
 else:
-    fout_name = data_dir+'/spec_4D_'+ens_s+'_avg'+src_ext+'.h5'
+    fout_name = data_dir+'/spec_4D_'+ens_s+'_tslice_avg'+src_ext+'.h5'
 print('out file')
 print(fout_name)
 for corr in params['particles']:
@@ -80,6 +91,7 @@ for corr in params['particles']:
     except:
         pass
     h5_out_path = h5_root_path+'/'+corr
+    fin_path = '/sh/'+corr+'/spin_avg/4D_correlator/src_avg'
     get_data = True
     if '4D_correlator' in f5_out.get_node(h5_out_path) and not args.o:
         get_data = False

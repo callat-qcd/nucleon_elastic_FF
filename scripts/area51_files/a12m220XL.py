@@ -15,8 +15,8 @@ params['U0']   = '0.86372'
 params['MS_L'] = '0.00507'
 params['MS_S'] = '0.0507'
 params['MS_C'] = '0.628'
-params['cfg_i'] = 300
-params['cfg_f'] = 5295
+params['cfg_i'] = 200
+params['cfg_f'] = 5195
 params['cfg_d'] = 5
 
 params['FLOW_TIME'] = '1.0'
@@ -34,8 +34,8 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.00600'
 params['MV_S'] = '0.0693'
 
-params['spec_size'] = 200000
-params['ff_size']   = 429000
+params['spec_size'] = 1
+params['ff_size']   = 1
 
 params['MAX_ITER']   = '8000'
 params['RSD_TARGET'] = '1.e-7'
@@ -57,14 +57,13 @@ params['MESONS_PSQ_MAX']  = 5
 params['BARYONS_PSQ_MAX'] = 0
 
 params['run_3pt'] = True
-params['t_seps']  = [3,4,5,6,7,8,9,10,11,12,13]
+params['t_seps']  = [3,4,5,6,7,8,9,10,11,12]
 params['flavs']   = ['UU','DD']
 params['spins']   = ['up_up','dn_dn']
 params['snk_mom'] = ['0 0 0']
 params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
 params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
-#params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['A3','V4','A1','A2','A4','V1','V2','V3','S','T34','T12','CHROMO_MAG']
 
 ''' SCHEDULING PARAMETERS '''
@@ -114,7 +113,7 @@ def mpirun_params(machine):
         params['cpu_nodes']   = 1
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
-        params['gflow_time']  = 15
+        params['gflow_time']  = 9
         params['src_time']    = 5
         params['spec_time']   = 10
 
@@ -130,8 +129,8 @@ def mpirun_params(machine):
         params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 6
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 24
-        params['seqprop_time']   = 15
+        params['prop_time']   = 33
+        params['seqprop_time']   = 20
 
         params['gpu_nrs']     = '--nrs 1'
         params['gpu_rs_node'] = '-r1'

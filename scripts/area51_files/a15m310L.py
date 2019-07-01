@@ -6,13 +6,8 @@ params['ENS_ABBR'] = 'a15m310L'
 params['tuning_mq'] = False
 params['run_ff'] = True
 
-params['si'] = 0
-params['sf'] = 7
-params['ds'] = 1
-
-params['cfg_i'] = 300
-params['cfg_f'] = 5295
-params['cfg_d'] = 5
+# the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
+# you must specify all three of these params to override the default
 
 params['NL']   = '24'
 params['NT']   = '48'

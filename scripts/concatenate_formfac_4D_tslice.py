@@ -34,6 +34,7 @@ print('ENSEMBLE:',ens_s)
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific current or currents? [A3 V4 ...]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
 parser.add_argument('--fout',type=str,help='name of output file')
@@ -46,6 +47,17 @@ dtype = np.complex64
 ff_data_dir = c51.data_dir_4d % params
 utils.ensure_dirExists(ff_data_dir)
 
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
 src_ext = "%d-%d" %(params['si'],params['sf'])
@@ -87,6 +99,14 @@ if args.fout:
     fout_name = args.fout
 else:
     fout_name = ff_data_dir+'/formfac_'+ens_s+'_avg'+src_ext+'.h5'
+
+print('beginning concatenation:')
+print('    ',params['particles'],flav_spin)
+if args.current != None:
+    params['curr_4d'] = args.current
+print('    ',params['curr_4d'])
+print('    cfgs:',cfgs_run[0],'-',cfgs_run[-1])
+
 for corr in params['particles']:
     for fs in flav_spin:
         for tsep in params['t_seps']:

@@ -43,6 +43,17 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
 
 nt = int(params['NT'])
