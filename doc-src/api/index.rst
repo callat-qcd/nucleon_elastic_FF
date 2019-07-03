@@ -7,3 +7,4 @@ API Reference
 
    *
    data/index
+   data_management/index
