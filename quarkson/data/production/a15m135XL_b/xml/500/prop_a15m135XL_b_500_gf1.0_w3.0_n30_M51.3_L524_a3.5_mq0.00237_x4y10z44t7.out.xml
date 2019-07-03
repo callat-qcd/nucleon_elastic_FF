@@ -1,0 +1,244 @@
+<?xml version="1.0"?>
+
+
+<propagator>
+  <update_no>0</update_no>
+  <ProgramInfo>
+    <code_version>
+      <chroma>3.43.0</chroma>
+      <qdp>1.44.0</qdp>
+      <basePrecision>64</basePrecision>
+    </code_version>
+    <run_date>30 Jun 19 22:31:18 EDT</run_date>
+    <Setgeom>
+      <latt_size>48 48 48 64</latt_size>
+      <logical_size>1 1 3 4</logical_size>
+      <subgrid_size>48 48 16 16</subgrid_size>
+      <total_volume>7077888</total_volume>
+      <subgrid_volume>589824</subgrid_volume>
+    </Setgeom>
+  </ProgramInfo>
+  <Input>
+    <Param>
+      <version>9</version>
+      <quarkSpinType>FULL</quarkSpinType>
+      <obsvP>true</obsvP><FermionAction>
+      <FermAct>NEF</FermAct>
+      <OverMass>1.3</OverMass>
+      <N5>24</N5>
+      <b5>2.25</b5>
+      <c5>1.25</c5>
+      <Mass>0.00237</Mass>
+      <FermionBC>
+        <FermBC>SIMPLE_FERMBC</FermBC>
+        <boundary>1 1 1 -1</boundary>
+      </FermionBC>
+    </FermionAction>
+<InvertParam>
+      <invType>QUDA_NEF_INVERTER</invType>
+      <DoCGNR>true</DoCGNR>
+      <MaxIter>17000</MaxIter>
+      <RsdTarget>1.e-7</RsdTarget>
+      <Delta>0.1</Delta>
+      <RsdToleranceFactor>80</RsdToleranceFactor>
+      <MaxResIncrease>1</MaxResIncrease>
+      <SolverType>CG</SolverType>
+      <Verbose>false</Verbose>
+      <AsymmetricLinop>false</AsymmetricLinop>
+      <CudaReconstruct>RECONS_NONE</CudaReconstruct>
+      <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+      <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+      <AxialGaugeFix>false</AxialGaugeFix>
+      <AutotuneDslash>true</AutotuneDslash>
+      <NEFParams>
+        <OverMass>1.3</OverMass>
+        <N5>24</N5>
+        <b5>2.25</b5>
+        <c5>1.25</c5>
+        <Mass>0.00237</Mass>
+        <clovCoeff>0</clovCoeff>
+      </NEFParams>
+      <AntiPeriodicT>true</AntiPeriodicT>
+    </InvertParam>
+</Param>
+    <NamedObject>
+      <gauge_id>default_gauge_field</gauge_id>
+      <source_id>src_a15m135XL_b_500_gf1.0_w3.0_n30_x4y10z44t7</source_id>
+      <prop_id>prop_a15m135XL_b_500_gf1.0_w3.0_n30_M51.3_L524_a3.5_mq0.00237_x4y10z44t7</prop_id>
+    </NamedObject>
+  </Input>
+  <Config_info><usqcdInfo>
+      <version>1.0</version>
+      <plaq>5.355423e-01</plaq>
+      <linktr>-5.415385e-05</linktr>
+      <info>gauge.previous.filename = cfgs/l4864f211b580m002426m06730m8447b.500
+gauge.previous.time_stamp = Thu Nov 15 15:13:33 2018
+</info>
+    </usqcdInfo>
+
+
+
+  </Config_info>
+  <Output_version>
+    <out_version>1</out_version>
+  </Output_version>
+  <Observables>
+    <w_plaq>0.989792081393359</w_plaq>
+    <s_plaq>0.989800304155386</s_plaq>
+    <t_plaq>0.989783858631333</t_plaq>
+    <plane_01_plaq>0.989796948483645</plane_01_plaq>
+    <plane_02_plaq>0.989796829083575</plane_02_plaq>
+    <plane_12_plaq>0.989807134898938</plane_12_plaq>
+    <plane_03_plaq>0.989782961789814</plane_03_plaq>
+    <plane_13_plaq>0.989784554368169</plane_13_plaq>
+    <plane_23_plaq>0.989784059736016</plane_23_plaq>
+    <link>-5.24578454836344e-05</link>
+    <pollp>
+      <elem>
+        <re>0.000844947361087155</re>
+        <im>-0.00106431272272719</im>
+      </elem>
+      <elem>
+        <re>0.000428394702470688</re>
+        <im>0.00015848624491361</im>
+      </elem>
+      <elem>
+        <re>0.000528529718007061</re>
+        <im>-0.00103437221538074</im>
+      </elem>
+      <elem>
+        <re>0.00121415745487904</re>
+        <im>0.000293496032490276</im>
+      </elem>
+    </pollp>
+  </Observables>
+  <Source_file_info><make_source>
+      <id>620406197</id>
+    </make_source>
+
+  </Source_file_info>
+  <Source_record_info><MakeSource>
+      <version>1</version>
+      <PropSource>
+        <version>6</version>
+        <Source>
+          <version>1</version>
+          <SourceType>SHELL_SOURCE</SourceType>
+          <j_decay>3</j_decay>
+          <t_srce>4 10 44 7</t_srce>
+          <SmearingParam>
+            <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+            <wvf_param>3.0</wvf_param>
+            <wvfIntPar>30</wvfIntPar>
+            <no_smear_dir>3</no_smear_dir>
+          </SmearingParam>
+        </Source>
+        <j_decay>3</j_decay>
+        <t_source>7</t_source>
+      </PropSource>
+      <Config_info>
+        <usqcdInfo>
+          <version>1.0</version>
+          <plaq>5.355423e-01</plaq>
+          <linktr>-5.415385e-05</linktr>
+          <info>gauge.previous.filename = cfgs/l4864f211b580m002426m06730m8447b.500
+gauge.previous.time_stamp = Thu Nov 15 15:13:33 2018
+</info>
+        </usqcdInfo>
+      </Config_info>
+    </MakeSource>
+
+  </Source_record_info>
+  <Source_correlator>
+    <source_corr>0 0 0 0 0 0 0 0.0257726184158002 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0</source_corr>
+  </Source_correlator>
+  <DWF_QuarkProp4>
+    <Qprop>
+      <color_source>0</color_source>
+      <spin_source>0</spin_source>
+      <n_count>11187</n_count>
+      <resid>5.07963152112399e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>0</color_source>
+      <spin_source>1</spin_source>
+      <n_count>10755</n_count>
+      <resid>4.87569647148753e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>0</color_source>
+      <spin_source>2</spin_source>
+      <n_count>12367</n_count>
+      <resid>4.70841606086759e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>0</color_source>
+      <spin_source>3</spin_source>
+      <n_count>11313</n_count>
+      <resid>5.57433101374691e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>1</color_source>
+      <spin_source>0</spin_source>
+      <n_count>10994</n_count>
+      <resid>5.36990547063348e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>1</color_source>
+      <spin_source>1</spin_source>
+      <n_count>10620</n_count>
+      <resid>5.09933728396288e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>1</color_source>
+      <spin_source>2</spin_source>
+      <n_count>11407</n_count>
+      <resid>4.5687901931686e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>1</color_source>
+      <spin_source>3</spin_source>
+      <n_count>12410</n_count>
+      <resid>4.24438204428437e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>2</color_source>
+      <spin_source>0</spin_source>
+      <n_count>10411</n_count>
+      <resid>4.89844308930548e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>2</color_source>
+      <spin_source>1</spin_source>
+      <n_count>11241</n_count>
+      <resid>4.61271743952216e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>2</color_source>
+      <spin_source>2</spin_source>
+      <n_count>11547</n_count>
+      <resid>4.56673106739443e-06</resid>
+    </Qprop>
+    <Qprop>
+      <color_source>2</color_source>
+      <spin_source>3</spin_source>
+      <n_count>12313</n_count>
+      <resid>3.92227650102464e-06</resid>
+    </Qprop>
+    <time_direction>
+      <t_dir>3</t_dir>
+    </time_direction>
+    <DWF_MidPoint_Pseudo>
+      <mesprop>3.78595882094448e-06 1.14762549960879e-05 9.46038527472565e-06 2.99416678482343e-06 1.50857139247358e-06 3.17003995181735e-06 4.62773621883368e-06 3.77277403927595e-06 8.07745250773774e-06 1.2052610325048e-05 6.14593804973334e-06 4.17089580808476e-06 3.75662740463275e-06 8.16536277676121e-06 5.77671969714115e-06 1.16710561904983e-06 2.82994021821817e-07 2.18885998775384e-07 9.32127328088735e-07 1.41310852564136e-06 9.36613034256103e-07 6.38201096697777e-07 3.6726185938691e-07 9.30143705009483e-07 7.33828924452982e-07 4.78695670459629e-07 4.96204478949444e-07 4.28010157506419e-07 7.16281787417488e-07 7.13041804451291e-07 6.00348479380993e-07 5.46027967640862e-07 3.44904799041446e-07 1.46624447133549e-07 2.72642222050891e-07 1.29346516874013e-06 1.57594612181616e-06 6.14348342880115e-07 1.75809497681995e-07 2.92657052368803e-07 4.85628423466867e-07 3.91580037702725e-07 7.58208127861454e-07 1.25983380179769e-06 1.40676670056223e-06 9.06808752969238e-07 9.49261327125892e-07 1.09496757756706e-06 5.90683366568292e-07 4.74716535195834e-07 1.13708660842483e-06 8.63271002150595e-07 1.16382296863442e-06 2.7140586305719e-06 2.45444847548962e-06 2.1550718841864e-06 1.67895351941488e-06 6.21203253101993e-07 2.18292563180343e-06 2.69045569397601e-06 2.11004430639432e-06 1.78209477636563e-06 3.48381205794775e-06 3.69269514643933e-06</mesprop>
+    </DWF_MidPoint_Pseudo>
+    <DWF_Psuedo_Pseudo>
+      <mesprop>0.0286799542380451 0.0304981631418789 0.0274677646343272 0.0252259815906454 0.0265775142098075 0.0241170166445393 0.018091756970502 0.0156773718045988 0.0144188532856393 0.0133280044706164 0.0125935173113818 0.0120208983199493 0.0105445703719784 0.0088605467219233 0.00767789497723065 0.00726497254098399 0.0070916398843471 0.00648496652895215 0.00598118041422516 0.00538690633036739 0.00469967941238972 0.0042664459665093 0.00390320109745361 0.00357245474220787 0.00339453227990549 0.00325346248911589 0.00311549422868109 0.00287994243609512 0.002732713705792 0.00252078719929853 0.00230589644906102 0.00225517354029995 0.0022184329052942 0.00218472874778643 0.00218471506177194 0.00228173571643087 0.00235720253208885 0.00246800653419044 0.00258676358905885 0.00274065766665008 0.00299634469941431 0.00337750509717064 0.00383916592840728 0.00414289679429459 0.00438219738647764 0.00431092706620539 0.00430749696190622 0.00467686905880538 0.00511371807473796 0.00561788438133573 0.00598787642745524 0.00630090076479752 0.00675837135792181 0.00776080788751865 0.00876088579493075 0.00942050220755889 0.00994637036978766 0.0107635835930034 0.0126472092379913 0.0156578989689231 0.0179158260712188 0.0191796466371628 0.0209846891185284 0.0261076249142949</mesprop>
+    </DWF_Psuedo_Pseudo>
+  </DWF_QuarkProp4>
+  <Relaxation_Iterations>
+    <ncg_had>136565</ncg_had>
+  </Relaxation_Iterations>
+  <Prop_correlator>
+    <prop_corr>0.0107635835930034 0.0126472092379913 0.0156578989689231 0.0179158260712188 0.0191796466371628 0.0209846891185284 0.0261076249142949 0.0286799542380451 0.0304981631418789 0.0274677646343272 0.0252259815906454 0.0265775142098075 0.0241170166445393 0.018091756970502 0.0156773718045988 0.0144188532856393 0.0133280044706164 0.0125935173113818 0.0120208983199493 0.0105445703719784 0.0088605467219233 0.00767789497723065 0.00726497254098399 0.0070916398843471 0.00648496652895215 0.00598118041422516 0.00538690633036739 0.00469967941238972 0.0042664459665093 0.00390320109745361 0.00357245474220787 0.00339453227990549 0.00325346248911589 0.00311549422868109 0.00287994243609512 0.002732713705792 0.00252078719929853 0.00230589644906102 0.00225517354029995 0.0022184329052942 0.00218472874778643 0.00218471506177194 0.00228173571643087 0.00235720253208885 0.00246800653419044 0.00258676358905885 0.00274065766665008 0.00299634469941431 0.00337750509717064 0.00383916592840728 0.00414289679429459 0.00438219738647764 0.00431092706620539 0.00430749696190622 0.00467686905880538 0.00511371807473796 0.00561788438133573 0.00598787642745524 0.00630090076479752 0.00675837135792181 0.00776080788751865 0.00876088579493075 0.00942050220755889 0.00994637036978766</prop_corr>
+  </Prop_correlator>
+</propagator>

@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+
+
+<lalibe>
+  <Input><lalibe>
+<Param>
+  <InlineMeasurements>
+
+<elem>
+<Name>QIO_READ_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>src_a15m135XL_b_500_gf1.0_w3.0_n30_x32y38z28t59</object_id>
+  <object_type>LatticePropagator</object_type>
+</NamedObject>
+<File>
+  <file_name>/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/a15m135XL_b/src/src_a15m135XL_b_500_gf1.0_w3.0_n30_x32y38z28t59.lime</file_name>
+  <file_volfmt>SINGLEFILE</file_volfmt>
+  <parallel_io>true</parallel_io>
+</File>
+</elem>
+
+<elem>
+<Name>PROPAGATOR</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>10</version>
+<quarkSpinType>FULL</quarkSpinType>
+<obsvP>true</obsvP>
+<numRetries>1</numRetries>
+<FermionAction>
+<FermAct>NEF</FermAct>
+  <OverMass>1.3</OverMass>
+  <N5>24</N5>
+  <b5>2.25</b5>
+  <c5>1.25</c5>
+  <Mass>0.00237</Mass>
+  <FermionBC>
+    <FermBC>SIMPLE_FERMBC</FermBC>
+    <boundary>1 1 1 -1</boundary>
+  </FermionBC>
+</FermionAction>
+<InvertParam>
+<invType>QUDA_NEF_INVERTER</invType>
+<DoCGNR>true</DoCGNR>
+<MaxIter>17000</MaxIter>
+<RsdTarget>1.e-7</RsdTarget>
+<Delta>0.1</Delta>
+<RsdToleranceFactor>80</RsdToleranceFactor>
+<MaxResIncrease>1</MaxResIncrease>
+<SolverType>CG</SolverType>
+<Verbose>false</Verbose>
+<AsymmetricLinop>false</AsymmetricLinop>
+<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+<CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+<AxialGaugeFix>false</AxialGaugeFix>
+<AutotuneDslash>true</AutotuneDslash>
+<NEFParams>
+  <OverMass>1.3</OverMass>
+  <N5>24</N5>
+  <b5>2.25</b5>
+  <c5>1.25</c5>
+  <Mass>0.00237</Mass>
+  <clovCoeff>0</clovCoeff>
+</NEFParams>
+<AntiPeriodicT>true</AntiPeriodicT>
+</InvertParam>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <source_id>src_a15m135XL_b_500_gf1.0_w3.0_n30_x32y38z28t59</source_id>
+  <prop_id>prop_a15m135XL_b_500_gf1.0_w3.0_n30_M51.3_L524_a3.5_mq0.00237_x32y38z28t59</prop_id>
+</NamedObject>
+<xml_file>/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/a15m135XL_b/xml/500/prop_a15m135XL_b_500_gf1.0_w3.0_n30_M51.3_L524_a3.5_mq0.00237_x32y38z28t59.out.xml</xml_file>
+</elem>
+
+<elem>
+<Name>QIO_WRITE_NAMED_OBJECT</Name>
+<Frequency>1</Frequency>
+<NamedObject>
+  <object_id>prop_a15m135XL_b_500_gf1.0_w3.0_n30_M51.3_L524_a3.5_mq0.00237_x32y38z28t59</object_id>
+  <object_type>LatticePropagatorF</object_type>
+</NamedObject>
+<File>
+  <file_name>/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/a15m135XL_b/prop/500/prop_a15m135XL_b_500_gf1.0_w3.0_n30_M51.3_L524_a3.5_mq0.00237_x32y38z28t59.lime</file_name>
+  <file_volfmt>SINGLEFILE</file_volfmt>
+  <parallel_io>true</parallel_io>
+</File>
+</elem>
+
+
+  </InlineMeasurements>
+   <nrow>48 48 48 64</nrow>
+</Param>
+
+<Cfg>
+ <cfg_type>SCIDAC</cfg_type>
+ <cfg_file>/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/a15m135XL_b/cfgs_flow/l4864f211b580m002426m06730m8447b.500_wflow1.0.lime</cfg_file>
+  <parallel_io>true</parallel_io>
+</Cfg>
+</lalibe>
+
+  </Input>
+  <ProgramInfo>
+    <code_version>
+      <chroma>3.43.0</chroma>
+      <qdp>1.44.0</qdp>
+      <basePrecision>64</basePrecision>
+    </code_version>
+    <run_date>28 Jun 19 19:42:27 EDT</run_date>
+    <Setgeom>
+      <latt_size>48 48 48 64</latt_size>
+      <logical_size>1 1 3 4</logical_size>
+      <subgrid_size>48 48 16 16</subgrid_size>
+      <total_volume>7077888</total_volume>
+      <subgrid_volume>589824</subgrid_volume>
+    </Setgeom>
+  </ProgramInfo>
+  <RNG>
+    <Seed>
+      <elem>11</elem>
+      <elem>0</elem>
+      <elem>0</elem>
+      <elem>0</elem>
+    </Seed>
+  </RNG>
+  <Config_info><usqcdInfo>
+      <version>1.0</version>
+      <plaq>5.355423e-01</plaq>
+      <linktr>-5.415385e-05</linktr>
+      <info>gauge.previous.filename = cfgs/l4864f211b580m002426m06730m8447b.500
+gauge.previous.time_stamp = Thu Nov 15 15:13:33 2018
+</info>
+    </usqcdInfo>
+
+  </Config_info>
+  <Observables>
+    <w_plaq>0.989792081393359</w_plaq>
+    <s_plaq>0.989800304155386</s_plaq>
+    <t_plaq>0.989783858631333</t_plaq>
+    <plane_01_plaq>0.989796948483645</plane_01_plaq>
+    <plane_02_plaq>0.989796829083575</plane_02_plaq>
+    <plane_12_plaq>0.989807134898938</plane_12_plaq>
+    <plane_03_plaq>0.989782961789814</plane_03_plaq>
+    <plane_13_plaq>0.989784554368169</plane_13_plaq>
+    <plane_23_plaq>0.989784059736016</plane_23_plaq>
+    <link>-5.24578454836344e-05</link>
+    <pollp>
+      <elem>
+        <re>0.000844947361087155</re>
+        <im>-0.00106431272272719</im>
+      </elem>
+      <elem>
+        <re>0.000428394702470688</re>
+        <im>0.00015848624491361</im>
+      </elem>
+      <elem>
+        <re>0.000528529718007061</re>
+        <im>-0.00103437221538074</im>
+      </elem>
+      <elem>
+        <re>0.00121415745487905</re>
+        <im>0.000293496032490276</im>
+      </elem>
+    </pollp>
+  </Observables>
+  <InlineObservables>
+    <elem>
+      <qio_read_named_obj>
+        <update_no>0</update_no>
+        <object_id>src_a15m135XL_b_500_gf1.0_w3.0_n30_x32y38z28t59</object_id>
+      </qio_read_named_obj>
+    </elem>
+    <elem>
+      <propagator>
+        <update_no>0</update_no>
+        <xml_file>/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/a15m135XL_b/xml/500/prop_a15m135XL_b_500_gf1.0_w3.0_n30_M51.3_L524_a3.5_mq0.00237_x32y38z28t59.out.xml</xml_file>
+      </propagator>
+    </elem>
+    <elem>
+      <qio_write_named_obj>
+        <update_no>0</update_no>
+        <object_id>prop_a15m135XL_b_500_gf1.0_w3.0_n30_M51.3_L524_a3.5_mq0.00237_x32y38z28t59</object_id>
+      </qio_write_named_obj>
+    </elem>
+  </InlineObservables>
+</lalibe>
