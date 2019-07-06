@@ -187,6 +187,8 @@ for c in cfgs_run:
                                     params['CLEANUP'] += 'python '+params['SCRIPT_DIR']+'/METAQ_seqsource.py '
                                     params['CLEANUP'] += params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
                                 params['CLEANUP']  += 'sleep 5'
+                            else:
+                                params['CLEANUP']  = ''
                             mtype = args.mtype
                             try:
                                 if params['metaq_split']:

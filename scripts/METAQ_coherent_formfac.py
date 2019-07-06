@@ -285,6 +285,7 @@ for c in cfgs_run:
                                     scheduler.make_task(metaq,mtype,params,folder=q)
                                 else:
                                     print('MISSING prop',prop_file)
+                                    os.system('python %s/METAQ_prop.py %s %s -v' %(params['SCRIPT_DIR'],c,params['PRIORITY']))
                             else:
                                 if args.verbose:
                                     print('  task exists:',metaq)
