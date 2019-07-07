@@ -4,7 +4,7 @@ params = dict()
 params['tuning_mq'] = True
 params['run_ff'] = True
 
-#l3264f211b600m00717m0507m628a
+#l4896f211b630m0052m0363m430a
 params['ENS_ABBR'] = 'a09m260'
 params['ENS_LONG'] = 'l4896f211b630m0052m0363m430'
 params['NL']   = '48'
@@ -17,7 +17,7 @@ params['naik'] = ''
 params['save_hisq_prop'] = False
 params['cfg_i'] = 6    #*
 params['cfg_f'] = 3902   #*
-params['cfg_d'] = 6
+params['cfg_d'] = 2
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
@@ -159,6 +159,8 @@ def mpirun_params(machine):
         params['hisq_metaq_nodes'] = 0
         params['hisq_gpus']   = 6
         params['hisq_time']   = 16
+        params['hisq_coul_spec'] = 16
+        params['hisq_spec']   = 3
         params['hisq_maxcus'] = 1
 
         params['hisq_nrs']     = '--nrs 1'
