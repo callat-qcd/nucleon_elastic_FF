@@ -16,28 +16,31 @@ nl=48
 nt=96
 u0=0.874164
 
+cd /gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}
 source /ccs/proj/lgt100/c51/software/summit_smpi/install/env.sh
 module load python/3.7.0-anaconda3-5.3.0
 
-export QUDA_RESOURCE_PATH=/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}/quda_resource
-if [[ ! -d $QUDA_RESOURCE_PATH ]]; then
-    mkdir $QUDA_RESOURCE_PATH
-fi
 export OMP_NUM_THREADS=4
+PROG="$KS_HISQ_SPEC  -qmp-geom 1 1 3 2"
+export QUDA_RESOURCE_PATH=/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}/quda_resource_hisq
+[[ -d $QUDA_RESOURCE_PATH ]] || mkdir $QUDA_RESOURCE_PATH
 
-PROG=$KS_HISQ_SPEC
 milc_in=/ccs/proj/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}/scripts/milc_to_scidac.in
+ini=/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}/milc_to_scidac.input
 
-cd /gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}
 if [[ ! -d cfgs_scidac ]]; then
   mkdir cfgs_scidac
 fi
 
-#for no in $(seq 1904 2 3904); do
-for no in $(seq 1904 2 1904); do
+echo "START  "$(date "+%Y-%m-%dT%H:%M")
+
+for no in $(seq 1904 2 3904); do
   echo "cfgs_scidac/${ens_long}${stream}.$no.scidac"
+  out=/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2/production/${ens_abbr}_${stream}/log/${ens_long}${stream}.${no}.log
   if [[ ! -e cfgs_scidac/${ens_long}${stream}.$no.scidac && -e cfgs/${ens_long}${stream}.$no ]]; then
-      sed 's/NL/'"$nl"'/g; s/NT/'"$nt"'/g; s/CFG/'"$no"'/g; s/ENS/'"$ens_long"'/g; s/STREAM/'"$stream"'/g; s/TADPOLE/'"$u0"'/g' $milc_in > milc_to_scidac.input
-      jsrun -n 1 -a 6 -r 1 --bind=none $PROG -qmp-geom 1 1 1 6 milc_to_scidac.input > log/${ens_long}${stream}.${no}.log
+      sed 's/NL/'"$nl"'/g; s/NT/'"$nt"'/g; s/CFG/'"$no"'/g; s/ENS/'"$ens_long"'/g; s/STREAM/'"$stream"'/g; s/TADPOLE/'"$u0"'/g' $milc_in > $ini
+      jsrun --nrs 1 -r1 -a6 -g6 -c6 -l gpu-cpu -b packed:smt:4 $PROG $ini >> $out
   fi
 done
+
+echo "FINISH WORK "$(date "+%Y-%m-%dT%H:%M")
