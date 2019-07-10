@@ -2,7 +2,7 @@ import sources
 
 params = dict()
 params['tuning_mq'] = True
-params['run_ff'] = True
+params['run_ff'] = False
 
 #l4896f211b630m0052m0363m430a
 params['ENS_ABBR'] = 'a09m260'
@@ -15,7 +15,7 @@ params['MS_S'] = '0.0363'
 params['MS_C'] = '0.430'
 params['naik'] = ''
 params['save_hisq_prop'] = False
-params['cfg_i'] = 6    #*
+params['cfg_i'] = 1904    #* started hisq spectrum on this
 params['cfg_f'] = 3902   #*
 params['cfg_d'] = 2
 
@@ -25,14 +25,14 @@ params['WF_S'] = '3.0'
 params['WF_N'] = '30'
 
 params['M5'] = '1.2'
-params['L5'] = '8'
+params['L5'] = '6'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
 params['B5']     = '1.5'
 params['C5']     = '0.5'
 params['alpha5'] = '1.5'
 
-params['MV_L'] = '0.0126'
-params['MV_S'] = '0.0693'
+params['MV_L'] = '0.0069'
+params['MV_S'] = '0.0491'
 
 params['spec_size'] = 1
 params['ff_size']   = 1
@@ -139,6 +139,7 @@ def mpirun_params(machine):
         params['cpu_g_rs']    = ''
         params['cpu_c_rs']    = '-c16'
         params['cpu_latency'] = '-l cpu-cpu'
+        params['cpu_bind']    = ''
 
         params['gpu_nodes']   = 1
         params['gpu_metaq_nodes'] = 0
