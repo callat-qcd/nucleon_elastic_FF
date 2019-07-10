@@ -4,6 +4,12 @@ params = dict()
 params['tuning_mq'] = True
 params['run_ff'] = False
 
+# the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
+# you must specify all three of these params to override the default
+params['si'] = 0
+params['sf'] = 1
+params['ds'] = 1
+
 #l4896f211b630m0052m0363m430a
 params['ENS_ABBR'] = 'a09m260'
 params['ENS_LONG'] = 'l4896f211b630m0052m0363m430'
