@@ -60,7 +60,7 @@ for stream in ['b','c','d','e']:
 # Lassen has done srcs 0 - 15, OA on [0 , 32, 16, 48, 8 , 40, 24, 56]
 # Summit will do srcs 16 - 32, OA on [4 , 36, 20, 52, 12, 44, 28, 60]
 # they have to be run in batches of 8 so that the t0 are spaced far enough apart to not interefere in the coherent sink
-params['t_shifts'] = [ 0 , 32, 16, 48, 8 , 40, 24, 56, 4 , 36, 20, 52, 12, 44, 28, 60 ]
+params['t_shifts'] = [ 0, 32, 16, 48,    8, 40, 24, 56,    4, 36, 20, 52,    12, 44, 28, 60 ]
 params['generator'] = sources.oa(int(params['NL']))
 
 ''' minutes after last file modification time when deletion of small files is OK '''
