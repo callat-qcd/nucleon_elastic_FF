@@ -122,6 +122,55 @@ def mpirun_params(machine):
         # split tasks to todo/cgpu_n where n = nodes?
         params['metaq_split'] = True
         # other params
+        params['cpu_nodes']   = 2
+        params['cpu_gpus']    = 0
+        params['cpu_maxcus']  = 1
+        params['gflow_time']  = 9
+        params['src_time']    = 5
+        params['spec_time']   = 10
+
+        params['cpu_nrs']     = '--nrs 4'
+        params['cpu_rs_node'] = '-r2'
+        params['cpu_a_rs']    = '-a16'
+        params['cpu_g_rs']    = ''
+        params['cpu_c_rs']    = '-c16'
+        params['cpu_latency'] = '-l cpu-cpu'
+        params['cpu_bind']    = ''
+
+        params['gpu_nodes']   = 2
+        params['gpu_metaq_nodes'] = 0
+        params['gpu_gpus']    = 12
+        params['gpu_maxcus']  = 1
+        params['prop_time']   = 33
+        params['seqprop_time']   = 20
+
+        params['gpu_nrs']     = '--nrs 2'
+        params['gpu_rs_node'] = '-r1'
+        params['gpu_a_rs']    = '-a6'
+        params['gpu_g_rs']    = '-g6'
+        params['gpu_c_rs']    = '-c6'
+        params['gpu_latency'] = '-l gpu-cpu'
+        params['gpu_geom']    = ' -geom 1 1 3 4'
+        params['gpu_bind']    = ''
+
+        params['hisq_nodes']  = 1
+        params['hisq_metaq_nodes'] = 0
+        params['hisq_gpus']   = 6
+        params['hisq_coul_spec'] = 16
+        params['hisq_spec']   = 3
+        params['hisq_maxcus'] = 1
+
+        params['hisq_nrs']     = '--nrs 2'
+        params['hisq_rs_node'] = '-r1'
+        params['hisq_a_rs']    = '-a6'
+        params['hisq_g_rs']    = '-g6'
+        params['hisq_c_rs']    = '-c6'
+        params['hisq_latency'] = '-l gpu-cpu'
+        params['hisq_geom']    = ' -qmp-geom 1 1 3 4'
+    if machine == 'summit_1node':
+        # split tasks to todo/cgpu_n where n = nodes?
+        params['metaq_split'] = True
+        # other params
         params['cpu_nodes']   = 1
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
