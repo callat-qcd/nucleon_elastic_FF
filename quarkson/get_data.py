@@ -73,27 +73,30 @@ def put_data(params, d_type, data=None, overwrite=False, db_info=False):
                 print("data file : %s" % data_file)
                 print("h5 path   : %s" % (corr + "/" + params["SRC"]))
 
-                #gaugeconfig_tree = "Hisq"
-                #gaugesmear_tree = "WilsonFlow"
+                # gaugeconfig_tree = "Hisq"
+                # gaugesmear_tree = "WilsonFlow"
 
-                #mobius_dwf_tree = {"gaugeconfig": gaugeconfig_tree, "gaugesmear"gaugesmear_tree }
-                #propagator_tree = {"Mobiu"}
+                # mobius_dwf_tree = {"gaugeconfig": gaugeconfig_tree, "gaugesmear"gaugesmear_tree }
+                # propagator_tree = {"Mobiu"}
 
-                #old_tree = {
+                # old_tree = {
                 #    "propagator": (
                 #        "MobiusDWF",
                 #        {"gaugeconfig": "Hisq", "gaugesmear": "WilsonFlow"},
                 #    ),
                 #    "source": ("Meson", {"hadronsmear": "Gaussian"}),
-                #}
+                # }
 
-                params["tag"] = corr.split('/')[-1]
+                params["tag"] = corr.split("/")[-1]
                 parameters = translate(params)
 
                 meson_tree = {"hadronsmear": "Gaussian"}
                 mobiusdwf_tree = {"gaugeconfig": "Hisq", "gaugesmear": "WilsonFlow"}
 
-                dwftuning_tree = {"propagator": ("MobiusDWF", mobiusdwf_tree), "source": ("Meson", meson_tree)}
+                dwftuning_tree = {
+                    "propagator": ("MobiusDWF", mobiusdwf_tree),
+                    "source": ("Meson", meson_tree),
+                }
 
                 tree = {"correlator": ("DWFTuning", dwftuning_tree)}
 
@@ -210,19 +213,19 @@ def translate(params):
     parameters["radius"] = params["WF_S"]
     parameters["step"] = params["WF_N"]
 
-    if params["tag"] == 'pseudo_pseudo':
+    if params["tag"] == "pseudo_pseudo":
         parameters["sink5"] = True
     elif params["tag"] == "midpoint_pseudo":
         parameters["sink5"] = False
 
     parameters["home"] = params["machine"]
-    parameters["runscript"] = "" #
+    parameters["runscript"] = ""  #
     parameters["directory"] = params["data_dir"]
     parameters["hdf5path"] = ""
-    parameters["size"] = None # no size initially
+    parameters["size"] = None  # no size initially
     parameters["statusencoder"] = 0
 
-    #print(parameters)
+    # print(parameters)
 
     return parameters
 
