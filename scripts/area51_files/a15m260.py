@@ -144,6 +144,7 @@ def mpirun_params(machine):
         params['cpu_g_rs']    = ''
         params['cpu_c_rs']    = '-c16'
         params['cpu_latency'] = '-l cpu-cpu'
+        params['cpu_bind']   =  ''
 
         params['gpu_nodes']   = 1
         params['gpu_metaq_nodes'] = 0
