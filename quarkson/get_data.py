@@ -27,6 +27,8 @@ message = {
     "formfac": "PROTON FORMFAC",
 }
 
+from lattedb.correlator.models import DWFTuning
+
 
 def get_data(params, d_type):
     # switch for data types to define h5 path
@@ -70,40 +72,49 @@ def put_data(params, d_type, data=None, overwrite=False, db_info=False):
                 print("data key  : mres")
                 print("data file : %s" % data_file)
                 print("h5 path   : %s" % (corr + "/" + params["SRC"]))
-        # else, actually put the data in the h5 file
+
+            parameters = translate(params)
+            tree = {
+                "propagator": (
+                    "MobiusDWF",
+                    {"gaugeconfig": "Hisq", "gaugesmear": "WilsonFlow"},
+                ),
+                "source": ("Meson", {"hadronsmear": "Gaussian"}),
+            }
+
+            DWFTuning.get_or_create_from_parameters(
+                parameters=parameters, tree=tree, dry_run=False
+            )
+
         else:
             print("putting data not supported yet")
 
 
-from lattedb.gaugesmear.models import WilsonFlow
-from lattedb.gaugeconfig.models import Hisq as HisqGauge
-from lattedb.propagator.models import MobiusDWF as MobiusDWFProp
-
-from lattedb.correlator.models import Meson2pt
-
-
-def construct_gaugeconfig(params):
-
+def translate(params):
     HBARC = 197
 
-    beta_to_afm = {"5.8": 0.15, "6": 1.2, "6.3": 0.09, "6.72": 0.06}
+    print(params)
+
+    beta_to_afm = {"5.8": "0.15", "6": "1.2", "6.3": "0.09", "6.72": "0.06"}
     a_fm = beta_to_afm[params["BETA"]]
 
-    l_fm = int(params["NL"]) * a_fm
+    l_fm = int(params["NL"]) * float(a_fm)
 
     pattern = r"a(P<a>:[0-9]+)m(P<mpi>:[0-9]+)"
     match = re.search(pattern, params["ENS_ABBR"])
     mpi = int(match.groupdict()["mpi"]) if match else None
 
     nconfig = (params["cfg_f"] - params["cfg_i"]) / params["cfg_d"]
-    if not isinstance(nconfig, int):
-        raise ValueError("Float number of configs?!")
+    if abs(int(nconfig) - nconfig) > 1.0e-12:
+        raise ValueError("Float number of configs:  %f ?!" % nconfig)
+    else:
+        nconfig = int(nconfig)
 
     ml_string = params["MS_L"].split(".")[-1]
     ms_string = params["MS_S"].split(".")[-1]
     mc_string = params["MS_C"].split(".")[-1]
     tag = (
-        "l{NX}{NT}f{dlq}{sq}{cq}b{BETA:1.2f}"
+        "l{NL}{NT}f{dlq}{sq}{cq}b{BETA:1.2f}"
         "m{ml_string}m{ms_string}m{mc_string}{STREAM}"
     ).format(
         dlq=2,
@@ -112,10 +123,13 @@ def construct_gaugeconfig(params):
         ml_string=ml_string,
         ms_string=ms_string,
         mc_string=mc_string,
-        **params
+        NL=params["NL"],
+        NT=params["NT"],
+        BETA=float(params["BETA"]),
+        STREAM=params["STREAM"],
     )
 
-    return HisqGauge(
+    parameters = dict(
         a_fm=a_fm,
         beta=params["BETA"],
         l_fm=l_fm,
@@ -131,56 +145,51 @@ def construct_gaugeconfig(params):
         short_tag=params["ENS_ABBR"],
         stream=params["STREAM"],
         u0=params["U0"],
-        tag=tag,
     )
 
-
-def construct_gaugesmear(params):
     tag = "gf{gf}_n{fs}".format(
         gf=params["FLOW_TIME"].replace(".", "p"), fs=params["FLOW_STEP"]
     )
-    return WilsonFlow(
-        flowtime=params["FLOW_TIME"], flowstep=params["FLOW_STEP"], tag=tag
-    )
+    parameters.update(dict(flowtime=params["FLOW_TIME"], flowstep=params["FLOW_STEP"]))
 
-
-def construct_propagator(params):
     a5 = 1.0
-    gaugeconfig = construct_gaugeconfig(params=params)
-    gaugesmear = construct_gaugesmear(params=params)
-    propagator0 = MobiusDWFProp(
-        gaugeconfig=gaugeconfig,
-        gaugesmear=gaugesmear,
-        a5=a5,
-        alpha5=params["alpha5"],
-        b5=params["B5"],
-        c5=params["C5"],
-        l5=params["L5"],
-        m5=params["M5"],
-        mval=params["MV_L"],
-        origin=params["SRC"],
+
+    origin = re.search(
+        "x(?P<x>[0-9]+)y(?P<y>[0-9]+)z(?P<z>[0-9]+)t(?P<t>[0-9]+)", params["SRC"]
     )
 
-
-def build_or_construct_whatever_I_dont_care_meson2pt(params):
-    """
-    """
-    user = ...
-
-    propagator0 = construct_propagator(params=params)
-    propagator1 = construct_propagator(params=params)
-
-    source = ...
-    sink = ...
-
-    momentum = 0
-    Meson2pt(
-        propagator0=propagator0,
-        propagator1=propagator1,
-        source=source,
-        sink=sink,
-        momentum=momentum,
+    parameters.update(
+        dict(
+            a5=a5,
+            alpha5=params["alpha5"],
+            b5=params["B5"],
+            c5=params["C5"],
+            l5=params["L5"],
+            m5=params["M5"],
+            mval=params["MV_L"],
+            origin_x=origin["x"],
+            origin_y=origin["y"],
+            origin_z=origin["z"],
+            origin_t=origin["t"],
+        )
     )
+
+    parameters["isospin_x2"] = 1
+    parameters["isospin_z_x2"] = 1
+    parameters["parity"] = 1
+    parameters["spin_x2"] = 1
+    parameters["spin_z_x2"] = 1
+    parameters["strangeness"] = 1
+    parameters["structure"] = r"$\gamma_5$"
+
+    parameters["radius"] = 1
+    parameters["step"] = 1
+
+    parameters["sink5"] = True
+
+    print(parameters)
+
+    return parameters
 
 
 def main():
