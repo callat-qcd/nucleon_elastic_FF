@@ -79,31 +79,30 @@ ens_long = {
     "a09m130": "l6496f211b630m0012m0363m432",
 }
 
+base_path = "/Users/cchang5/PycharmProjects"
+
 base_dir = (
-    scratch
-    + "/Users/christopherkorber/git/berkeley/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s"
+    scratch + base_path + "/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s"
 )
-ens_dir = (
-    manage
-    + "/Users/christopherkorber/git/berkeley/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s"
-)
+ens_dir = manage + base_path + "/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s"
 script_dir = (
     manage
-    + "/Users/christopherkorber/git/berkeley/nucleon_elastic_FF/quarkson/data/production/nucleon_elastic_FF/scripts"
+    + base_path
+    + "/nucleon_elastic_FF/quarkson/data/production/nucleon_elastic_FF/scripts"
 )
 metaq_dir = manage + "/metaq"
-# data_dir   = manage +'/Users/christopherkorber/git/berkeley/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s/data'
 data_dir = (
-    scratch
-    + "/Users/christopherkorber/git/berkeley/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s/data"
+    scratch + base_path + "/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s/data"
 )
 data_dir_4d = (
     scratch
-    + "/Users/christopherkorber/git/berkeley/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s/data_4D"
+    + base_path
+    + "/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s/data_4D"
 )
 ff_data_dir = (
     scratch
-    + "/Users/christopherkorber/git/berkeley/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s/ff4D_data"
+    + base_path
+    + "/nucleon_elastic_FF/quarkson/data/production/%(ENS_S)s/ff4D_data"
 )
 
 
@@ -111,7 +110,8 @@ def ensemble(params):
     milc_cfg = params["ENS_LONG"] + params["STREAM"] + "." + params["CFG"]
     params["prod"] = (
         scratch
-        + "/Users/christopherkorber/git/berkeley/nucleon_elastic_FF/quarkson/data/production/"
+        + base_path
+        + "/nucleon_elastic_FF/quarkson/data/production/"
         + params["ENS_S"]
     )
     params["milc_cfg"] = params["prod"] + "/cfgs/" + milc_cfg

@@ -108,6 +108,7 @@ params["OMP_NUM_THREADS"] = "4"
 
 def mpirun_params(machine):
     if machine == "lassen":
+        params["machine"] = machine
         params["cpu_nodes"] = 3
         params["cpu_gpus"] = 0
         params["cpu_maxcus"] = 1
@@ -142,6 +143,7 @@ def mpirun_params(machine):
         params["gpu_bind"] = "lassen_bind_gpu.omp4.sh"
 
     if machine == "summit":
+        params["machine"] = machine
         params["cpu_nodes"] = 2
         params["cpu_gpus"] = 0
         params["cpu_maxcus"] = 1

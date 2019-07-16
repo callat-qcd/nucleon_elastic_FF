@@ -27,7 +27,7 @@ message = {
     "formfac": "PROTON FORMFAC",
 }
 
-from lattedb.correlator.models import DWFTuning
+from lattedb.status.models import Correlator_DWFTuning
 
 
 def get_data(params, d_type):
@@ -73,18 +73,33 @@ def put_data(params, d_type, data=None, overwrite=False, db_info=False):
                 print("data file : %s" % data_file)
                 print("h5 path   : %s" % (corr + "/" + params["SRC"]))
 
-            parameters = translate(params)
-            tree = {
-                "propagator": (
-                    "MobiusDWF",
-                    {"gaugeconfig": "Hisq", "gaugesmear": "WilsonFlow"},
-                ),
-                "source": ("Meson", {"hadronsmear": "Gaussian"}),
-            }
+                #gaugeconfig_tree = "Hisq"
+                #gaugesmear_tree = "WilsonFlow"
 
-            DWFTuning.get_or_create_from_parameters(
-                parameters=parameters, tree=tree, dry_run=False
-            )
+                #mobius_dwf_tree = {"gaugeconfig": gaugeconfig_tree, "gaugesmear"gaugesmear_tree }
+                #propagator_tree = {"Mobiu"}
+
+                #old_tree = {
+                #    "propagator": (
+                #        "MobiusDWF",
+                #        {"gaugeconfig": "Hisq", "gaugesmear": "WilsonFlow"},
+                #    ),
+                #    "source": ("Meson", {"hadronsmear": "Gaussian"}),
+                #}
+
+                params["tag"] = corr.split('/')[-1]
+                parameters = translate(params)
+
+                meson_tree = {"hadronsmear": "Gaussian"}
+                mobiusdwf_tree = {"gaugeconfig": "Hisq", "gaugesmear": "WilsonFlow"}
+
+                dwftuning_tree = {"propagator": ("MobiusDWF", mobiusdwf_tree), "source": ("Meson", meson_tree)}
+
+                tree = {"correlator": ("DWFTuning", dwftuning_tree)}
+
+                Correlator_DWFTuning.get_or_create_from_parameters(
+                    parameters=parameters, tree=tree, dry_run=False
+                )
 
         else:
             print("putting data not supported yet")
@@ -92,8 +107,10 @@ def put_data(params, d_type, data=None, overwrite=False, db_info=False):
 
 def translate(params):
     HBARC = 197
-
-    print(params)
+    print("+++++++++++++++++")
+    for key in params:
+        print(key, params[key])
+    print("_________________")
 
     beta_to_afm = {"5.8": "0.15", "6": "1.2", "6.3": "0.09", "6.72": "0.06"}
     a_fm = beta_to_afm[params["BETA"]]
@@ -166,28 +183,46 @@ def translate(params):
             c5=params["C5"],
             l5=params["L5"],
             m5=params["M5"],
-            mval=params["MV_L"],
+            mval=params["MQ"],
             origin_x=origin["x"],
             origin_y=origin["y"],
             origin_z=origin["z"],
             origin_t=origin["t"],
         )
     )
+    if params["MQ"] == params["MV_L"]:
+        parameters["isospin_x2"] = 1
+        parameters["isospin_z_x2"] = 1
+        parameters["parity"] = -1
+        parameters["spin_x2"] = 0
+        parameters["spin_z_x2"] = 0
+        parameters["strangeness"] = 0
+        parameters["structure"] = r"$\gamma_5$"
+    elif params["MQ"] == params["MV_S"]:
+        parameters["isospin_x2"] = 0
+        parameters["isospin_z_x2"] = 0
+        parameters["parity"] = -1
+        parameters["spin_x2"] = 0
+        parameters["spin_z_x2"] = 0
+        parameters["strangeness"] = 2
+        parameters["structure"] = r"$\gamma_5$"
 
-    parameters["isospin_x2"] = 1
-    parameters["isospin_z_x2"] = 1
-    parameters["parity"] = 1
-    parameters["spin_x2"] = 1
-    parameters["spin_z_x2"] = 1
-    parameters["strangeness"] = 1
-    parameters["structure"] = r"$\gamma_5$"
+    parameters["radius"] = params["WF_S"]
+    parameters["step"] = params["WF_N"]
 
-    parameters["radius"] = 1
-    parameters["step"] = 1
+    if params["tag"] == 'pseudo_pseudo':
+        parameters["sink5"] = True
+    elif params["tag"] == "midpoint_pseudo":
+        parameters["sink5"] = False
 
-    parameters["sink5"] = True
+    parameters["home"] = params["machine"]
+    parameters["runscript"] = "" #
+    parameters["directory"] = params["data_dir"]
+    parameters["hdf5path"] = ""
+    parameters["size"] = None # no size initially
+    parameters["statusencoder"] = 0
 
-    print(parameters)
+    #print(parameters)
 
     return parameters
 
