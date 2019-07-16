@@ -2,9 +2,14 @@ import sources
 
 params = dict()
 params['tuning_mq'] = True
-params['run_ff'] = True
+params['run_ff'] = False
 
-#l3264f211b600m00717m0507m628a
+# the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
+# you must specify all three of these params to override the default
+params['si']=0
+params['sf']=0
+params['ds']=1
+
 params['ENS_ABBR'] = 'a15m260'
 params['ENS_LONG'] = 'l2448f211b580m00894m064m828'
 params['NL']   = '24'
@@ -15,7 +20,7 @@ params['MS_S'] = '0.064'
 params['MS_C'] = '0.828'
 params['naik'] = ''
 params['save_hisq_prop'] = False
-params['cfg_i'] = 100    #*
+params['cfg_i'] = 300    #* should start at 300 to have a total of 1000 cfgs
 params['cfg_f'] = 5295   #*
 params['cfg_d'] = 5
 
@@ -24,15 +29,15 @@ params['FLOW_STEP'] = '40'
 params['WF_S'] = '3.0'
 params['WF_N'] = '30'
 
-params['M5'] = '1.2'
-params['L5'] = '8'
+params['M5'] = '1.3'
+params['L5'] = '14'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
 params['B5']     = '1.5'
 params['C5']     = '0.5'
-params['alpha5'] = '1.5'
+params['alpha5'] = '2.0'
 
-params['MV_L'] = '0.0126'
-params['MV_S'] = '0.0693'
+params['MV_L'] = '0.0108'
+params['MV_S'] = '0.0902'
 
 params['spec_size'] = 1
 params['ff_size']   = 1
@@ -47,7 +52,7 @@ params['SP_EXTENSION'] = 'lime'
 params['seed'] = dict()
 params['seed']['a'] = '1a'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
-params['t_shifts'] = [ 0, 24  ,   16,   36   ]
+params['t_shifts'] = [ 0, 24  ,   12,   36   ]
 params['generator'] = sources.oa(int(params['NL']))
 params['t_hisq']   = [0, 6, 12 , 18, 24, 30, 36, 42]
 
