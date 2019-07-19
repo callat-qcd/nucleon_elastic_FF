@@ -28,11 +28,11 @@ def src_start_stop(params,ens,stream):
                 params['si'] = 16
                 params['sf'] = 23
                 params['ds'] = 1
-            elif stream in ['e']:
+            elif stream in ['s']:
                 params['si'] = 24
                 params['sf'] = 31
                 params['ds'] = 1
-            elif stream in ['b','c','d']:
+            elif stream in ['b','c','d','e']:
                 params['si'] = 8
                 params['sf'] = 15
                 params['ds'] = 1
