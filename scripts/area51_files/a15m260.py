@@ -1,14 +1,14 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = True
-params['run_ff'] = False
+params['tuning_mq'] = False
+params['run_ff'] = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
-params['si']=0
-params['sf']=0
-params['ds']=1
+# params['si']=0
+# params['sf']=0
+# params['ds']=1
 
 params['ENS_ABBR'] = 'a15m260'
 params['ENS_LONG'] = 'l2448f211b580m00894m064m828'
@@ -63,7 +63,7 @@ params['MESONS_PSQ_MAX']  = 5
 params['BARYONS_PSQ_MAX'] = 5
 
 params['run_3pt'] = True
-params['t_seps']  = [3,4,5,6,7,8,9,10,11,12]
+params['t_seps']  = [3,4,5,6,7,8,9,10]
 params['flavs']   = ['UU','DD']
 params['spins']   = ['up_up','dn_dn']
 params['snk_mom'] = ['0 0 0']
