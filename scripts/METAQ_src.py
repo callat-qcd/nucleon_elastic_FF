@@ -127,7 +127,7 @@ for c in cfgs_run:
             utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
             prop_exists = os.path.exists(prop_file)
             # if a12m130, then check for h5 files
-            if ens in ['a12m130']:
+            if ens in ['a12m130'] and not prop_exists:
                 prop_file = params['prop'] + '/' + prop_name+'.h5'
                 utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
                 prop_exists = os.path.exists(prop_file)
