@@ -152,7 +152,17 @@ for c in cfgs_run:
                 params['SRC'] = s0
                 prop_name = c51.names['prop'] % params
                 prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
-                if os.path.exists(prop_file):
+                file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                prop_exists = os.path.exists(prop_file)
+                # a12m130 used h5 props
+                if ens in ['a12m130']:
+                    prop_file = params['prop'] + '/' + prop_name+'.h5'
+                    file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                    utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                    prop_exists = os.path.exists(prop_file)
+
+                if os.path.exists(prop_exists):
                     for fs in flav_spin:
                         flav,snk_spin,src_spin=fs.split('_')
                         params['FLAV']=flav
@@ -187,15 +197,20 @@ for c in cfgs_run:
                                 fin.write(xml_input.head)
                                 ''' read prop '''
                                 params['OBJ_TYPE']    = 'LatticePropagator'
-                                params['H5_PATH']     = ''
-                                params['H5_OBJ_NAME'] = 'propagator'
                                 t0=int(s0.split('t')[1])
                                 params['OBJ_ID']      = prop_name
-                                ''' ADD SWITCH BASED ON PROP EXTENSION, H5 vs LIME '''
-                                params['H5_FILE']     = prop_file
-                                params['LIME_FILE']   = prop_file
                                 params['PROP_NAME']   = prop_name
-                                fin.write(xml_input.qio_read % params)
+                                ''' ADD SWITCH BASED ON PROP EXTENSION, H5 vs LIME '''
+                                prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
+                                if os.path.exists(prop_file):
+                                    params['LIME_FILE'] = prop_file
+                                    fin.write(xml_input.qio_read % params)
+                                else:
+                                    prop_file = params['prop'] + '/' + prop_name+'.h5'
+                                    params['H5_FILE']     = prop_file
+                                    params['H5_PATH']     = '48_64'
+                                    params['H5_OBJ_NAME'] = 'prop1'
+                                    fin.write(xml_input.hdf5_read % params)
                                 ''' do smearing if need be '''
                                 if params['SS_PS'] == 'SS':
                                     params['SMEARED_PROP'] = prop_name+'_SS'

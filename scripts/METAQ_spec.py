@@ -140,7 +140,13 @@ for c in cfgs_run:
                 ''' make sure prop is correct size '''
                 file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                 utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
-                if os.path.exists(prop_file):
+                prop_exists = os.path.exists(prop_file)
+                # a12m130 used h5 props
+                if ens in ['a12m130']:
+                    prop_file = params['prop'] + '/' + prop_name+'.h5'
+                    utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                    prop_exists = os.path.exists(prop_file)
+                if os.path.exists(prop_exists):
                     print('  making ',spec_name)
                     metaq = spec_name+'.sh'
                     t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
@@ -158,10 +164,19 @@ for c in cfgs_run:
                         fin = open(xmlini,'w')
                         fin.write(xml_input.head)
                         ''' read prop '''
-                        params['OBJ_TYPE']  = 'LatticePropagator'
                         params['OBJ_ID']    = prop_name
-                        params['LIME_FILE'] = prop_file
-                        fin.write(xml_input.qio_read % params)
+                        params['OBJ_TYPE']  = 'LatticePropagator'
+                        # we need to look for both lime and h5 prop
+                        prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
+                        if os.path.exists(prop_file):
+                            params['LIME_FILE'] = prop_file
+                            fin.write(xml_input.qio_read % params)
+                        else:
+                            prop_file = params['prop'] + '/' + prop_name+'.h5'
+                            params['H5_FILE'] = prop_file
+                            params['H5_PATH'] = '48_64'
+                            params['H5_OBJ_NAME'] = 'prop1'
+                            fin.write(xml_input.hdf5_read % params)
                         ''' smear prop '''
                         params['SMEARED_PROP'] = prop_name+'_SS'
                         fin.write(xml_input.shell_smearing % params)

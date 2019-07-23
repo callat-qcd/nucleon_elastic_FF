@@ -126,6 +126,12 @@ for c in cfgs_run:
             file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
             utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
             prop_exists = os.path.exists(prop_file)
+            # if a12m130, then check for h5 files
+            if ens in ['a12m130']:
+                prop_file = params['prop'] + '/' + prop_name+'.h5'
+                utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                prop_exists = os.path.exists(prop_file)
+
 
             if args.force:
                 if not prop_exists:
@@ -198,3 +204,5 @@ for c in cfgs_run:
                     print('prop exists',prop_file)
                 elif args.verbose and spec_exists:
                     print('spec exists',spec_file)
+    else:
+        print('missing flowed config')

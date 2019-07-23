@@ -129,7 +129,13 @@ for c in cfgs_run:
                 ''' make sure prop is correct size '''
                 file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                 utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
-                if not os.path.exists(prop_file):
+                prop_exists = os.path.exists(prop_file)
+                # a12m130 used h5 props
+                if ens in ['a12m130']:
+                    prop_file = params['prop'] + '/' + prop_name+'.h5'
+                    utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                    prop_exists = os.path.exists(prop_file)
+                if not prop_exists:
                     src_name = c51.names['src'] % params
                     src_file = params['src']+'/'+src_name+'.'+params['SP_EXTENSION']
                     utils.check_file(src_file,file_size,params['file_time_delete'],params['corrupt'])
