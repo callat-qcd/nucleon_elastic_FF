@@ -63,6 +63,8 @@ src_ext = "%d-%d" %(params['si'],params['sf'])
 params['MQ'] = params['MV_L']
 missing_srcs = []
 
+curr_dir = os.getcwd()
+os.chdir(c51.base_dir %params)
 for c in cfgs_run:
     no = str(c)
     params['CFG'] = no
@@ -158,6 +160,9 @@ for c in cfgs_run:
                 print('missing srcs on cfg = %d' %c)
         else:
             print('overwrite =',args.o,' and exists:',args.o,spec_file_4D_avg)
+
+os.chdir(curr_dir)
+
 if len(missing_srcs) > 0:
     f = open('missing_srcs_'+args.data+'.lst','w')
     for c in missing_srcs:
