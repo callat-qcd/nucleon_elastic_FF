@@ -38,7 +38,8 @@ params['B5']     = '1.5'
 params['C5']     = '0.5'
 params['alpha5'] = '2.0'
 
-params['MV_L'] = '0.0039'
+#params['MV_L'] = '0.0039'
+params['MV_L'] = '0.00380'
 params['MV_S'] = '0.0693'
 
 params['spec_size'] = 1
