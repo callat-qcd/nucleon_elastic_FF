@@ -136,6 +136,8 @@ for c in cfgs_run:
                     utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
                     prop_exists = os.path.exists(prop_file)
                 if not prop_exists:
+                    # restore prop extension to params['SP_EXTENSION'] in case we looked for h5 props
+                    prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
                     src_name = c51.names['src'] % params
                     src_file = params['src']+'/'+src_name+'.'+params['SP_EXTENSION']
                     utils.check_file(src_file,file_size,params['file_time_delete'],params['corrupt'])

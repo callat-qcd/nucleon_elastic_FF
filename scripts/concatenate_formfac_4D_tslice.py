@@ -34,6 +34,7 @@ print('ENSEMBLE:',ens_s)
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific current or currents? [A3 V4 ...]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
@@ -106,6 +107,8 @@ if args.current != None:
     params['curr_4d'] = args.current
 print('    ',params['curr_4d'])
 print('    cfgs:',cfgs_run[0],'-',cfgs_run[-1])
+if args.t_sep != None:
+    params['t_seps'] = args.t_sep
 
 for corr in params['particles']:
     for fs in flav_spin:

@@ -1,8 +1,8 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['run_ff']    = True
+params['tuning_mq'] = True
+params['run_ff']    = False
 
 #l4864f211b600m00339m0507m628a.
 
