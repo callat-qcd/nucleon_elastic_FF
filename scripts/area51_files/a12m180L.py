@@ -1,8 +1,8 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = True
-params['run_ff'] = False
+params['tuning_mq'] = False
+params['run_ff']    = True
 
 #l4864f211b600m00339m0507m628a.
 
@@ -34,9 +34,12 @@ params['M5'] = '1.2'
 #params['L5'] = '12'
 params['L5'] = '14'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
-params['B5']     = '1.5'
-params['C5']     = '0.5'
-params['alpha5'] = '2.0'
+#params['B5']     = '1.5'
+#params['C5']     = '0.5'
+#params['alpha5'] = '2.0'
+params['B5']     = '1.75'
+params['C5']     = '0.75'
+params['alpha5'] = '2.50'
 
 #params['MV_L'] = '0.0039'
 params['MV_L'] = '0.00380'
@@ -142,7 +145,7 @@ def mpirun_params(machine):
         params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 12
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 33
+        params['prop_time']   = 35
         params['seqprop_time']   = 20
 
         params['gpu_nrs']     = '--nrs 2'
