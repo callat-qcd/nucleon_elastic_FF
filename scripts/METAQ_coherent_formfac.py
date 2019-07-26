@@ -207,19 +207,29 @@ for c in cfgs_run:
                             if not t_e or (args.o and not t_w):
                                 prop_name = c51.names['prop'] % params
                                 prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
-                                if os.path.exists(prop_file):
+                                prop_exists = os.path.exits(prop_file)
+                                prop_h5 = False
+                                if ens in ['a12m130'] and not prop_exists:
+                                    prop_file = params['prop'] + '/' + prop_name+'.h5'
+                                    if os.path.exits(prop_file):
+                                        prop_h5 = True
+                                        prop_exists = True
+                                if prop_exists:
                                     xmlini = coherent_formfac_file.replace('/formfac/','/xml/').replace('.h5','.ini.xml')
                                     fin = open(xmlini,'w')
                                     fin.write(xml_input.head)
                                     ''' read all props '''
-                                    #for s0 in srcs[c]:
-                                    params['H5_FILE']=prop_file
-                                    params['H5_PATH']=''
-                                    params['H5_OBJ_NAME']='propagator'
-                                    params['LIME_FILE'] = prop_file
                                     params['OBJ_ID']    = prop_name
                                     params['OBJ_TYPE']  = 'LatticePropagator'
-                                    fin.write(xml_input.qio_read % params)
+                                    if not prop_h5:
+                                        params['LIME_FILE'] = prop_file
+                                        fin.write(xml_input.qio_read % params)
+                                    else:
+                                        prop_file = params['prop'] + '/' + prop_name+'.h5'
+                                        params['H5_FILE'] = prop_file
+                                        params['H5_PATH'] = '48_64'
+                                        params['H5_OBJ_NAME']='prop1'
+                                        fin.write(xml_input.hdf5_read % params)
 
                                     ''' read all seq props and do contractions '''
                                     for particle in params['particles']:
