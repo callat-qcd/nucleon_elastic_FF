@@ -5,10 +5,9 @@ The logic of the tests are the same:
 2. Check if the right folders and files have been created
 3. Check if the file match the legacy files.
 """
-from typing import List
-
 import os
-import subprocess
+
+from tempfile import TemporaryDirectory
 
 from nucleon_elastic_ff.utilities import set_up_logger
 from nucleon_elastic_ff.data.h5io import assert_h5files_equal
@@ -17,7 +16,7 @@ from nucleon_elastic_ff.data.h5io import assert_h5files_equal
 LOGFILE = "nucleon_elastic_ff_test"
 LOGGER = set_up_logger(LOGFILE, mode="w")
 
-TMPDIR = os.path.join(os.getcwd(), "tests", "temp")
+TMPDIR = os.path.join(os.getcwd(), "tests")
 
 DATAROOT = os.path.join(os.getcwd(), "data")
 
@@ -31,6 +30,10 @@ class CommandTest:
     check_files = []
     atol: float = 0.0
     rtol: float = 1.0e-8
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._tmp_dir = None
 
     @staticmethod
     def command():
@@ -46,7 +49,7 @@ class CommandTest:
 
         LOGGER.info("Checking created files")
         for file in self.check_files:
-            created_path = os.path.join(TMPDIR, file)
+            created_path = os.path.join(self.tmp_address, file)
             expected_path = os.path.join(DATAROOT, file)
 
             LOGGER.info("\t%s", created_path)
@@ -56,16 +59,20 @@ class CommandTest:
             )
             LOGGER.info("\tFiles agree")
 
+    @property
+    def tmp_address(self):
+        """Returns address of temporary folder.
+        """
+        return self._tmp_dir.name
+
     def setUp(self):  # pylint: disable=C0103
         """Creates all required directories and links all required files
         """
-        LOGGER.info("Checking if temp dir `%s` exists", TMPDIR)
-        if not os.path.exists(TMPDIR):
-            LOGGER.info("Creating temp dir `%s`", TMPDIR)
-            os.makedirs(TMPDIR)
+        self._tmp_dir = TemporaryDirectory(dir=TMPDIR)
+        LOGGER.info("Created temporary dir `%s` exists", self.tmp_address)
 
         for file in self.link_files:
-            target_path = os.path.join(TMPDIR, file)
+            target_path = os.path.join(self.tmp_address, file)
             target_dir = os.path.dirname(target_path)
             if not os.path.exists(target_dir):
                 LOGGER.info("Creating `%s`", target_dir)
@@ -78,54 +85,5 @@ class CommandTest:
     def tearDown(self):  # pylint: disable=R0912, C0103
         """Deletes all created and all linked directories and files
         """
-        for target in self.link_files:
-            target_path = os.path.join(TMPDIR, target)
-            LOGGER.info("Removing `%s`", target_path)
-            if TMPDIR in target_path and not DATAROOT in target_path:
-                os.remove(target_path)
-            else:
-                raise ValueError(
-                    "Trying to remove non temporary file `%s`." % target_path
-                    + " Check the `link_files` of the test!"
-                )
-
-        for created in self.check_files:
-            created_path = os.path.join(TMPDIR, created)
-            LOGGER.info("Removing `%s`", created_path)
-            if TMPDIR in created_path and not DATAROOT in created_path:
-                os.remove(created_path)
-            else:
-                raise ValueError(
-                    "Trying to remove non temporary file `%s`." % created_path
-                    + " Check the `check_files` of the test!"
-                )
-
-        for target in self.link_files:
-            target_path = os.path.join(TMPDIR, target)
-            target_dir = os.path.dirname(target_path)
-            if os.path.exists(target_dir):
-                LOGGER.info("Removing `%s`", target_dir)
-                if TMPDIR in target_dir and not DATAROOT in target_dir:
-                    os.removedirs(target_dir)
-                else:
-                    raise ValueError(
-                        "Trying to remove non temporary folder `%s`." % target_dir
-                        + " Check the `link_files` of the test!"
-                    )
-
-        for created in self.check_files:
-            created_path = os.path.join(TMPDIR, created)
-            created_dir = os.path.dirname(created_path)
-            if os.path.exists(created_dir):
-                LOGGER.info("Removing `%s`", created_dir)
-                if TMPDIR in created_dir and not DATAROOT in created_dir:
-                    os.removedirs(created_dir)
-                else:
-                    raise ValueError(
-                        "Trying to remove non temporary folder `%s`." % created_dir
-                        + " Check the `link_files` of the test!"
-                    )
-
-        if os.path.exists(TMPDIR):
-            LOGGER.info("Removing temp dir `%s`", TMPDIR)
-            os.removedirs(TMPDIR)
+        LOGGER.info("Removing temporary dir `%s`", self.tmp_address)
+        self._tmp_dir.cleanup()

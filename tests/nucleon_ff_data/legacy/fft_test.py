@@ -5,7 +5,6 @@ from os.path import join
 from unittest import TestCase
 
 from nucleon_elastic_ff.test_utilities import CommandTest
-from nucleon_elastic_ff.test_utilities import TMPDIR
 from nucleon_elastic_ff.test_utilities import LOGGER
 
 from nucleon_elastic_ff.data.scripts.fft import fft_file
@@ -27,19 +26,18 @@ class FormfacFFTTest(CommandTest, TestCase):
         )
     ]
 
-    @staticmethod
-    def command():
+    def command(self):
         """Command which will be executed by the unittest.
         """
         LOGGER.info("Running `fft`")
         fft_file(
             join(
-                TMPDIR,
+                self.tmp_address,
                 "formfac_4D_tslice_src_avg",
                 "formfac_4D_tslice_src_avg_px0py0pz0_Nsnk1_src_avg.h5",
             ),
             join(
-                TMPDIR,
+                self.tmp_address,
                 "formfac_4D_tslice_src_avg",
                 "formfac_4D_tslice_src_avg_px0py0pz0_Nsnk1_src_avg_fft.h5",
             ),
@@ -65,19 +63,18 @@ class FormfacChunkedFFTTest(CommandTest, TestCase):
         )
     ]
 
-    @staticmethod
-    def command():
+    def command(self):
         """Command which will be executed by the unittest.
         """
         LOGGER.info("Running `fft`")
         fft_file(
             join(
-                TMPDIR,
+                self.tmp_address,
                 "formfac_4D_tslice_src_avg",
                 "formfac_4D_tslice_src_avg_px0py0pz0_Nsnk1_src_avg.h5",
             ),
             join(
-                TMPDIR,
+                self.tmp_address,
                 "formfac_4D_tslice_src_avg",
                 "formfac_4D_tslice_src_avg_px0py0pz0_Nsnk1_src_avg_fft.h5",
             ),
@@ -98,19 +95,18 @@ class SpecFFTTest(CommandTest, TestCase):
         join("spec_4D_tslice_avg", "spec_4D_tslice_avg_px0py0pz0_Nsnk1_src_avg_fft.h5")
     ]
 
-    @staticmethod
-    def command():
+    def command(self):
         """Command which will be executed by the unittest.
         """
         LOGGER.info("Running `fft`")
         fft_file(
             join(
-                TMPDIR,
+                self.tmp_address,
                 "spec_4D_tslice_avg",
                 "spec_4D_tslice_avg_px0py0pz0_Nsnk1_src_avg.h5",
             ),
             join(
-                TMPDIR,
+                self.tmp_address,
                 "spec_4D_tslice_avg",
                 "spec_4D_tslice_avg_px0py0pz0_Nsnk1_src_avg_fft.h5",
             ),
