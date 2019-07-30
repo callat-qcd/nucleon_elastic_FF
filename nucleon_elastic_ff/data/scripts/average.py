@@ -28,6 +28,7 @@ def dset_avg(  # pylint: disable=R0914
     out_file: str,
     dset_replace_patterns: Dict[str, str],
     overwrite: bool = False,
+    expected_dsets: Optional[int] = None,
 ):
     """Reads h5 files and exports the average of datasets across files.
 
@@ -80,6 +81,10 @@ def dset_avg(  # pylint: disable=R0914
 
             overwrite: bool = False
                 Overwrite existing sliced files.
+
+            expected_dsets: Optional[int] = None
+                If true, raises an error if number of found dsets is less then the number
+                of specified desets.
     """
     dsets_acc = {}
     n_dsets = {}
@@ -126,6 +131,17 @@ def dset_avg(  # pylint: disable=R0914
                     n_dsets[out_grp] = 1
                     dset_meta[out_grp] = meta
 
+    if expected_dsets is not None:
+        for group, count in n_dsets.items():
+            if count != expected_dsets:
+                raise KeyError(
+                    (
+                        "Expected %d dests but found %d dsets for group %s"
+                        "\nMeta info:\n\t%s"
+                    )
+                    % (len(files), count, group, dset_meta[group])
+                )
+
     LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_acc), out_file)
     with h5py.File(out_file) as h5f:
         for key, acc in dsets_acc.items():
@@ -171,6 +187,7 @@ def source_average(  # pylint: disable=R0913, R0914
             Adds expected sources to file filter patterns.
             After files have been filtered and grouped, checks if all strings in this
             list are present in the file group.
+            Note: this counts the number of files not the number of dsets within a file.
             This also overwrites ``n_expected_sources``.
             If not exactly all sources are found in the group, raises AssertionError.
 
@@ -197,8 +214,7 @@ def source_average(  # pylint: disable=R0913, R0914
     file_patterns += list(file_replace_pattern.keys())
     if additional_file_patterns is not None:
         file_patterns += additional_file_patterns.split()
-    print('file patterns')
-    print(file_patterns)
+    LOGGER.info("File patterns %s", file_patterns)
 
     files = find_all_files(
         root,
@@ -236,7 +252,13 @@ def source_average(  # pylint: disable=R0913, R0914
             LOGGER.info("Creating `%s`", base_dir)
             os.makedirs(base_dir)
 
-        dset_avg(file_group, out_file, dset_replace_pattern, overwrite=overwrite)
+        dset_avg(
+            file_group,
+            out_file,
+            dset_replace_pattern,
+            overwrite=overwrite,
+            expected_dsets=None,
+        )
 
 
 def spec_average(  # pylint: disable=R0913, R0914
@@ -272,6 +294,7 @@ def spec_average(  # pylint: disable=R0913, R0914
             Adds expected sources to file filter patterns.
             After files have been filtered and grouped, checks if all strings in this
             list are present in the file group.
+            Note: this counts the number of files not the number of dsets within a file.
             This also overwrites ``n_expected_sources``.
             If not exactly all sources are found in the group, raises AssertionError.
 
@@ -284,8 +307,8 @@ def spec_average(  # pylint: disable=R0913, R0914
     file_replace_pattern = {
         "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"
         + (file_name_addition if file_name_addition is not None else ""),
-         "spec_4D_tslice": "spec_4D_tslice_avg",
-        #"spec_4D": "spec_4D_avg",
+        "spec_4D_tslice": "spec_4D_tslice_avg",
+        # "spec_4D": "spec_4D_avg",
     }
     dset_replace_pattern = {
         r"x(?P<x>[0-9]+)_y(?P<y>[0-9]+)_z(?P<z>[0-9]+)_t(?P<t>[0-9]+)": "src_avg",
@@ -293,7 +316,6 @@ def spec_average(  # pylint: disable=R0913, R0914
     }
 
     file_patterns = [r".*\.h5$", "spec_4D_tslice"]
-    #file_patterns = [r".*\.h5$", "spec_4D"]
     file_patterns += list(file_replace_pattern.keys())
 
     files = find_all_files(
@@ -332,4 +354,65 @@ def spec_average(  # pylint: disable=R0913, R0914
             LOGGER.info("Creating `%s`", base_dir)
             os.makedirs(base_dir)
 
-        dset_avg(file_group, out_file, dset_replace_pattern, overwrite=overwrite)
+        dset_avg(
+            file_group,
+            out_file,
+            dset_replace_pattern,
+            overwrite=overwrite,
+            expected_dsets=None,
+        )
+
+
+def main():
+    """Command line interface for averaging list of h5 files
+    """
+
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="Reads h5 files and exports the average of datasets across files."
+        " Each group in the file list will be averaged over files."
+        " Fails if it finds less dsets then specified files for each group."
+    )
+
+    parser.add_argument(
+        "--input",
+        "-i",
+        type=str,
+        nargs="+",
+        default=None,
+        help="Files to average (list). Must be given.",
+    )
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default=None,
+        help="Name of the output file. Must be given.",
+    )
+    parser.add_argument(
+        "--overwrite",
+        "-f",
+        action="store_true",
+        default=False,
+        help="Overwrite hdf5 files if they already exist. [default=%(default)s]",
+    )
+    args = parser.parse_args()
+
+    if args.input is None:
+        raise ValueError("You must specify concatenatenation inputs.")
+
+    if args.output is None:
+        raise ValueError("You must specify concatenatenation output file.")
+
+    dset_avg(  # pylint: disable=R0914
+        files=args.input,
+        out_file=args.output,
+        dset_replace_patterns=None,
+        overwrite=args.overwrite,
+        expected_dsets=len(args.input),
+    )
+
+
+if __name__ == "__main__":
+    main()
