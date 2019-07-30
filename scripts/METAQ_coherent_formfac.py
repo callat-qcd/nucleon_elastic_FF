@@ -207,11 +207,11 @@ for c in cfgs_run:
                             if not t_e or (args.o and not t_w):
                                 prop_name = c51.names['prop'] % params
                                 prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
-                                prop_exists = os.path.exits(prop_file)
+                                prop_exists = os.path.exists(prop_file)
                                 prop_h5 = False
                                 if ens in ['a12m130'] and not prop_exists:
                                     prop_file = params['prop'] + '/' + prop_name+'.h5'
-                                    if os.path.exits(prop_file):
+                                    if os.path.exists(prop_file):
                                         prop_h5 = True
                                         prop_exists = True
                                 if prop_exists:
