@@ -26,7 +26,7 @@ LOGGER = set_up_logger("nucleon_elastic_ff")
 def dset_avg(  # pylint: disable=R0914
     files: List[str],
     out_file: str,
-    dset_replace_patterns: Dict[str, str],
+    dset_replace_patterns: Optional[Dict[str, str]],
     overwrite: bool = False,
     expected_dsets: Optional[int] = None,
 ):
@@ -74,7 +74,7 @@ def dset_avg(  # pylint: disable=R0914
             out_file: str
                 The name of the file which will contain the averages.
 
-            dset_replace_patterns: Dict[str, str]
+            dset_replace_patterns: Optional[Dict[str, str]]
                 A map for how dsets in the input files are used to write to the output
                 file. The routine only averages over dsets which match all keys of
                 dset_replace_patterns.
@@ -89,6 +89,8 @@ def dset_avg(  # pylint: disable=R0914
     dsets_acc = {}
     n_dsets = {}
     dset_meta = {}
+
+    dset_replace_patterns = dset_replace_patterns or {}
 
     LOGGER.info(
         "Starting averaging over `%d` files with hdf5 group/dset substitutions",
