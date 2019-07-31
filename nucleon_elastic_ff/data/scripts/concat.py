@@ -36,7 +36,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
     """Reads h5 files and exports the contatenation of datasets across files.
 
     Each group in the file list will be contatenated over files.
-    Files are sorted before concatenation.
+    Files are concatenatinated in the order they are specified.
 
     Also the contatenation meta info is stored in the resulting output file in the `meta`
     attribute of `local_current`.
@@ -99,7 +99,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
     ignore_containers = ignore_containers or []
     dset_replace_patterns = dset_replace_patterns or {}
 
-    dsets_list = {}
+    dsets_paths = {}
     dsets_meta = {}
 
     n_files = len(files)
@@ -113,7 +113,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
     LOGGER.info("The export file will be called `%s`", out_file)
 
     LOGGER.info("Start parsing files")
-    for file in np.sort(files):
+    for file in files:
         LOGGER.debug("Parsing file `%s`", file)
         with h5py.File(file, "r") as h5f:
 
@@ -136,16 +136,22 @@ def concat_dsets(  # pylint: disable=R0913, R0914
                 meta = str(meta) + "&" if meta else ""
                 meta += "&".join([f"{kkey}=={vval}" for kkey, vval in meta_info.items()])
 
-                if out_grp in dsets_list:
-                    dsets_list[out_grp] += [val[()]]
+                if out_grp in dsets_paths:
+                    dsets_paths[out_grp].append((file, key))
                     dsets_meta[out_grp] += ("\n" + meta) if meta else ""
                 else:
-                    dsets_list[out_grp] = [val[()]]
+                    dsets_paths[out_grp] = [(file, key)]
                     dsets_meta[out_grp] = meta
 
-    LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_list), out_file)
+    LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_paths), out_file)
     with h5py.File(out_file) as h5f:
-        for key, dset_list in dsets_list.items():
+        for key, dset_path in dsets_paths.items():
+
+            dset_list = []
+            for (file, path) in dset_path:
+                with h5py.File(file, "r") as h5fin:
+                    dset_list.append(h5fin[path][()])
+
             if len(dset_list) == n_files:
                 LOGGER.debug(
                     "Concatinating dsets `%s` (list of %d dsets)"
@@ -160,7 +166,8 @@ def concat_dsets(  # pylint: disable=R0913, R0914
                 h5f[key].attrs["meta"] = dsets_meta[key]
             else:
                 LOGGER.warning(
-                    "Found only %d dsets with same name for key `%s`",
+                    "Expected %d but found %d dsets with same name for key `%s`",
+                    n_files,
                     len(dset_list),
                     key,
                 )
@@ -179,6 +186,11 @@ def concat_dsets(  # pylint: disable=R0913, R0914
                         overwrite=overwrite,
                     )
                     h5f[key].attrs["meta"] = dsets_meta[key]
+                else:
+                    raise ValueError(
+                        "Expected %d but found %d dsets with same name for key `%s`"
+                        % (n_files, len(dset_list), key)
+                    )
 
 
 def concatenate(  # pylint: disable=R0913, R0914
@@ -276,7 +288,7 @@ def concatenate(  # pylint: disable=R0913, R0914
             os.makedirs(base_dir)
 
         concat_dsets(
-            file_group,
+            np.sort(file_group),
             out_file,
             axis=axis,
             dset_replace_patterns=dset_replace_patterns,
