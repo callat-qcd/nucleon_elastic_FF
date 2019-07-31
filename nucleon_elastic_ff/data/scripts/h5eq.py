@@ -4,14 +4,17 @@ from argparse import ArgumentParser
 
 from nucleon_elastic_ff.data.h5io import assert_h5files_equal
 
-PARSER = ArgumentParser(description="Compare two hdf5 files")
+PARSER = ArgumentParser(
+    description="Compare two hdf5 files."
+    " Checks if for each entry `|a - b| < atol + rtol * |b|`"
+)
 PARSER.add_argument("actual", type=str, help="Address to actual file.")
 PARSER.add_argument("expected", type=str, help="Address to expected file.")
 PARSER.add_argument(
     "--atol",
     "-a",
     type=float,
-    default=1.0e-7,
+    default=0.0,
     help="Absolute comparison difference (default = [%(default)s]).",
 )
 PARSER.add_argument(

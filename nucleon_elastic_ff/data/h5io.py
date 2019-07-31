@@ -100,12 +100,15 @@ def create_dset(h5f: h5py.File, key: str, data: Any, overwrite: bool = False):
 def assert_h5files_equal(  # pylint: disable=R0913
     actual: str,
     expected: str,
-    atol: float = 1.0e-7,
+    atol: float = 0.0,
     rtol: float = 1.0e-7,
     group_actual: Optional[str] = None,
     group_expected: Optional[str] = None,
 ):
     """Reads to HDF5 files, compares if they have equal datasets.
+
+    Checks if for each entry `|actual - expected| < atol + rtol * |expected|`
+    (uses `numpy.testing.assert_allclose`).
 
     **Arguments**
         actual: str
@@ -114,7 +117,7 @@ def assert_h5files_equal(  # pylint: disable=R0913
         expected: str
             File name for expected input data.
 
-        atol: float = 1.0e-7
+        atol: float = 0.0
             Absolute error tolarance. See numpy `assert_allcolse`.
 
         rtol: float = 1.0e-7
