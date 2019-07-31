@@ -339,6 +339,14 @@ def main():
         default=False,
         help="Overwrite hdf5 files if they already exist. [default=%(default)s]",
     )
+    parser.add_argument(
+        "--write-unpaired-dsets",
+        "-w",
+        action="store_true",
+        default=False,
+        help="Write data sets if number of dsetes do not mathch file number."
+        " Else raise error. [default=%(default)s]",
+    )
     args = parser.parse_args()
 
     if args.input is None:
@@ -353,6 +361,7 @@ def main():
         axis=args.axis,
         dset_replace_patterns=None,
         ignore_containers=None,
+        write_unpaired_dsets=args.write_unpaired_dsets,
         overwrite=args.overwrite,
     )
 
