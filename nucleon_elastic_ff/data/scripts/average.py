@@ -86,7 +86,7 @@ def dset_avg(  # pylint: disable=R0914
                 If true, raises an error if number of found dsets is less then the number
                 of specified desets.
     """
-    dsets_acc = {}
+    dsets_paths = {}
     n_dsets = {}
     dset_meta = {}
 
@@ -124,12 +124,12 @@ def dset_avg(  # pylint: disable=R0914
                 meta = str(meta) + "&" if meta else ""
                 meta += "&".join([f"{kkey}=={vval}" for kkey, vval in meta_info.items()])
 
-                if out_grp in dsets_acc:
-                    dsets_acc[out_grp] += val[()]
+                if out_grp in dsets_paths:
+                    dsets_paths[out_grp].append((file, key))
                     n_dsets[out_grp] += 1
                     dset_meta[out_grp] += "\n" + meta
                 else:
-                    dsets_acc[out_grp] = val[()]
+                    dsets_paths[out_grp] = [(file, key)]
                     n_dsets[out_grp] = 1
                     dset_meta[out_grp] = meta
 
@@ -144,15 +144,21 @@ def dset_avg(  # pylint: disable=R0914
                     % (len(files), count, group, dset_meta[group])
                 )
 
-    LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_acc), out_file)
+    LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_paths), out_file)
     with h5py.File(out_file) as h5f:
-        for key, acc in dsets_acc.items():
+        for key, paths in dsets_paths.items():
             LOGGER.debug(
                 "Writing dset `%s` (average of %d dsets) with meta info:\n\t`%s`",
                 key,
                 n_dsets[key],
                 dset_meta[key],
             )
+
+            acc = 0
+            for file, path in paths:
+                with h5py.File(file, "r") as h5fin:
+                    acc += h5fin[path][()]
+
             create_dset(h5f, key, acc / n_dsets[key], overwrite=overwrite)
             h5f[key].attrs["meta"] = dset_meta[key]
 
