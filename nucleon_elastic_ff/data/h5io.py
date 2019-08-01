@@ -213,7 +213,7 @@ def assert_h5dsets_equal(  # pylint: disable=R0913
                 raise KeyError(
                     "Could not find dset %s in %s" % (dset_expected, expected)
                 )
-            dset_e = h5f_a[dset_expected]
+            dset_e = h5f_e[dset_expected]
 
             np.testing.assert_allclose(
                 dset_a[()],
