@@ -167,6 +167,63 @@ def assert_h5files_equal(  # pylint: disable=R0913
                 )
 
 
+def assert_h5dsets_equal(  # pylint: disable=R0913
+    actual: str,
+    expected: str,
+    dset_actual: str,
+    dset_expected: str,
+    atol: float = 0.0,
+    rtol: float = 1.0e-7,
+):
+    """Reads to HDF5 files, compares if specific datasets are equal.
+
+    Checks if for each entry `|actual - expected| < atol + rtol * |expected|`
+    (uses `numpy.testing.assert_allclose`).
+
+    **Arguments**
+        actual: str
+            File name for actual input data.
+
+        expected: str
+            File name for expected input data.
+
+        dset_actual: str
+            File name for actual input dataset.
+
+        dset_expected: str
+            File name for expected input dataset.
+
+        atol: float = 0.0
+            Absolute error tolarance. See numpy `assert_allcolse`.
+
+        rtol: float = 1.0e-7
+            Relative error tolarance. See numpy `assert_allcolse`.
+
+    **Raises**
+        AssertionError:
+            If datasets are different (e.g., not present or actual data is different.)
+    """
+    with h5py.File(actual, "r") as h5f_a:
+        if not dset_actual in h5f_a:
+            raise KeyError("Could not find dset %s in %s" % (dset_actual, actual))
+        dset_a = h5f_a[dset_actual]
+
+        with h5py.File(expected, "r") as h5f_e:
+            if not dset_expected in h5f_e:
+                raise KeyError(
+                    "Could not find dset %s in %s" % (dset_expected, expected)
+                )
+            dset_e = h5f_a[dset_expected]
+
+            np.testing.assert_allclose(
+                dset_a[()],
+                dset_e[()],
+                atol=atol,
+                rtol=rtol,
+                err_msg="Datasets have unequal values.",
+            )
+
+
 def get_dset_chunks(dset: h5py.Dataset, chunk_size: int) -> Iterable[np.ndarray]:
     """Returns components of data sliced in chunks determined by the chunk size.
 
