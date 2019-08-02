@@ -40,6 +40,8 @@ parser.add_argument('-p',default=False,action='store_const',const=True,\
     help='put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
+parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
+    help='print DEBUG statements? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -111,9 +113,13 @@ for c in cfgs_run:
 
     if os.path.exists(cfg_file):
         params['CFG_FILE'] = cfg_file
-        print('Making props for cfg: ',c)
+        print('Making %s for cfg: %d' %(sys.argv[0].split('/')[-1],c))
+        if args.debug:
+            print('srcs[%d] = %s' %(c,str(srcs[c])))
 
         for s0 in srcs[c]:
+            if args.debug:
+                print('DEBUG: src',s0)
             params['SRC'] = s0
             if args.verbose:
                 print(c,s0)
@@ -146,7 +152,9 @@ for c in cfgs_run:
                     prop_file = params['prop'] + '/' + prop_name+'.h5'
                     utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
                     prop_exists = os.path.exists(prop_file)
-                if os.path.exists(prop_exists):
+                if args.debug:
+                    print('DEBUG: prop exists',prop_exists)
+                if prop_exists:
                     print('  making ',spec_name)
                     metaq = spec_name+'.sh'
                     t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
@@ -174,8 +182,12 @@ for c in cfgs_run:
                         else:
                             prop_file = params['prop'] + '/' + prop_name+'.h5'
                             params['H5_FILE'] = prop_file
-                            params['H5_PATH'] = '48_64'
-                            params['H5_OBJ_NAME'] = 'prop1'
+                            if params['si'] == 0:
+                                params['H5_PATH'] = '48_64'
+                                params['H5_OBJ_NAME'] = 'prop1'
+                            else:
+                                params['H5_PATH'] = ''
+                                params['H5_OBJ_NAME'] = 'prop'
                             fin.write(xml_input.hdf5_read % params)
                         ''' smear prop '''
                         params['SMEARED_PROP'] = prop_name+'_SS'

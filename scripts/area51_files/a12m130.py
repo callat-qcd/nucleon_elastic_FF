@@ -6,6 +6,7 @@ params['run_ff'] = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
+#params['si'] = 8; params['sf'] = 15; params['ds'] = 1
 
 params['ENS_ABBR'] = 'a12m130'
 params['NL']   = '48'
@@ -46,7 +47,7 @@ params['SP_EXTENSION'] = 'lime'
 params['seed'] = dict()
 params['seed']['a'] = '1a'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
-params['t_shifts'] = [ 0, 32  , 16  , 48     ]
+params['t_shifts'] = [ 0, 32  , 16  , 48,    8, 24, 40, 56,    4, 36, 20, 52,    12, 28, 44, 60     ]
 params['generator'] = sources.oa(int(params['NL']))
 
 ''' minutes after last file modification time when deletion of small files is OK '''
@@ -74,7 +75,7 @@ params['OMP_NUM_THREADS'] = '4'
 
 def mpirun_params(machine):
     if machine == 'lassen':
-        params['metaq_split'] = True
+        params['metaq_split'] = False
         params['cpu_nodes']   = 1
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1

@@ -227,8 +227,12 @@ for c in cfgs_run:
                                     else:
                                         prop_file = params['prop'] + '/' + prop_name+'.h5'
                                         params['H5_FILE'] = prop_file
-                                        params['H5_PATH'] = '48_64'
-                                        params['H5_OBJ_NAME']='prop1'
+                                        if params['si'] == 0:
+                                            params['H5_PATH'] = '48_64'
+                                            params['H5_OBJ_NAME'] = 'prop1'
+                                        else:
+                                            params['H5_PATH'] = ''
+                                            params['H5_OBJ_NAME'] = 'prop'
                                         fin.write(xml_input.hdf5_read % params)
 
                                     ''' read all seq props and do contractions '''

@@ -39,6 +39,15 @@ def src_start_stop(params,ens,stream):
             else:
                 print('summit is not set to run stream %s yet with srcs 0-7 x 1' %stream)
                 sys.exit()
+    if ens == 'a12m130':
+        if any(host in hn for host in ['lassen']):
+            params['si'] = 24
+            params['sf'] = 31
+            params['ds'] = 1
+        elif any(host in hn for host in ['login','batch']):
+            params['si'] = 0
+            params['sf'] = 7
+            params['ds'] = 1
     return params
 
 def xyzt(src):
