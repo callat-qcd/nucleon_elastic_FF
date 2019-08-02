@@ -76,14 +76,14 @@ params['OMP_NUM_THREADS'] = '4'
 def mpirun_params(machine):
     if machine == 'lassen':
         params['metaq_split'] = False
-        params['cpu_nodes']   = 1
+        params['cpu_nodes']   = 3
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 15
         params['src_time']    = 5
         params['spec_time']   = 13
 
-        params['cpu_nrs']     = '--nrs 2'
+        params['cpu_nrs']     = '--nrs 6'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a16'
         params['cpu_g_rs']    = ''
@@ -91,20 +91,20 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = 'lassen_bind_cpu.N32.sh'
 
-        params['gpu_nodes']   = 1
+        params['gpu_nodes']   = 3
         params['gpu_metaq_nodes'] = 0
-        params['gpu_gpus']    = 4
+        params['gpu_gpus']    = 12
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 10
+        params['prop_time']   = 120
         params['seqprop_time']   = 80
 
-        params['gpu_nrs']     = '--nrs 1'
+        params['gpu_nrs']     = '--nrs 3'
         params['gpu_rs_node'] = '-r1'
         params['gpu_a_rs']    = '-a4'
         params['gpu_g_rs']    = '-g4'
         params['gpu_c_rs']    = '-c4'
         params['gpu_latency'] = '-l gpu-cpu'
-        params['gpu_geom']    = ' -geom 1 1 1 4'
+        params['gpu_geom']    = ' -geom 1 1 3 4'
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
     if machine == 'summit':
