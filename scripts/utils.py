@@ -26,14 +26,18 @@ def ensure_dirExists(path):
             print("Exiting for safety.")
             exit(-1)
 
-def check_file(f_name,f_size,time_delete,bad_file_dir):
+def check_file(f_name,f_size,time_delete,bad_file_dir,debug=False):
     if os.path.exists(f_name) and os.path.getsize(f_name) < f_size:
         now = time.time()
         file_time = os.stat(f_name).st_mtime
         ''' check last update of file in minutes '''
         if (now-file_time)/60 > time_delete:
-            print('DELETING BAD FILE',os.path.getsize(f_name),f_name.split('/')[-1])
-            shutil.move(f_name,bad_file_dir+'/'+f_name.split('/')[-1])
+            if debug:
+                print('DEBUG: DELETING BAD FILE',os.path.getsize(f_name),f_name.split('/')[-1])
+                print('now',now,'file_time',file_time)
+            else:
+                print('DELETING BAD FILE',os.path.getsize(f_name),f_name.split('/')[-1])
+                shutil.move(f_name,bad_file_dir+'/'+f_name.split('/')[-1])
     return os.path.exists(f_name)
 
 def parse_cfg_argument(cfg_arg, params):

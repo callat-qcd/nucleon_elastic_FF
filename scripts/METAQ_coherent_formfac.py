@@ -62,6 +62,10 @@ if 'si' in params and 'sf' in params and 'ds' in params:
 else:
     params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+if args.src:
+    params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
+else:
+    params['N_SEQ'] = len(srcs[cfgs_run[0]])
 
 if args.priority:
     q = 'priority'
@@ -152,7 +156,9 @@ for c in cfgs_run:
                 params['SINK_SPIN']=src_spin
                 spin = snk_spin+'_'+src_spin
                 params['FLAV_SPIN']=fs
-                params['N_SEQ'] = str(len(srcs[c]))
+                if args.debug:
+                    print('DEBUG: len(srcs[c])',len(srcs[c]))
+                    print(srcs[c])
                 for particle in params['particles']:
                     params['PARTICLE'] = particle
                     if '_np' in particle:
@@ -162,7 +168,7 @@ for c in cfgs_run:
                     seqprop_name = c51.names['seqprop'] %params
                     seqprop_file = params['seqprop']+'/'+seqprop_name+'.'+params['SP_EXTENSION']
                     seqprop_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
-                    utils.check_file(seqprop_file,seqprop_size,params['file_time_delete'],params['corrupt'])
+                    utils.check_file(seqprop_file,seqprop_size,params['file_time_delete'],params['corrupt'],debug=args.debug)
                     if not os.path.exists(seqprop_file):
                         print('    missing:',seqprop_file)
                         all_seqprops=False
@@ -182,8 +188,10 @@ for c in cfgs_run:
                     if not (os.path.exists(coherent_ff_4D_tslice) or os.path.exists(coherent_ff_4D_tslice_avg)):
                         params['THREE_PT_FILE'] = coherent_formfac_file
                         params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
-                        utils.check_file(coherent_formfac_file_4D,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'])
-                        utils.check_file(coherent_formfac_file,params['ff_size'],params['file_time_delete'],params['corrupt'])
+                        if args.debug:
+                            print('coherent_ff_size_4d',coherent_ff_size_4d)
+                        utils.check_file(coherent_formfac_file_4D,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'],debug=args.debug)
+                        utils.check_file(coherent_formfac_file,params['ff_size'],params['file_time_delete'],params['corrupt'],debug=args.debug)
                         if os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
                             now = time.time()
                             file_time = os.stat(coherent_formfac_file).st_mtime
@@ -191,8 +199,11 @@ for c in cfgs_run:
                                 print('MOVING TO CORRUPT:',coherent_formfac_file)
                                 shutil.move(coherent_formfac_file,params['corrupt']+'/'+coherent_formfac_file.split('/')[-1])
                         if os.path.exists(coherent_formfac_file_4D) and not os.path.exists(coherent_formfac_file):
-                            print('MOVING TO CORRUPT:',coherent_formfac_file_4D)
-                            shutil.move(coherent_formfac_file_4D,params['corrupt']+'/'+coherent_formfac_file_4D.split('/')[-1])
+                            now = time.time()
+                            file_time = os.stat(coherent_formfac_file_4D).st_mtime
+                            if (now-file_time)/60 > params['file_time_delete']:
+                                print('MOVING TO CORRUPT:',coherent_formfac_file_4D)
+                                shutil.move(coherent_formfac_file_4D,params['corrupt']+'/'+coherent_formfac_file_4D.split('/')[-1])
                         if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
                             # loop over FLAV and SPIN as all in 1 file
                             metaq  = coherent_formfac_name+'.sh'

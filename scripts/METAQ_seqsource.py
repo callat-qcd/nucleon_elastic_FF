@@ -63,6 +63,10 @@ if 'si' in params and 'sf' in params and 'ds' in params:
 else:
     params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+if args.src:
+    params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
+else:
+    params['N_SEQ'] = len(srcs[cfgs_run[0]])
 
 if args.priority:
     q = 'priority'
@@ -137,7 +141,6 @@ for c in cfgs_run:
         for dt_int in t_seps:
             dt = str(dt_int)
             params['T_SEP'] = dt
-            params['N_SEQ'] = str(len(srcs[c]))
             for s0 in srcs[c]:
                 params['SRC'] = s0
                 coherent_formfac_name  = c51.names['coherent_ff'] % params

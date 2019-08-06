@@ -63,6 +63,10 @@ if 'si' in params and 'sf' in params and 'ds' in params:
 else:
     params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+if args.src:
+    params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
+else:
+    params['N_SEQ'] = len(srcs[cfgs_run[0]])
 
 if args.priority:
     q = 'priority'
@@ -142,7 +146,6 @@ for c in cfgs_run:
         for dt_int in t_seps:
             dt = str(dt_int)
             params['T_SEP'] = dt
-            params['N_SEQ'] = str(len(srcs[c]))
             ''' Do the 3pt files exist? '''
             have_3pts = True
             for s0 in srcs[c]:
@@ -246,9 +249,11 @@ for c in cfgs_run:
                                     params['INI']       = xmlini
                                     params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                                     params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
+                                    # restore T_SEP to just positive value
+                                    params['T_SEP']     = dt
                                     params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
                                     params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '
-                                    params['CLEANUP']  += params['CFG']+' -t'+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                                    params['CLEANUP']  += params['CFG']+' -t '+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
                                     params['CLEANUP']  += 'sleep 5'
                                     mtype = args.mtype
                                     try:
