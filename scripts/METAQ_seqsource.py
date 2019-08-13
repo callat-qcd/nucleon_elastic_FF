@@ -67,6 +67,8 @@ if args.src:
     params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
 else:
     params['N_SEQ'] = len(srcs[cfgs_run[0]])
+src_ext = "%d-%d" %(params['si'],params['sf'])
+params['SRC_LST'] = src_ext
 
 if args.priority:
     q = 'priority'
@@ -211,7 +213,7 @@ for c in cfgs_run:
                                 else:
                                     prop_file = params['prop'] + '/' + prop_name+'.h5'
                                     params['H5_FILE']     = prop_file
-                                    if params['si'] == 0:
+                                    if params['si'] in [0, 8]:
                                         params['H5_PATH'] = '48_64'
                                         params['H5_OBJ_NAME'] = 'prop1'
                                     else:
@@ -248,10 +250,14 @@ for c in cfgs_run:
                                 params['INI']       = xmlini
                                 params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                                 params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                                params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
-                                params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_coherent_seqprop.py '
+                                params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                                params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_seqprop.py '
                                 params['CLEANUP']  += params['CFG']+' '+params['PRIORITY']+'\n'
-                                params['CLEANUP']  += 'sleep 5'
+                                params['CLEANUP']  += '    sleep 5'
+                                params['CLEANUP']  += 'else\n'
+                                params['CLEANUP']  += '    echo "mpirun failed"\n'
+                                params['CLEANUP']  += 'fi\n'
                                 mtype = args.mtype
                                 try:
                                     if params['metaq_split']:

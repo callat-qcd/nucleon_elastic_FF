@@ -66,6 +66,8 @@ if args.src:
     params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
 else:
     params['N_SEQ'] = len(srcs[cfgs_run[0]])
+src_ext = "%d-%d" %(params['si'],params['sf'])
+params['SRC_LST'] = src_ext
 
 if args.priority:
     q = 'priority'
@@ -238,7 +240,7 @@ for c in cfgs_run:
                                     else:
                                         prop_file = params['prop'] + '/' + prop_name+'.h5'
                                         params['H5_FILE'] = prop_file
-                                        if params['si'] == 0:
+                                        if params['si'] in [0, 8]:
                                             params['H5_PATH'] = '48_64'
                                             params['H5_OBJ_NAME'] = 'prop1'
                                         else:

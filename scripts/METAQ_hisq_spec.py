@@ -119,9 +119,13 @@ for c in cfgs_run:
     cfg_file   = params['milc_cfg']
 
     if not os.path.exists(cfg_coul):
-        params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
-        params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_hisq_spec.py '
+        params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+        params['CLEANUP']   = '    cd '+params['ENS_DIR']+'\n'
+        params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_hisq_spec.py '
         params['CLEANUP']  += params['CFG']+' '+params['PRIORITY']+'\n'
+        params['CLEANUP']  += 'else\n'
+        params['CLEANUP']  += '    echo "mpirun failed"\n'
+        params['CLEANUP']  += 'fi\n'
         cfg_in = '''
 reload_parallel %s
 u0 %s

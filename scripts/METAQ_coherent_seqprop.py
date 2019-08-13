@@ -67,6 +67,8 @@ if args.src:
     params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
 else:
     params['N_SEQ'] = len(srcs[cfgs_run[0]])
+src_ext = "%d-%d" %(params['si'],params['sf'])
+params['SRC_LST'] = src_ext
 
 if args.priority:
     q = 'priority'
@@ -251,10 +253,14 @@ for c in cfgs_run:
                                     params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                                     # restore T_SEP to just positive value
                                     params['T_SEP']     = dt
-                                    params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
-                                    params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '
+                                    params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                                    params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                                    params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '
                                     params['CLEANUP']  += params['CFG']+' -t '+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
-                                    params['CLEANUP']  += 'sleep 5'
+                                    params['CLEANUP']  += '    sleep 5'
+                                    params['CLEANUP']  += 'else\n'
+                                    params['CLEANUP']  += '    echo "mpirun failed"\n'
+                                    params['CLEANUP']  += 'fi\n'
                                     mtype = args.mtype
                                     try:
                                         if params['metaq_split']:

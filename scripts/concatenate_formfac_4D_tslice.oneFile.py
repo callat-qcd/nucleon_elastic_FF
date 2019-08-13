@@ -96,6 +96,10 @@ for particle in particles:
             for curr in currents:
                 for cfg in cfgs:
 '''
+if args.fout:
+    fout_name = args.fout
+else:
+    fout_name = ff_data_dir+'/formfac_'+ens_s+'_avg'+src_ext+'.h5'
 
 print('beginning concatenation:')
 print('    ',params['particles'],flav_spin)
@@ -108,17 +112,13 @@ if args.t_sep != None:
 
 for corr in params['particles']:
     for fs in flav_spin:
-        for curr in params['curr_4d']:
-            if args.fout:
-                fout_name = args.fout
-            else:
-                fout_name = ff_data_dir+'/formfac_4D_'+ens_s+'_'+corr+'_'+fs+'_'+curr+'_'+src_ext+'.h5'
-            for tsep in params['t_seps']:
-                dt = str(tsep)
-                params['T_SEP'] = dt
-                if '_np' in corr:
-                    dt = '-'+dt
-                print(corr,fs,'tsep=%s' %dt,curr)
+        for tsep in params['t_seps']:
+            dt = str(tsep)
+            params['T_SEP'] = dt
+            if '_np' in corr:
+                dt = '-'+dt
+            for curr in params['curr_4d']:
+                print(corr,fs,dt,curr)
                 f5_out = h5.open_file(fout_name,'a')
                 try:
                     f5_out.create_group(h5_root_path,corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px'+m0+'_py'+m1+'_pz'+m2,createparents=True)

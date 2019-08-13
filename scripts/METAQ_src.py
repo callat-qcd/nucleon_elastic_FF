@@ -185,9 +185,13 @@ for c in cfgs_run:
                         params['INI']       = xmlini
                         params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                         params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                        params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
-                        params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
-                        params['CLEANUP']  += 'sleep 5'
+                        params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                        params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                        params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                        params['CLEANUP']  += '    sleep 5'
+                        params['CLEANUP']  += 'else\n'
+                        params['CLEANUP']  += '    echo "mpirun failed"\n'
+                        params['CLEANUP']  += 'fi\n'
                         mtype = args.mtype
                         try:
                             if params['metaq_split']:
