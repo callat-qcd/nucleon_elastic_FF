@@ -240,9 +240,13 @@ for c in cfgs_run:
                                     else:
                                         prop_file = params['prop'] + '/' + prop_name+'.h5'
                                         params['H5_FILE'] = prop_file
-                                        if params['si'] in [0, 8]:
-                                            params['H5_PATH'] = '48_64'
-                                            params['H5_OBJ_NAME'] = 'prop1'
+                                        if ens == 'a12m130':
+                                            if params['si'] in [0, 8]:
+                                                params['H5_PATH'] = '48_64'
+                                                params['H5_OBJ_NAME'] = 'prop1'
+                                            else:
+                                                params['H5_PATH'] = ''
+                                                params['H5_OBJ_NAME'] = 'prop'
                                         else:
                                             params['H5_PATH'] = ''
                                             params['H5_OBJ_NAME'] = 'prop'
