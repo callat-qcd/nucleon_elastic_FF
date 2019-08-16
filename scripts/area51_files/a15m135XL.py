@@ -5,7 +5,9 @@ hn = socket.gethostname()
 
 params = dict()
 params['tuning_mq'] = False
+params['tuning_ms'] = True
 params['run_ff'] = True
+params['run_strange'] = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -41,6 +43,10 @@ params['MV_S'] = '0.0902'
 
 params['spec_size'] = 43000
 params['ff_size']   = 429000
+
+params['spec_size']      = 43120
+params['hyperspec_size'] = 383680
+params['ff_size']        = 386408
 
 params['MAX_ITER']   = '17000'
 params['RSD_TARGET'] = '1.e-7'
@@ -79,7 +85,6 @@ params['snk_mom'] = ['0 0 0']
 params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
 params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
-#params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S','T34','T12','CHROMO_MAG']
 
 ''' SCHEDULING PARAMETERS '''
@@ -111,6 +116,7 @@ def mpirun_params(machine):
         params['gpu_maxcus']  = 1
         params['prop_time']   = 150
         params['seqprop_time']    = 80
+        params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 3'
         params['gpu_rs_node'] = '-r1'
@@ -143,6 +149,7 @@ def mpirun_params(machine):
         params['gpu_maxcus']      = 1
         params['prop_time']       = 150
         params['seqprop_time']    = 80
+        params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 2'
         params['gpu_rs_node'] = '-r1'

@@ -2,7 +2,9 @@ import sources
 
 params = dict()
 params['tuning_mq'] = False
+params['tuning_ms'] = False
 params['run_ff'] = True
+params['run_strange'] = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -65,7 +67,6 @@ params['snk_mom'] = ['0 0 0']
 params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
 params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
-#params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['A3','V4','A1','A2','A4','V1','V2','V3','S','T34','T12','CHROMO_MAG']
 
 ''' SCHEDULING PARAMETERS '''

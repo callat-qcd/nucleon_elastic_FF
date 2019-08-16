@@ -194,7 +194,7 @@ for c in cfgs_run:
                                 params['INI']       = xmlini
                                 params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                                 params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                                if not params['tuning_mq']:
+                                if not params['tuning_ms']:
                                     params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                                     params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                                     params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_hyperspec.py '
