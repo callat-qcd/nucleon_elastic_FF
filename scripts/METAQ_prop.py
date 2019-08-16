@@ -195,7 +195,7 @@ for c in cfgs_run:
                                 if params['run_ff']:
                                     params['CLEANUP'] += '    python '+params['SCRIPT_DIR']+'/METAQ_seqsource.py '
                                     params['CLEANUP'] += params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
-                                params['CLEANUP']  += '    sleep 5'
+                                params['CLEANUP']  += '    sleep 5\n'
                                 params['CLEANUP']  += 'else\n'
                                 params['CLEANUP']  += '    echo "mpirun failed"\n'
                                 params['CLEANUP']  += 'fi\n'

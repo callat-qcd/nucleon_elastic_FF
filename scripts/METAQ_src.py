@@ -40,8 +40,10 @@ parser.add_argument('-p',default=False,action='store_const',const=True,\
     help='put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
-parser.add_argument('--force',default=False,action='store_const',const=True,\
+parser.add_argument('-f','--force',default=False,action='store_const',const=True,\
     help='force create props? [%(default)s]')
+parser.add_argument('--strange',default=False,action='store_const',const=True,\
+    help='submit METAQ_strange_prop when finished? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -134,8 +136,7 @@ for c in cfgs_run:
 
 
             if args.force:
-                if not prop_exists:
-                    make_src = True
+                make_src = True
             else:
                 spec_name    = c51.names['spec'] % params
                 spec_file    = params['spec'] +'/'+ spec_name+'.h5'
@@ -185,13 +186,23 @@ for c in cfgs_run:
                         params['INI']       = xmlini
                         params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                         params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                        params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
-                        params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
-                        params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
-                        params['CLEANUP']  += '    sleep 5'
-                        params['CLEANUP']  += 'else\n'
-                        params['CLEANUP']  += '    echo "mpirun failed"\n'
-                        params['CLEANUP']  += 'fi\n'
+                        # check if props exists in case of forced running
+                        prop_strange = prop_file.replace(params['MV_L'],params['MV_S'])
+                        if prop_file.split('.')[-1] =='h5':
+                            prop_strange = prop_strange.replace('.h5','.lime')
+                        if not prop_exists or (args.strange and not os.path.exists(prop_strange)):
+                            params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                            params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                            if not prop_exists:
+                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                            if args.strange and not os.path.exists(prop_strange):
+                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_strange_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                            params['CLEANUP']  += '    sleep 5\n'
+                            params['CLEANUP']  += 'else\n'
+                            params['CLEANUP']  += '    echo "mpirun failed"\n'
+                            params['CLEANUP']  += 'fi\n'
+                        else:
+                            params['CLEANUP'] = ''
                         mtype = args.mtype
                         try:
                             if params['metaq_split']:

@@ -34,8 +34,9 @@ params['alpha5'] = '3.0'
 params['MV_L'] = '0.00195'
 params['MV_S'] = '0.0693'
 
-params['spec_size'] = 43120
-params['ff_size']   = 386408
+params['spec_size']      = 43120
+params['hyperspec_size'] = 383680
+params['ff_size']        = 386408
 
 params['MAX_ITER']   = '15000'
 params['RSD_TARGET'] = '1.e-7'
@@ -123,12 +124,13 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = ''
 
-        params['gpu_nodes']       = 2
-        params['gpu_metaq_nodes'] = 0
-        params['gpu_gpus']        = 12
-        params['gpu_maxcus']      = 1
-        params['prop_time']       = 145
-        params['seqprop_time']    = 80
+        params['gpu_nodes']         = 2
+        params['gpu_metaq_nodes']   = 0
+        params['gpu_gpus']          = 12
+        params['gpu_maxcus']        = 1
+        params['prop_time']         = 145
+        params['seqprop_time']      = 80
+        params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 2'
         params['gpu_rs_node'] = '-r1'

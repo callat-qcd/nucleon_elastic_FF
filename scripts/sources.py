@@ -33,8 +33,8 @@ def src_start_stop(params,ens,stream):
                 params['sf'] = 31
                 params['ds'] = 1
             elif stream in ['c','d','e']:
-                params['si'] = 8
-                params['sf'] = 15
+                params['si'] = 24
+                params['sf'] = 31
                 params['ds'] = 1
             else:
                 print('summit is not set to run stream %s yet with srcs 0-7 x 1' %stream)

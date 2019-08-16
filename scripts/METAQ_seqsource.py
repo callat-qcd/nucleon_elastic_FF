@@ -258,7 +258,7 @@ for c in cfgs_run:
                                 params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                                 params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_seqprop.py '
                                 params['CLEANUP']  += params['CFG']+' '+params['PRIORITY']+'\n'
-                                params['CLEANUP']  += '    sleep 5'
+                                params['CLEANUP']  += '    sleep 5\n'
                                 params['CLEANUP']  += 'else\n'
                                 params['CLEANUP']  += '    echo "mpirun failed"\n'
                                 params['CLEANUP']  += 'fi\n'

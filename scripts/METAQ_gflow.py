@@ -133,7 +133,7 @@ for c in cfgs_run:
                 params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                 params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                 params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_src.py '+params['CFG']+' '+params['PRIORITY']+'\n'
-                params['CLEANUP']  += '    sleep 5'
+                params['CLEANUP']  += '    sleep 5\n'
                 params['CLEANUP']  += 'else\n'
                 params['CLEANUP']  += '    echo "mpirun failed"\n'
                 params['CLEANUP']  += 'fi\n'

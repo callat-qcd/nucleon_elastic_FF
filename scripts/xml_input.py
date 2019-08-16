@@ -237,6 +237,26 @@ meson_spec='''<elem>
 </elem>
 
 '''
+pi_k_spec='''<elem>
+<Name>MESON_CONTRACTIONS</Name>
+<MesonParams>
+<p2_max>%(MESONS_PSQ_MAX)s</p2_max>
+<particle_list>
+    <elem>piplus</elem>
+    <elem>kplus</elem>
+    <elem>kminus</elem>
+</particle_list>
+<h5_file_name>%(HYPERSPEC_FILE)s</h5_file_name>
+<obj_path>/%(H5_PATH)s</obj_path>
+</MesonParams>
+  <NamedObject>
+   <up_quark>%(UP_QUARK)s</up_quark>
+   <down_quark>%(DN_QUARK)s</down_quark>
+   <strange_quark>%(STRANGE_QUARK)s</strange_quark>
+  </NamedObject>
+</elem>
+
+'''
 
 baryon_spec = '''  <elem>
 <Name>BARYON_CONTRACTIONS</Name>
@@ -253,6 +273,28 @@ baryon_spec = '''  <elem>
 <NamedObject>
     <up_quark>%(UP_QUARK)s</up_quark>
     <down_quark>%(DN_QUARK)s</down_quark>
+</NamedObject>
+</elem>
+
+'''
+
+hyperon_spec = '''  <elem>
+<Name>BARYON_CONTRACTIONS</Name>
+<Frequency>1</Frequency>
+<BaryonParams>
+    <ng_parity>true</ng_parity>
+    <h5_file_name>%(HYPERSPEC_FILE)s</h5_file_name>
+    <path>/%(H5_PATH)s</path>
+%(BARYON_MOM)s
+    <particle_list>
+        <elem>octet</elem>
+        <elem>decuplet</elem>
+    </particle_list>
+</BaryonParams>
+<NamedObject>
+    <up_quark>%(UP_QUARK)s</up_quark>
+    <down_quark>%(DN_QUARK)s</down_quark>
+    <strange_quark>%(STRANGE_QUARK)s</strange_quark>
 </NamedObject>
 </elem>
 
