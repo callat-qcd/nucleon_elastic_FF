@@ -45,8 +45,9 @@ params['alpha5'] = '2.50'
 params['MV_L'] = '0.00380'
 params['MV_S'] = '0.0693'
 
-params['spec_size'] = 1
-params['ff_size']   = 1
+params['spec_size'] = 43120
+params['hyperspec_size'] = 1
+params['ff_size']   = 429736
 
 params['MAX_ITER']   = '10000'
 params['RSD_TARGET'] = '1.e-7'
