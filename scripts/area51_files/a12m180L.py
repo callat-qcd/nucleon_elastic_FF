@@ -2,7 +2,9 @@ import sources
 
 params = dict()
 params['tuning_mq'] = True
+params['tuning_ms'] = False
 params['run_ff']    = False
+params['run_strange'] = True
 
 #l4864f211b600m00339m0507m628a.
 
@@ -45,9 +47,9 @@ params['alpha5'] = '2.50'
 params['MV_L'] = '0.00380'
 params['MV_S'] = '0.0693'
 
-params['spec_size'] = 43120
-params['hyperspec_size'] = 1
-params['ff_size']   = 429736
+params['spec_size']      = 43120
+params['hyperspec_size'] = 383680
+params['ff_size']        = 429736
 
 params['MAX_ITER']   = '10000'
 params['RSD_TARGET'] = '1.e-7'
@@ -91,14 +93,15 @@ params['OMP_NUM_THREADS'] = '4'
 
 def mpirun_params(machine):
     if machine == 'lassen':
-        params['cpu_nodes']   = 1
+        params['metaq_split'] = True
+        params['cpu_nodes']   = 3
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 15
         params['src_time']    = 5
-        params['spec_time']   = 10
+        params['spec_time']   = 13
 
-        params['cpu_nrs']     = '--nrs 2'
+        params['cpu_nrs']     = '--nrs 6'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a16'
         params['cpu_g_rs']    = ''
@@ -106,19 +109,21 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = 'lassen_bind_cpu.N32.sh'
 
-        params['gpu_nodes']   = 0
-        params['gpu_metaq_nodes']   = 16
-        params['gpu_gpus']    = 4
-        params['gpu_maxcus']  = 1
-        params['prop_time']   = 10
+        params['gpu_nodes']    = 3
+        params['gpu_metaq_nodes']   = 0
+        params['gpu_gpus']     = 12
+        params['gpu_maxcus']   = 1
+        params['prop_time']    = 40
+        params['seqprop_time'] = 30
+        params['strange_prop_time'] = 15
 
-        params['gpu_nrs']     = '--nrs 1'
+        params['gpu_nrs']     = '--nrs 3'
         params['gpu_rs_node'] = '-r1'
         params['gpu_a_rs']    = '-a4'
         params['gpu_g_rs']    = '-g4'
         params['gpu_c_rs']    = '-c4'
         params['gpu_latency'] = '-l gpu-cpu'
-        params['gpu_geom']    = ' -geom 1 1 1 4'
+        params['gpu_geom']    = ' -geom 1 1 3 4'
         params['gpu_geom_milc']    = ' -geom 1 1 1 8'
         params['gpu_p_milc']    = '-p16'
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
@@ -142,12 +147,13 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = ''
 
-        params['gpu_nodes']   = 2
-        params['gpu_metaq_nodes'] = 0
-        params['gpu_gpus']    = 12
-        params['gpu_maxcus']  = 1
-        params['prop_time']   = 35
-        params['seqprop_time']   = 20
+        params['gpu_nodes']         = 2
+        params['gpu_metaq_nodes']   = 0
+        params['gpu_gpus']          = 12
+        params['gpu_maxcus']        = 1
+        params['prop_time']         = 35
+        params['seqprop_time']      = 20
+        params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 2'
         params['gpu_rs_node'] = '-r1'
