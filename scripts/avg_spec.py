@@ -37,6 +37,7 @@ parser.add_argument('-o',default=False,action='store_const',const=True,help='ove
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
 parser.add_argument('--srcs',type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
 parser.add_argument('--fout',type=str,help='name of output file')
+parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -48,8 +49,27 @@ utils.ensure_dirExists(data_dir)
 data_avg_dir = data_dir+'/avg'
 utils.ensure_dirExists(data_avg_dir)
 
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
+if args.src_index:# override src index in sources and area51 files for collection
+    params['si'] = args.src_index[0]
+    params['sf'] = args.src_index[1]
+    params['ds'] = args.src_index[2]
+src_ext = "%d-%d" %(params['si'],params['sf'])
+
 if args.fout == None:
     if args.srcs == None:
+        f_out = data_avg_dir+'/'+ens_s+'_avg_srcs'+src_ext+'.h5'
+    elif args.srcs == 'old':
         f_out = data_avg_dir+'/'+ens_s+'_avg.h5'
     else:
         f_out = data_avg_dir+'/'+ens_s+'_avg_'+args.srcs+'.h5'
@@ -65,11 +85,7 @@ smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
 
-mv_l = params['MV_L']
-
-
-mq_list = [params['MV_L']]
-mq = mq_list[0]
+mq = params['MV_L']
 
 spin = ['spin_up','spin_dn']
 par  = ['proton','proton_np']
@@ -86,6 +102,8 @@ for mom in p_lst:
         good_cfg = False
         f_open = False
         if args.srcs == None:
+            file_in = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
+        elif args.srcs == 'old':
             file_in = data_dir+'/'+ens_s+'_'+no+'.h5'
         else:
             file_in = data_dir+'/'+ens_s+'_'+no+'_'+args.srcs+'.h5'
@@ -145,6 +163,7 @@ for mom in p_lst:
         fout.close()
 
 for corr in par:
+    print(corr)
     p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
     ''' flip spin and momentum order in h5 dir structrure '''
     for mom in p_lst:
@@ -159,6 +178,8 @@ for corr in par:
                 no = str(cfg)
                 good_cfg = False
                 if args.srcs == None:
+                    file_in = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
+                elif args.srcs == 'old':
                     file_in = data_dir+'/'+ens_s+'_'+no+'.h5'
                 else:
                     file_in = data_dir+'/'+ens_s+'_'+no+'_'+args.srcs+'.h5'
