@@ -222,7 +222,7 @@ for c in cfgs_run:
                                 prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
                                 prop_exists = os.path.exists(prop_file)
                                 prop_h5 = False
-                                if ens in ['a12m130'] and not prop_exists:
+                                if ens in ['a12m130', 'a15m135XL'] and not prop_exists:
                                     prop_file = params['prop'] + '/' + prop_name+'.h5'
                                     if os.path.exists(prop_file):
                                         prop_h5 = True
