@@ -67,8 +67,6 @@ if args.src:
     params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
 else:
     params['N_SEQ'] = len(srcs[cfgs_run[0]])
-src_ext = "%d-%d" %(params['si'],params['sf'])
-params['SRC_LST'] = src_ext
 
 if args.priority:
     q = 'priority'
@@ -127,6 +125,14 @@ params['C_RS']        = params['gpu_c_rs']
 params['L_GPU_CPU']   = params['gpu_latency']
 params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
+n_curr = len(params['curr_4d'])
+n_flav = len(params['flavs'])
+n_spin = len(params['spins'])
+n_par  = len(params['particles'])
+coherent_ff_size_4d = n_curr * n_flav * n_spin * n_par *int(nt)*int(nl)**3 * 2*8
+src_ext = "%d-%d" %(params['si'],params['sf'])
+params['SRC_LST'] = src_ext
+
 for c in cfgs_run:
     no = str(c)
     params['CFG'] = no
@@ -155,10 +161,14 @@ for c in cfgs_run:
                 coherent_formfac_name  = c51.names['coherent_ff'] % params
                 coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
                 coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
-                if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                utils.check_file(coherent_formfac_file_4D,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'],debug=args.debug)
+                utils.check_file(coherent_formfac_file,params['ff_size'],params['file_time_delete'],params['corrupt'],debug=args.debug)
+                if not os.path.exists(coherent_formfac_file) or not os.path.exists(coherent_formfac_file_4D):
                     have_3pts = False
                     have_all_3pts = False
             if not have_3pts:
+                if args.debug:
+                    print('DEBUG: have_3pts',have_3pts)
                 for fs in flav_spin:
                     flav,snk_spin,src_spin=fs.split('_')
                     params['FLAV']=flav
@@ -270,12 +280,13 @@ for c in cfgs_run:
                                     scheduler.make_task(metaq,mtype,params,folder=q)
                                 else:
                                     if not args.verbose:
-                                        print('    task is in use or overwrite is false')
+                                        print('    task is in use or overwrite is false:',metaq)
                         else:
-                            print('seqprop exists',seqprop_file)
+                            if args.verbose:
+                                print('seqprop exists',seqprop_file)
             else:
                 if args.verbose:
-                    print('    3pt corr exists:',coherent_formfac_file)
+                    print('    3pt corr exists:')
         if not have_seqsrc and not have_all_3pts:
             print('python METAQ_seqsource.py %s -v' %(c))
             os.system('python %s/METAQ_seqsource.py %s %s -v' %(params['SCRIPT_DIR'],c,params['PRIORITY']))

@@ -338,7 +338,12 @@ for c in cfgs_run:
                 print('    missing FLAV or SPIN seqprops, dt=',dt)
         if not have_all_seqprops:
             print('    missing FLAV or SPIN seqprops')
-            os.system('python %s/METAQ_coherent_seqprop.py %s %s -v' %(params['SCRIPT_DIR'],c,params['PRIORITY']))
+            if args.t_sep:
+                tsep = "".join("%d " %t for t in args.t_sep)
+                tsep = "-t "+tsep
+            else:
+                tsep = ""
+            os.system('python %s/METAQ_coherent_seqprop.py %s %s %s -v' %(params['SCRIPT_DIR'],c,params['PRIORITY'],tsep))
         #else:
         #    print('    missing props')
     else:

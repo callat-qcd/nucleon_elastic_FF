@@ -45,6 +45,7 @@ print('')
     RUN PARAMETER SET UP
 '''
 if 'si' in params and 'sf' in params and 'ds' in params:
+    print('USER DEFINED SRCS')
     tmp_params = dict()
     tmp_params['si'] = params['si']
     tmp_params['sf'] = params['sf']
