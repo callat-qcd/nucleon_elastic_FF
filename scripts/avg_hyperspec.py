@@ -212,7 +212,7 @@ for corr in par:
                         tmp.append(src.read())
                         ns += 1
                     if args.v:
-                        sys.stdout.write('%s %s %s %s %s Ns = %.2f\r' %(corr,s,mq,mom,no,ns))
+                        sys.stdout.write('%12s %9s %s %s %4s Ns = %.2f\r' %(corr,s,mq,mom,no,ns))
                         sys.stdout.flush()
                         #print(corr,s,mq,no,mom,'Ns = ',ns)
                     tmp = np.array(tmp)
@@ -227,7 +227,7 @@ for corr in par:
             cfgs_srcs = np.array(cfgs_srcs)
             ''' perform time-reversal on neg par correlators '''
             if '_np' in corr:
-                print('PERFORMING TIME_REVERSAL:',corr)
+                print('\nPERFORMING TIME_REVERSAL:',corr)
                 spec = utils.time_reverse(spec,phase=-1,time_axis=1)
             spin_data[s] = spec
             if 'cfgs_srcs' not in spin_data:
@@ -259,7 +259,7 @@ for corr in par:
                 cfgs_srcs = spin_data['cfgs_srcs']
                 nc = cfgs_srcs.shape[0]
                 ns_avg = cfgs_srcs.mean(axis=0)[1]
-                print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
+                print('%12s %s %s Nc=%4s Ns = %.2f\n' %(corr,mq,mom,nc,ns_avg))
                 fout.create_array(c_dir,'cfgs_srcs',cfgs_srcs)
                 for s in spin_dict[corr]:
                     fout.create_array(c_dir,s,spin_data[s])
