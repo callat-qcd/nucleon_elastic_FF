@@ -34,6 +34,7 @@ print('ENSEMBLE:',ens_s)
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-m','--mq',type=str,help='specify quark mass [default = all]')
 parser.add_argument('-s','--src',type=str,help='src [xXyYzZtT] None=All')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('--move',default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
@@ -69,16 +70,20 @@ smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
 
+if args.mq == None:
+    try:
+        if params['run_strange']:
+            mq_lst = [params['MV_L'], params['MV_S']]
+        else:
+            mq_lst = [params['MV_L']]
+    except:
+        mq_lst = [params['MV_L']]
+else:
+    mq_lst = [args.mq]
+
 print('MINING MRES and PHI_QQ')
 print('ens_stream = ',ens_s)
 print('srcs:',src_ext)
-try:
-    if params['run_strange']:
-        mq_lst = [params['MV_L'], params['MV_S']]
-    else:
-        mq_lst = [params['MV_L']]
-except:
-    mq_lst = [params['MV_L']]
 
 for cfg in cfgs_run:
     no = str(cfg)

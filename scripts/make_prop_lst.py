@@ -36,6 +36,7 @@ parser.add_argument('-s','--src',type=str)
 parser.add_argument('-e','--extension',type=str,default='lime',help='file extension [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
+parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -56,6 +57,11 @@ if 'si' in params and 'sf' in params and 'ds' in params:
     params['ds'] = tmp_params['ds']
 else:
     params = sources.src_start_stop(params,ens,stream)
+if args.src_index:# override src index in sources and area51 files for collection
+    params['si'] = args.src_index[0]
+    params['sf'] = args.src_index[1]
+    params['ds'] = args.src_index[2]
+
 print('RUNNING SRCS si=%d, sf=%d, ds=%d' %(params['si'],params['sf'],params['ds']))
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 

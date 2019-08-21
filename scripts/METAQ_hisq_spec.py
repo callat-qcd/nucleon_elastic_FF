@@ -92,7 +92,6 @@ params['C_RS']        = params['hisq_c_rs']
 params['L_GPU_CPU']   = params['hisq_latency']
 params['IO_OUT']      = '$ini >> $stdout'
 
-beta = '600'
 u0 = params['U0'] 
 ml = params['MS_L']
 ms = params['MS_S']  
@@ -113,10 +112,14 @@ for c in cfgs_run:
     ''' check if flowed cfg exists and make if not '''
     utils.ensure_dirExists(params['prod']+'/cfgs_coul')
     utils.ensure_dirExists(params['prod']+'/cfgs_scidac')
-    cfg_coul = params['prod']+'/cfgs_coul/'+params['ENS_LONG']+'.'+no+'.coulomb'
-    cfg_scidac = params['prod']+'/cfgs_scidac/'+params['ENS_LONG']+'.'+no+'.scidac'
+    cfg_coul = params['prod']+'/cfgs_coul/'+params['ENS_LONG']+stream+'.'+no+'.coulomb'
+    cfg_scidac = params['prod']+'/cfgs_scidac/'+params['ENS_LONG']+stream+'.'+no+'.scidac'
     cfg_flow   = params['ENS_LONG']+stream+'.'+no+'_wflow'+params['FLOW_TIME']
-    cfg_file   = params['milc_cfg']
+    milc_cfg   = params['milc_cfg']
+    if os.path.exists(cfg_scidac):
+        cfg_file = cfg_scidac
+    else:
+        cfg_file = milc_cfg
 
     if not os.path.exists(cfg_coul):
         params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
@@ -211,7 +214,13 @@ forget
                 print('  task exists:',metaq)
         elif os.path.exists(hisq_spec_file):
             print('hisq_spec exists',hisq_spec_file.split('/')[-1])
-
+        else:
+            print('hisq_spec_file',hisq_spec_file)
+            print(os.path.exists(hisq_spec_file))
+            print('cfg_file',cfg_file)
+            print(os.path.exists(cfg_file))
+            print('cfg_coul',cfg_coul)
+            print(os.path.exists(cfg_coul))
 """
     if os.path.exists(cfg_coul):
         for t in t_srcs:

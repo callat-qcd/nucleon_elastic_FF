@@ -22,9 +22,11 @@ params['U0']   = '0.85535'
 params['MS_L'] = '0.002426'
 params['MS_S'] = '0.06730'
 params['MS_C'] = '0.8447'
+params['naik'] = '-0.358920'
 params['cfg_i'] = 500
 params['cfg_f'] = 1745
 params['cfg_d'] = 5
+params['save_hisq_prop'] = False
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
@@ -65,6 +67,7 @@ for stream in ['b','c','d','e']:
 # they have to be run in batches of 8 so that the t0 are spaced far enough apart to not interefere in the coherent sink
 params['t_shifts'] = [ 0, 32, 16, 48,    8, 40, 24, 56,    4, 36, 20, 52,    12, 44, 28, 60 ]
 params['generator'] = sources.oa(int(params['NL']))
+params['t_hisq']   = [0,  8, 16, 24, 32, 40, 48, 56]
 
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10
@@ -156,5 +159,20 @@ def mpirun_params(machine):
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 3 4'
         params['gpu_bind']    = ''
+
+        params['hisq_nodes']  = 2
+        params['hisq_metaq_nodes'] = 0
+        params['hisq_gpus']   = 12
+        params['hisq_coul_spec'] = 16
+        params['hisq_spec']   = 3
+        params['hisq_maxcus'] = 1
+
+        params['hisq_nrs']     = '--nrs 2'
+        params['hisq_rs_node'] = '-r1'
+        params['hisq_a_rs']    = '-a6'
+        params['hisq_g_rs']    = '-g6'
+        params['hisq_c_rs']    = '-c6'
+        params['hisq_latency'] = '-l gpu-cpu'
+        params['hisq_geom']    = ' -qmp-geom 1 1 3 4'
 
     return params
