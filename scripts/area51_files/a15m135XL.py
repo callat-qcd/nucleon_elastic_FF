@@ -41,7 +41,8 @@ params['C5']     = '1.25'
 params['alpha5'] = '3.5'
 
 params['MV_L'] = '0.00237'
-params['MV_S'] = '0.0902'
+#params['MV_S'] = '0.0902'
+params['MV_S'] = '0.0946'
 
 params['spec_size'] = 43000
 params['hyperspec_size'] = 383680
