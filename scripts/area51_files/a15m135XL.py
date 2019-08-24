@@ -5,7 +5,7 @@ hn = socket.gethostname()
 
 params = dict()
 params['tuning_mq'] = False
-params['tuning_ms'] = True
+params['tuning_ms'] = False
 params['run_ff'] = True
 params['run_strange'] = True
 
@@ -42,7 +42,8 @@ params['alpha5'] = '3.5'
 
 params['MV_L'] = '0.00237'
 #params['MV_S'] = '0.0902'
-params['MV_S'] = '0.0946'
+#params['MV_S'] = '0.0946'
+params['MV_S'] = '0.0945'
 
 params['spec_size'] = 43000
 params['hyperspec_size'] = 383680
