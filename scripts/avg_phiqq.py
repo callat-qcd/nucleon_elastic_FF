@@ -139,10 +139,10 @@ for mq in mq_lst:
         fin.close()
     cfgs_srcs = np.array(cfgs_srcs)
     nc = cfgs_srcs.shape[0]
-    ns_avg = cfgs_srcs.mean(axis=0)[1]
-    print('')
-    print('  Ns_avg=',ns_avg)
     if nc > 0:
+        ns_avg = cfgs_srcs.mean(axis=0)[1]
+        print('')
+        print('  Nc = %d, Ns_avg=%.4f' %(nc,ns_avg))
         fout = h5.open_file(f_out,'a')
         if val_p not in fout.get_node('/'):
             fout.create_group('/',val_p)
