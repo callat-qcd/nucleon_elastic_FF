@@ -24,7 +24,7 @@ def src_start_stop(params,ens,stream):
                 print('lassen is not running stream %s now with srcs 0-7 x 1' %stream)
                 sys.exit()
         elif any(host in hn for host in ['login','batch']):
-            if stream in ['b']:
+            if stream in ['r']:
                 params['si'] = 8
                 params['sf'] = 15
                 params['ds'] = 1
@@ -32,7 +32,7 @@ def src_start_stop(params,ens,stream):
                 params['si'] = 24
                 params['sf'] = 31
                 params['ds'] = 1
-            elif stream in ['c','d','e']:
+            elif stream in ['b','c','d','e']:
                 params['si'] = 24
                 params['sf'] = 31
                 params['ds'] = 1
