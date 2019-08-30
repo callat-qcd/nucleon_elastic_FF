@@ -5,7 +5,6 @@ from os.path import join
 from unittest import TestCase
 
 from nucleon_elastic_ff.test_utilities import CommandTest
-from nucleon_elastic_ff.test_utilities import TMPDIR
 from nucleon_elastic_ff.test_utilities import LOGGER
 
 from nucleon_elastic_ff.data.scripts.tslice import tslice
@@ -23,12 +22,15 @@ class FormfacTsliceTest(CommandTest, TestCase):
         join("formfac_4D_tslice", "formfac_4D_tslice_px0py0pz0_Nsnk1_x3y1z2t4.h5"),
     ]
 
-    @staticmethod
-    def command():
+    def command(self):
         """Command which will be executed by the unittest.
         """
         LOGGER.info("Running `tslice`")
-        tslice(join(TMPDIR, "formfac_4D"), overwrite=False, boundary_sign_flip=False)
+        tslice(
+            join(self.tmp_address, "formfac_4D"),
+            overwrite=False,
+            boundary_sign_flip=False,
+        )
 
 
 class SpecTsliceTest(CommandTest, TestCase):
@@ -43,13 +45,12 @@ class SpecTsliceTest(CommandTest, TestCase):
         join("spec_4D_tslice", "spec_4D_tslice_px0py0pz0_Nsnk1_x3y1z2t4.h5"),
     ]
 
-    @staticmethod
-    def command():
+    def command(self):
         """Command which will be executed by the unittest.
         """
         LOGGER.info("Running `tslice`")
         tslice(
-            join(TMPDIR, "spec_4D"),
+            join(self.tmp_address, "spec_4D"),
             name_input="spec_4D",
             name_output="spec_4D_tslice",
             overwrite=False,

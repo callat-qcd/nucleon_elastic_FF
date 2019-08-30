@@ -5,6 +5,7 @@ from typing import Optional
 from typing import Union
 from typing import List
 from typing import Any
+from typing import Iterable
 
 import os
 
@@ -99,12 +100,15 @@ def create_dset(h5f: h5py.File, key: str, data: Any, overwrite: bool = False):
 def assert_h5files_equal(  # pylint: disable=R0913
     actual: str,
     expected: str,
-    atol: float = 1.0e-7,
+    atol: float = 0.0,
     rtol: float = 1.0e-7,
     group_actual: Optional[str] = None,
     group_expected: Optional[str] = None,
 ):
     """Reads to HDF5 files, compares if they have equal datasets.
+
+    Checks if for each entry `|actual - expected| < atol + rtol * |expected|`
+    (uses `numpy.testing.assert_allclose`).
 
     **Arguments**
         actual: str
@@ -113,7 +117,7 @@ def assert_h5files_equal(  # pylint: disable=R0913
         expected: str
             File name for expected input data.
 
-        atol: float = 1.0e-7
+        atol: float = 0.0
             Absolute error tolarance. See numpy `assert_allcolse`.
 
         rtol: float = 1.0e-7
@@ -161,3 +165,90 @@ def assert_h5files_equal(  # pylint: disable=R0913
                     rtol=rtol,
                     err_msg="Dataset `%s` has unequal values." % key,
                 )
+
+
+def assert_h5dsets_equal(  # pylint: disable=R0913
+    actual: str,
+    expected: str,
+    dset_actual: str,
+    dset_expected: str,
+    atol: float = 0.0,
+    rtol: float = 1.0e-7,
+):
+    """Reads to HDF5 files, compares if specific datasets are equal.
+
+    Checks if for each entry `|actual - expected| < atol + rtol * |expected|`
+    (uses `numpy.testing.assert_allclose`).
+
+    **Arguments**
+        actual: str
+            File name for actual input data.
+
+        expected: str
+            File name for expected input data.
+
+        dset_actual: str
+            File name for actual input dataset.
+
+        dset_expected: str
+            File name for expected input dataset.
+
+        atol: float = 0.0
+            Absolute error tolarance. See numpy `assert_allcolse`.
+
+        rtol: float = 1.0e-7
+            Relative error tolarance. See numpy `assert_allcolse`.
+
+    **Raises**
+        AssertionError:
+            If datasets are different (e.g., not present or actual data is different.)
+    """
+    with h5py.File(actual, "r") as h5f_a:
+        if not dset_actual in h5f_a:
+            raise KeyError("Could not find dset %s in %s" % (dset_actual, actual))
+        dset_a = h5f_a[dset_actual]
+
+        with h5py.File(expected, "r") as h5f_e:
+            if not dset_expected in h5f_e:
+                raise KeyError(
+                    "Could not find dset %s in %s" % (dset_expected, expected)
+                )
+            dset_e = h5f_e[dset_expected]
+
+            np.testing.assert_allclose(
+                dset_a[()],
+                dset_e[()],
+                atol=atol,
+                rtol=rtol,
+                err_msg="Datasets have unequal values.",
+            )
+
+
+def get_dset_chunks(dset: h5py.Dataset, chunk_size: int) -> Iterable[np.ndarray]:
+    """Returns components of data sliced in chunks determined by the chunk size.
+
+    This reduces the memory size when loading the array.
+
+    **Argumets**
+        dset: h5py.Dataset
+            Input data set to read.
+
+        chunk_size: int
+            Size of the chunks to load in. Slices the first dimension of the input
+            dataset. Must be smaller or equal to the size of the first data set
+            dimension.
+    """
+    n_chunks = dset.shape[0] // chunk_size
+    if n_chunks < 1:
+        raise ValueError("Received ``chunck_size`` such that ``n_chunks < 1``.")
+
+    chunks = [
+        (n_chunk * chunk_size, (n_chunk + 1) * chunk_size) for n_chunk in range(n_chunks)
+    ]
+    if chunks[-1][1] < dset.shape[0]:
+        chunks.append((chunks[-1][1], dset.shape[0]))
+
+    LOGGER.debug("Iterating `%s` in chunks `%s`", dset, chunks)
+
+    for n_start, n_end in chunks:
+        yield dset[n_start:n_end]
