@@ -98,7 +98,7 @@ def mpirun_params(machine):
         params['gpu_gpus']    = 12
         params['gpu_maxcus']  = 1
         params['prop_time']   = 120
-        params['seqprop_time']   = 80
+        params['seqprop_time']   = 58
         params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 3'
@@ -111,6 +111,7 @@ def mpirun_params(machine):
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
     if machine == 'summit':
+        params['metaq_split'] = True
         params['cpu_nodes']   = 2
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
@@ -131,7 +132,7 @@ def mpirun_params(machine):
         params['gpu_gpus']          = 12
         params['gpu_maxcus']        = 1
         params['prop_time']         = 145
-        params['seqprop_time']      = 80
+        params['seqprop_time']      = 58
         params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 2'

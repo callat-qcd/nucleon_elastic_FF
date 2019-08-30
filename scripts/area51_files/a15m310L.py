@@ -121,7 +121,8 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = ''
 
-        params['gpu_nodes']   = 0
+        params['gpu_nodes']   = 1
+        params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 6
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10
@@ -133,5 +134,6 @@ def mpirun_params(machine):
         params['gpu_c_rs']    = '-c6'
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 1 6'
+        params['gpu_bind']    = ''
 
     return params
