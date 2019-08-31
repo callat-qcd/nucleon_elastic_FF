@@ -82,6 +82,7 @@ params['A_RS']        = params['cpu_a_rs']
 params['G_RS']        = params['cpu_g_rs']
 params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 for c in cfgs_run:
     no = str(c)
@@ -129,9 +130,13 @@ for c in cfgs_run:
                 params['INI']       = xmlini
                 params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                 params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
-                params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_src.py '+params['CFG']+' '+params['PRIORITY']+'\n'
-                params['CLEANUP']  += 'sleep 5'
+                params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_src.py '+params['CFG']+' '+params['PRIORITY']+'\n'
+                params['CLEANUP']  += '    sleep 5\n'
+                params['CLEANUP']  += 'else\n'
+                params['CLEANUP']  += '    echo "mpirun failed"\n'
+                params['CLEANUP']  += 'fi\n'
                 mtype = args.mtype
                 try:
                     if params['metaq_split']:

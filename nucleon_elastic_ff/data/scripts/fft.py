@@ -14,6 +14,7 @@ from nucleon_elastic_ff.utilities import has_match
 
 from nucleon_elastic_ff.data.h5io import get_dsets
 from nucleon_elastic_ff.data.h5io import create_dset
+from nucleon_elastic_ff.data.h5io import get_dset_chunks
 
 from nucleon_elastic_ff.data.arraymanip import get_fft
 
@@ -25,6 +26,7 @@ def fft(  # pylint: disable = R0913
     name_input: str,
     name_output: str,
     max_momentum: Optional[int] = None,
+    chunk_size: Optional[int] = None,
     overwrite: bool = False,
     cuda: bool = True,
 ):
@@ -33,20 +35,21 @@ def fft(  # pylint: disable = R0913
     Routine FFTs 4D correlation functions. If `max_momentum` is given this routine cuts
     the output array in a all momentum directions.
 
-    .. Example:: The user specifies `max_momentum = 5`, which means, in each direction,
-        `x, y, z`, the momentum should is of from `[0,1,2,3,4,5,-5,-4,-3,-2,-1]`,
+    .. note::
+        The user specifies ``max_momentum = 5``, which means, in each direction,
+        ``x, y, z``, the momentum should is of from ``[0,1,2,3,4,5,-5,-4,-3,-2,-1]``,
         just like a regular FFT space, except the higher valued modes are chopped out.
-
 
     The input files must be h5 files (ending with ".h5") and must have `name_input`
     in their file name. Files which have `name_output` as name are excluded.
     Also, this routine ignores exporting to files which already exist.
     Once all files are fixed, this routine calls `slice_file` on each file.
-    This routines transforms `local_current` dsets to `momentum_current` dsets.
+    This routines transforms ``local_current`` dsets to ``momentum_current`` dsets.
 
-    .. Note:: This routine explicitly assumes that the datasets to transform are of shape
-    `shape1 + [Nz, Ny, Nx] + [2]` where shape1 can be anything the second shape is the
-    to transformed shape and the last shape corresponds to real / complex.
+    .. Note::
+        This routine explicitly assumes that the datasets to transform are of shape
+        ``shape1 + [Nz, Ny, Nx] + [2]`` where shape1 can be anything the second shape is
+        the to transformed shape and the last shape corresponds to real / complex.
 
     **Arguments**
         root: str
@@ -62,6 +65,11 @@ def fft(  # pylint: disable = R0913
 
         max_momentum: int
             The momentum at which the FT is cutoff in each spatial dimension.
+
+        chunk_size: Optional[int] = None
+            Reads in arrays in chunks and applys fft chunkwise.
+            This reduce the memory load.
+            For now, only slices the zeroth-dimension.
 
         overwrite: bool = False
             Overwrite existing sliced files.
@@ -103,6 +111,7 @@ def fft(  # pylint: disable = R0913
             file_address,
             file_address_out,
             max_momentum=max_momentum,
+            chunk_size=chunk_size,
             overwrite=overwrite,
             cuda=cuda,
         )
@@ -110,7 +119,7 @@ def fft(  # pylint: disable = R0913
     LOGGER.info("Done")
 
 
-def fft_file(  # pylint: disable = R0914, R0913
+def fft_file(  # pylint: disable = R0914, R0913, R0912
     file_address_in: str,
     file_address_out: str,
     max_momentum: Optional[int] = None,
@@ -119,6 +128,7 @@ def fft_file(  # pylint: disable = R0914, R0913
         "x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+",
         "4D_correlator",
     ),
+    chunk_size: Optional[int] = None,
     overwrite: bool = False,
     cuda: bool = True,
 ):
@@ -131,13 +141,15 @@ def fft_file(  # pylint: disable = R0914, R0913
     Also the slicing meta info is stored in the resulting output file in the `meta`
     attribute of `momentum_current`.
 
-    .. Example:: The user specifies `max_momentum = 5`, which means, in each direction,
-        `x, y, z`, the momentum should is of from `[0,1,2,3,4,5,-5,-4,-3,-2,-1]`,
+    .. note::
+        The user specifies ``max_momentum = 5``, which means, in each direction,
+        ``x, y, z``, the momentum should is of from ``[0,1,2,3,4,5,-5,-4,-3,-2,-1]``,
         just like a regular FFT space, except the higher valued modes are chopped out.
 
-    .. Note:: This routine explicitly assumes that the datasets to transform are of shape
-    `shape1 + [Nz, Ny, Nx] + [2]` where shape1 can be anything the second shape is the
-    to transformed shape and the last shape corresponds to real / complex.
+    .. Note::
+        This routine explicitly assumes that the datasets to transform are of shape
+        ``shape1 + [Nz, Ny, Nx] + [2]`` where shape1 can be anything the second shape is
+        the to transformed shape and the last shape corresponds to real / complex.
 
     **Arguments**
         file_address_in: str
@@ -155,6 +167,11 @@ def fft_file(  # pylint: disable = R0914, R0913
             "4D_correlator",
         ),
             List of regex patterns data sets must match to be ffted (needs to match one).
+
+        chunk_size: Optional[int] = None
+            Reads in arrays in chunks and applys fft chunkwise.
+            This reduce the memory load.
+            For now, only slices the zeroth-dimension.
 
         overwrite: bool = False
             Overwrite existing sliced file.
@@ -201,11 +218,21 @@ def fft_file(  # pylint: disable = R0914, R0913
                     n1d = shape[-2]
 
                     LOGGER.debug("\tAdding imag part to real part (removing last dim)")
-                    arr = dset[()]
-                    arr = (arr.T[0] + arr.T[1] * 1j).T
+                    if chunk_size is None:
+                        arr = dset[()]
+                        arr = (arr.T[0] + arr.T[1] * 1j).T
 
-                    LOGGER.debug("\tStart fft")
-                    out = get_fft(arr, cuda=cuda, axes=(-1, -2, -3))
+                        LOGGER.debug("\tStart fft")
+                        out = get_fft(arr, cuda=cuda, axes=(-1, -2, -3))
+                    else:
+                        out = []
+                        for n_chunk, chunk in enumerate(
+                            get_dset_chunks(dset, chunk_size)
+                        ):
+                            chunk = (chunk.T[0] + chunk.T[1] * 1j).T
+                            LOGGER.debug("\tStart fft of %d. chunk", n_chunk)
+                            out.append(get_fft(chunk, cuda=cuda, axes=(-1, -2, -3)))
+                        out = np.concatenate(out, axis=0)
 
                     if max_momentum is not None:
                         meta = dset.attrs.get("meta", None)
@@ -265,6 +292,14 @@ def main():
         " FFT is placed in the same dataset as in the input file. [default=%(default)s]",
     )
     parser.add_argument(
+        "--chunk-size",
+        "-s",
+        type=int,
+        default=None,
+        help="Number of first data set dimension array entries to read in at a time."
+        " Reduces memory loads and defaults to whole data set. [default=%(default)s]",
+    )
+    parser.add_argument(
         "--overwrite",
         "-f",
         action="store_true",
@@ -273,7 +308,11 @@ def main():
     )
     args = parser.parse_args()
     fft_file(
-        args.input, args.output, max_momentum=args.max_momentum, overwrite=args.overwrite
+        args.input,
+        args.output,
+        max_momentum=args.max_momentum,
+        chunk_size=args.chunk_size,
+        overwrite=args.overwrite,
     )
 
 

@@ -1,0 +1,127 @@
+\documentclass[prd,11pt,tightenlines,preprintnumbers,showpacs,superscriptaddress,notitlepage,nofootinbib,eqsecnum,floatfix,longbibliography]{revtex4-1}
+% LOAD PREAMBLE
+\input{preamble.tex}
+% NEW COMMANDS
+\input{command_list}
+
+\input{def}
+\input{affiliations}
+\newcount\hour \newcount\hourminute \newcount\minute 
+\hour=\time \divide \hour by 60
+\hourminute=\hour \multiply \hourminute by 60
+\minute=\time \advance \minute by -\hourminute
+\newcommand{\mydate}{\ \today \ - \number\hour :\number\minute}
+
+
+\begin{document}
+
+\title{Notes: comparing FH to standard method}
+
+%\author{Evan~Berkowitz}
+%\affiliation{\julich}
+
+%\author{Chris~Bouchard}
+%\affiliation{\glasgow}
+
+%\author{David~A.~Brantley}
+%\affiliation{\wm}
+%\affiliation{\lblnsd}
+%\affiliation{\llnl}
+
+%\author{Chia-Cheng Chang}
+%\affiliation{\lblnsd}
+%
+%\author{M.A.~Clark}
+%\affiliation{\nvidia}
+%
+%\author{Arjun~Gambhir}
+%\affiliation{\llnl}
+%\affiliation{\lblnsd}
+%\affiliation{\ucb}
+%
+%\author{Nicolas~Garron}
+%\affiliation{\liverpool}
+%
+%\author{B\'{a}lint~Jo\'{o}}
+%\affiliation{\jlabt}
+%
+%\author{Thorsten~Kurth}
+%\affiliation{\lblnersc}
+%
+%\author{Chris~Monahan}
+%\affiliation{\intuw}
+%
+%\author{Henry~Monge-Camacho}
+%\affiliation{\wm}
+%\affiliation{\lblnsd}
+%
+%\author{Amy~Nicholson}
+%\affiliation{\unc}
+%
+%%\author{Kostas Orginos}
+%%\email[]{kostas@wm.edu}
+%%\affiliation{\wm}
+%%\affiliation{\jlab}
+%
+%\author{Enrico~Rinaldi}
+%\affiliation{\rbrc}
+%
+%\author{Pavlos~Vranas}
+%\affiliation{\llnl}
+%\affiliation{\lblnsd}
+
+\author{Andr\'{e}~Walker-Loud}
+%\email[]{awalker-loud@lbl.gov}
+%\affiliation{\lblnsd}
+%\affiliation{\llnl}
+%\affiliation{\ucb}
+
+\date{\mydate}
+
+\begin{abstract}
+Notes three point charges
+\end{abstract}
+\maketitle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\tableofcontents
+
+\begin{table}
+\begin{ruledtabular}
+\begin{tabular}{c|ccccccccccccc}
+$t_{sep}$& \multicolumn{13}{c}{$t_0 + \tau_\Gamma$}\\
+\hline
+3 &1.23 &1.23\\
+4 &1.19 &1.20 &1.18\\
+5 &1.14 &1.15 &1.15 &1.12\\
+6 &1.09 &1.11 &1.12 &1.10 &1.06\\
+7 &1.07 &1.08 &1.10 &1.09 &1.06 &1.03\\
+8 &1.06 &1.07 &1.09 &1.09 &1.06 &1.03 &1.01\\
+9 &1.05 &1.06 &1.08 &1.08 &1.07 &1.05 &1.03 &1.02\\
+10 &1.04 &1.05 &1.06 &1.07 &1.07 &1.06 &1.05 &1.05 &1.04\\
+11 &1.03 &1.03 &1.04 &1.05 &1.05 &1.06 &1.07 &1.07 &1.07 &1.07\\
+12 &1.02 &1.02 &1.02 &1.03 &1.04 &1.06 &1.08 &1.10 &1.10 &1.10 &1.09\\
+13 &1.02 &1.02 &1.01 &1.01 &1.03 &1.06 &1.08 &1.10 &1.12 &1.12 &1.13 &1.12\\
+14 &1.01 &1.01 &1.01 &1.01 &1.03 &1.05 &1.08 &1.10 &1.12 &1.13 &1.14 &1.14 &1.13\\
+\end{tabular}
+\end{ruledtabular}
+\caption{\label{tab:spin_uncertainty}
+Spin average uncertainty normalized by doubling statistics for spin up: $\sigma_{\rm spin\ avg} / (\sigma_{\rm spin\ up} / \sqrt{2})$.
+}
+\end{table}
+
+
+
+
+\bibliography{c51_bib}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+

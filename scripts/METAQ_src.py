@@ -40,8 +40,10 @@ parser.add_argument('-p',default=False,action='store_const',const=True,\
     help='put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
-parser.add_argument('--force',default=False,action='store_const',const=True,\
+parser.add_argument('-f','--force',default=False,action='store_const',const=True,\
     help='force create props? [%(default)s]')
+parser.add_argument('--strange',default=False,action='store_const',const=True,\
+    help='submit METAQ_strange_prop when finished? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -50,6 +52,17 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 
 if args.p:
@@ -86,6 +99,8 @@ params['A_RS']        = params['cpu_a_rs']
 params['G_RS']        = params['cpu_g_rs']
 params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
+
 
 for c in cfgs_run:
     no = str(c)
@@ -113,10 +128,15 @@ for c in cfgs_run:
             file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
             utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
             prop_exists = os.path.exists(prop_file)
+            # if a12m130, then check for h5 files
+            if ens in ['a12m130', 'a15m135XL'] and not prop_exists:
+                prop_file = params['prop'] + '/' + prop_name+'.h5'
+                utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                prop_exists = os.path.exists(prop_file)
+
 
             if args.force:
-                if not prop_exists:
-                    make_src = True
+                make_src = True
             else:
                 spec_name    = c51.names['spec'] % params
                 spec_file    = params['spec'] +'/'+ spec_name+'.h5'
@@ -138,8 +158,8 @@ for c in cfgs_run:
                             t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['cpu_nodes']),params,folder=q,overwrite=args.o)
                             t_w = t_w or t_w2
                             t_e = t_e or t_e2
-                        except:
-                            pass
+                    except:
+                        pass
                     if not t_e or (args.o and not t_w):
                         xmlini = params['xml'] +'/'+src_name+'.'+'ini.xml'
                         fin = open(xmlini,'w')
@@ -166,9 +186,25 @@ for c in cfgs_run:
                         params['INI']       = xmlini
                         params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                         params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                        params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
-                        params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
-                        params['CLEANUP']  += 'sleep 5'
+                        # check if props exists in case of forced running
+                        prop_strange = prop_file.replace(params['MV_L'],params['MV_S'])
+                        if prop_file.split('.')[-1] =='h5':
+                            prop_strange = prop_strange.replace('.h5','.lime')
+                        if not prop_exists or (args.strange and not os.path.exists(prop_strange)):
+                            params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                            params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                            if not prop_exists:
+                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                            if args.strange and not os.path.exists(prop_strange):
+                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_strange_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                            elif not args.strange and not os.path.exists(prop_strange) and params['run_strange']:
+                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_strange_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                            params['CLEANUP']  += '    sleep 5\n'
+                            params['CLEANUP']  += 'else\n'
+                            params['CLEANUP']  += '    echo "mpirun failed"\n'
+                            params['CLEANUP']  += 'fi\n'
+                        else:
+                            params['CLEANUP'] = ''
                         mtype = args.mtype
                         try:
                             if params['metaq_split']:
@@ -185,3 +221,5 @@ for c in cfgs_run:
                     print('prop exists',prop_file)
                 elif args.verbose and spec_exists:
                     print('spec exists',spec_file)
+    else:
+        print('missing flowed config')

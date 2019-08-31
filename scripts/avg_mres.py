@@ -33,9 +33,12 @@ print('ENSEMBLE:',ens_s)
 '''
 parser = argparse.ArgumentParser(description='average phi_qq')
 parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-m','--mq',type=str,help='specify quark mass [default = all]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--srcs',type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
 parser.add_argument('--fout',type=str,help='name of output file')
+parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -47,18 +50,35 @@ utils.ensure_dirExists(data_dir)
 data_avg_dir = data_dir+'/avg'
 utils.ensure_dirExists(data_avg_dir)
 
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
+if args.src_index:# override src index in sources and area51 files for collection
+    params['si'] = args.src_index[0]
+    params['sf'] = args.src_index[1]
+    params['ds'] = args.src_index[2]
+src_ext = "%d-%d" %(params['si'],params['sf'])
+
 if args.fout == None:
-    f_out = data_avg_dir+'/'+ens_s+'_avg.h5'
+    if args.srcs == None:
+        f_out = data_avg_dir+'/'+ens_s+'_avg_srcs'+src_ext+'.h5'
+    elif args.srcs == 'old':
+        f_out = data_avg_dir+'/'+ens_s+'_avg.h5'
+    else:
+        f_out = data_avg_dir+'/'+ens_s+'_avg_'+args.srcs+'.h5'
 else:
     f_out = args.fout
 
-fin_files = glob(data_dir+'/'+ens_s+'_*.h5')
 if args.cfgs == None:
-    cfgs = []
-    for f in fin_files:
-        cfg = f.split('_')[-1].split('.')[0]
-        cfgs.append(int(cfg))
-    cfgs.sort()
+    cfgs = range(params['cfg_i'],params['cfg_f']+params['cfg_d'],params['cfg_d'])
 else:
     cfgs = utils.parse_cfg_argument(args.cfgs,params)
 
@@ -66,11 +86,18 @@ smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
 
-mv_l = params['MV_L']
+if args.mq == None:
+    try:
+        if params['run_strange']:
+            mq_lst = [params['MV_L'], params['MV_S']]
+        else:
+            mq_lst = [params['MV_L']]
+    except:
+        mq_lst = [params['MV_L']]
+else:
+    mq_lst = [args.mq]
 
-
-mq_list = [params['MV_L']]
-for mq in mq_list:
+for mq in mq_lst:
     cfgs_srcs = []
     mp = np.array([],dtype=dtype)
     pp = np.array([],dtype=dtype)
@@ -79,15 +106,21 @@ for mq in mq_list:
     for cfg in cfgs:
         no = str(cfg)
         good_cfg = False
-        if os.path.exists(data_dir+'/'+ens_s+'_'+no+'.h5'):
-            fin = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5')
+        if args.srcs == None:
+            file_in = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
+        elif args.srcs == 'old':
+            file_in = data_dir+'/'+ens_s+'_'+no+'.h5'
+        else:
+            file_in = data_dir+'/'+ens_s+'_'+no+'_'+args.srcs+'.h5'
+        if os.path.exists(file_in):
+            fin = h5.open_file(file_in,'r')
             try:
                 mp_srcs = fin.get_node('/'+val_p+'/dwf_jmu/'+mqs+'/midpoint_pseudo')
                 pp_srcs = fin.get_node('/'+val_p+'/dwf_jmu/'+mqs+'/pseudo_pseudo')
                 if mp_srcs._v_nchildren > 0 and pp_srcs._v_nchildren > 0:
                     good_cfg = True
             except:
-                print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
+                print('ERROR reading ',file_in)
         if good_cfg:
             ns = 0
             mp_tmp = []

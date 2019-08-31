@@ -43,13 +43,23 @@ print(args)
 print('')
 
 dtype = np.complex64
-data_dir = c51.data_dir % params
-if not os.path.exists(data_dir+'/avg'):
-    os.makedirs(data_dir+'/avg')
+data_dir = c51.data_dir_4d % params
 utils.ensure_dirExists(data_dir)
 
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
+src_ext = "%d-%d" %(params['si'],params['sf'])
 if 'indvdl' in ens:
     params['N_SEQ'] = 1
 else:
@@ -69,10 +79,13 @@ par = ['proton','proton_np']
 if args.fout:
     fout_name = args.fout
 else:
-    fout_name = data_dir+'/avg/spec_4D_'+ens_s+'_avg.h5'
-f5_out = h5.open_file(fout_name,'a')
+    fout_name = data_dir+'/spec_4D_'+ens_s+'_tslice_avg'+src_ext+'.h5'
+print('out file')
+print(fout_name)
 for corr in params['particles']:
     print(corr)
+    fin_path = '/sh/'+corr+'/spin_avg/4D_correlator/src_avg'
+    f5_out = h5.open_file(fout_name,'a')
     try:
         f5_out.create_group(h5_root_path,corr,createparents=True)
     except:
@@ -82,6 +95,9 @@ for corr in params['particles']:
     get_data = True
     if '4D_correlator' in f5_out.get_node(h5_out_path) and not args.o:
         get_data = False
+    if '4D_correlator' in f5_out.get_node(h5_out_path) and args.o:
+        f5_out.remove_node(h5_out_path,'4D_correlator',recursive=True)
+    f5_out.close()
     if get_data:
         cfgs_srcs = []
         first_data = True
@@ -89,28 +105,30 @@ for corr in params['particles']:
             sys.stdout.write('    cfg=%4d\r' %(cfg))
             sys.stdout.flush()
             no = str(cfg)
-            cfg_file = data_dir+'/../spec_4D_tslice_avg/'+no+'/spec_4D_tslice_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_src_avg.h5'
+            cfg_file = data_dir+'/../spec_4D_tslice_avg/'+no+'/spec_4D_tslice_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_src_avg'+src_ext+'.h5'
             if os.path.exists(cfg_file):
                 fin = h5.open_file(cfg_file,'r')
                 tmp = fin.get_node('/'+fin_path).read()
                 n_srcs = len(fin.get_node('/'+fin_path)._v_attrs['meta'].split('\n')) / 2
                 fin.close()
+                f5_out = h5.open_file(fout_name,'a')
                 if first_data:
+                    shape = (0,)+tmp.shape
                     data = np.zeros((1,)+tmp.shape,dtype=tmp.dtype)
                     data[0] = tmp
+                    f5_out.create_earray(h5_out_path+'/4D_correlator','spin_avg',shape=shape,createparents=True,obj=data,expectedrows=len(cfgs_run))
                     first_data = False
                 else:
-                    data = np.append(data,[tmp],axis=0)
+                    data = f5_out.get_node(h5_out_path+'/4D_correlator/spin_avg')
+                    data.append(np.array([tmp]))
+                f5_out.close()
                 cfgs_srcs.append([cfg,int(n_srcs)])
         cfgs_srcs = np.array(cfgs_srcs)
         print('    Nc=%4d, Ns=%.7f' %(cfgs_srcs.shape[0],cfgs_srcs.mean(axis=0)[1]))
-        if '4D_correlators' in f5_out.get_node(h5_out_path):
-            f5_out.remove_node(h5_out_path,'4D_correlator',recursive=True)
-        f5_out.create_group(h5_out_path,'4D_correlator')
+        #f5_out.create_group(h5_out_path,'4D_correlator')
         #f5_out.create_array(h5_out_path+'/'+'4D_correlator','cfgs_srcs',cfgs_srcs)
-        f5_out.create_array(h5_out_path+'/'+'4D_correlator','spin_avg',data)
-        f5_out.flush()
+        #f5_out.create_array(h5_out_path+'/'+'4D_correlator','spin_avg',data)
+        #f5_out.flush()
     else:
         print('data exists and overwrite = False')
 
-f5_out.close()

@@ -50,6 +50,17 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 
 if args.p:
@@ -87,6 +98,7 @@ params['A_RS']        = params['gpu_a_rs']
 params['G_RS']        = params['gpu_g_rs']
 params['C_RS']        = params['gpu_c_rs']
 params['L_GPU_CPU']   = params['gpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 for c in cfgs_run:
     no = str(c)
@@ -117,7 +129,15 @@ for c in cfgs_run:
                 ''' make sure prop is correct size '''
                 file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                 utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
-                if not os.path.exists(prop_file):
+                prop_exists = os.path.exists(prop_file)
+                # a12m130 used h5 props
+                if ens in ['a12m130','a15m135XL'] and not prop_exists:
+                    prop_file = params['prop'] + '/' + prop_name+'.h5'
+                    utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                    prop_exists = os.path.exists(prop_file)
+                if not prop_exists:
+                    # restore prop extension to params['SP_EXTENSION'] in case we looked for h5 props
+                    prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
                     src_name = c51.names['src'] % params
                     src_file = params['src']+'/'+src_name+'.'+params['SP_EXTENSION']
                     utils.check_file(src_file,file_size,params['file_time_delete'],params['corrupt'])
@@ -168,13 +188,19 @@ for c in cfgs_run:
                             params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                             params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                             if not params['tuning_mq']:
-                                params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
-                                params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_spec.py '
+                                params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                                params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_spec.py '
                                 params['CLEANUP']  += params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
                                 if params['run_ff']:
-                                    params['CLEANUP'] += 'python '+params['SCRIPT_DIR']+'/METAQ_seqsource.py '
+                                    params['CLEANUP'] += '    python '+params['SCRIPT_DIR']+'/METAQ_seqsource.py '
                                     params['CLEANUP'] += params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
-                                params['CLEANUP']  += 'sleep 5'
+                                params['CLEANUP']  += '    sleep 5\n'
+                                params['CLEANUP']  += 'else\n'
+                                params['CLEANUP']  += '    echo "mpirun failed"\n'
+                                params['CLEANUP']  += 'fi\n'
+                            else:
+                                params['CLEANUP']  = ''
                             mtype = args.mtype
                             try:
                                 if params['metaq_split']:

@@ -40,6 +40,8 @@ parser.add_argument('-p',default=False,action='store_const',const=True,\
     help='put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
+parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
+    help='print DEBUG statements? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -48,6 +50,17 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 
 if args.p:
@@ -84,6 +97,7 @@ params['A_RS']        = params['cpu_a_rs']
 params['G_RS']        = params['cpu_g_rs']
 params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 for c in cfgs_run:
     no = str(c)
@@ -99,9 +113,13 @@ for c in cfgs_run:
 
     if os.path.exists(cfg_file):
         params['CFG_FILE'] = cfg_file
-        print('Making props for cfg: ',c)
+        print('Making %s for cfg: %d' %(sys.argv[0].split('/')[-1],c))
+        if args.debug:
+            print('srcs[%d] = %s' %(c,str(srcs[c])))
 
         for s0 in srcs[c]:
+            if args.debug:
+                print('DEBUG: src',s0)
             params['SRC'] = s0
             if args.verbose:
                 print(c,s0)
@@ -128,7 +146,15 @@ for c in cfgs_run:
                 ''' make sure prop is correct size '''
                 file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                 utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
-                if os.path.exists(prop_file):
+                prop_exists = os.path.exists(prop_file)
+                # a12m130 used h5 props
+                if ens in ['a12m130','a15m135XL'] and not prop_exists:
+                    prop_file = params['prop'] + '/' + prop_name+'.h5'
+                    utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                    prop_exists = os.path.exists(prop_file)
+                if args.debug:
+                    print('DEBUG: prop exists',prop_exists)
+                if prop_exists:
                     print('  making ',spec_name)
                     metaq = spec_name+'.sh'
                     t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
@@ -146,10 +172,27 @@ for c in cfgs_run:
                         fin = open(xmlini,'w')
                         fin.write(xml_input.head)
                         ''' read prop '''
-                        params['OBJ_TYPE']  = 'LatticePropagator'
                         params['OBJ_ID']    = prop_name
-                        params['LIME_FILE'] = prop_file
-                        fin.write(xml_input.qio_read % params)
+                        params['OBJ_TYPE']  = 'LatticePropagator'
+                        # we need to look for both lime and h5 prop
+                        prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
+                        if os.path.exists(prop_file):
+                            params['LIME_FILE'] = prop_file
+                            fin.write(xml_input.qio_read % params)
+                        else:
+                            prop_file = params['prop'] + '/' + prop_name+'.h5'
+                            params['H5_FILE'] = prop_file
+                            if ens == 'a12m130':
+                                if params['si'] in [0,8]:
+                                    params['H5_PATH'] = '48_64'
+                                    params['H5_OBJ_NAME'] = 'prop1'
+                                else:
+                                    params['H5_PATH'] = ''
+                                    params['H5_OBJ_NAME'] = 'prop'
+                            else:
+                                params['H5_PATH'] = ''
+                                params['H5_OBJ_NAME'] = 'prop'
+                            fin.write(xml_input.hdf5_read % params)
                         ''' smear prop '''
                         params['SMEARED_PROP'] = prop_name+'_SS'
                         fin.write(xml_input.shell_smearing % params)

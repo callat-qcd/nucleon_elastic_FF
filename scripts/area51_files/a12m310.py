@@ -4,6 +4,9 @@ params = dict()
 params['tuning_mq'] = False
 params['run_ff'] = True
 
+# the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
+# you must specify all three of these params to override the default
+
 params['ENS_ABBR'] = 'a12m310'
 params['NL']   = '24'
 params['NT']   = '64'
@@ -115,7 +118,8 @@ def mpirun_params(machine):
         params['cpu_c_rs']    = '-c16'
         params['cpu_latency'] = '-l cpu-cpu'
 
-        params['gpu_nodes']   = 0
+        params['gpu_nodes']   = 1
+        params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 6
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10
@@ -127,5 +131,6 @@ def mpirun_params(machine):
         params['gpu_c_rs']    = '-c6'
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 1 6'
+        params['gpu_bind']    = ''
 
     return params

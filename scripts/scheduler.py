@@ -50,7 +50,7 @@ def make_task(task,mtype,params,folder='todo',task_type='metaq'):
 metaq_tags = """
 #METAQ NODES %(METAQ_NODES)s
 #METAQ GPUS %(METAQ_GPUS)s
-#METAQ MIN_WC_TIME %(WALL_TIME)s
+#METAQ MIN_WC_TIME %(WALL_TIME)s:00
 #METAQ LOG %(METAQ_LOG)s
 #METAQ PROJECT %(METAQ_PROJECT)s
 
@@ -105,19 +105,32 @@ echo "START  "$(date "+%%Y-%%m-%%dT%%H:%%M")
 mpirun = dict()
 mpirun['lassen'] = '''
 %(APP)s
-jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s -b none -d packed $APP $PROG -i $ini -o $out > $stdout 2>&1
-
+jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s -b none -d packed $APP $PROG %(IO_OUT)s
+if [ $? -eq 0 ]; then
+    echo "successful jsrun"
+    cleanup=0
+else
+    echo "failed jsrun"
+    cleanup=1
+fi
 '''
 
 mpirun['summit'] = '''
 %(APP)s
-jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s %(L_GPU_CPU)s -b packed:smt:%(OMP_NUM_THREADS)s $PROG -i $ini -o $out > $stdout 2>&1
+jsrun %(NRS)s %(RS_NODE)s %(A_RS)s %(G_RS)s %(C_RS)s %(L_GPU_CPU)s -b packed:smt:%(OMP_NUM_THREADS)s $PROG %(IO_OUT)s
+if [ $? -eq 0 ]; then
+    echo "successful jsrun"
+    cleanup=0
+else
+    echo "failed jsrun"
+    cleanup=1
+fi
 
 '''
 
 mpirun['pascal'] = '''
 %(APP)s
-#srun -NN -nn %(PROG)s -i $ini -o $out > $stdout 2>&1
+#srun -NN -nn %(PROG)s %(IO_OUT)s
 
 '''
 

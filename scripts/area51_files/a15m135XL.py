@@ -5,19 +5,15 @@ hn = socket.gethostname()
 
 params = dict()
 params['tuning_mq'] = False
+params['tuning_ms'] = False
 params['run_ff'] = True
+params['run_strange'] = True
 
-# Lassen has done srcs 0 - 15, OA on [0 , 32, 16, 48, 8 , 40, 24, 56]
-# Summit will do srcs 16 - 32, OA on [4 , 36, 20, 52, 12, 44, 28, 60]
-# they have to be run in batches of 8 so that the t0 are spaced far enough apart to not interefere in the coherent sink
-if any(host in hn for host in ['lassen']):
-    params['si'] = 0
-    params['sf'] = 7
-    params['ds'] = 1
-elif any(host in hn for host in ['login','batch']):
-    params['si'] = 16
-    params['sf'] = 23
-    params['ds'] = 1
+# the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
+# you must specify all three of these params to override the default
+#params['si'] = 16
+#params['sf'] = 23
+#params['ds'] = 1
 
 params['ENS_ABBR'] = 'a15m135XL'
 params['NL']   = '48'
@@ -26,9 +22,11 @@ params['U0']   = '0.85535'
 params['MS_L'] = '0.002426'
 params['MS_S'] = '0.06730'
 params['MS_C'] = '0.8447'
+params['naik'] = '-0.358920'
 params['cfg_i'] = 500
 params['cfg_f'] = 1745
 params['cfg_d'] = 5
+params['save_hisq_prop'] = False
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
@@ -43,10 +41,13 @@ params['C5']     = '1.25'
 params['alpha5'] = '3.5'
 
 params['MV_L'] = '0.00237'
-params['MV_S'] = '0.0902'
+#params['MV_S'] = '0.0902'
+#params['MV_S'] = '0.0946'
+params['MV_S'] = '0.0945'
 
-params['spec_size'] = 684000
-params['ff_size']   = 3830000
+params['spec_size'] = 43000
+params['hyperspec_size'] = 383680
+params['ff_size']   = 429000
 
 params['MAX_ITER']   = '17000'
 params['RSD_TARGET'] = '1.e-7'
@@ -66,8 +67,9 @@ for stream in ['b','c','d','e']:
 # Lassen has done srcs 0 - 15, OA on [0 , 32, 16, 48, 8 , 40, 24, 56]
 # Summit will do srcs 16 - 32, OA on [4 , 36, 20, 52, 12, 44, 28, 60]
 # they have to be run in batches of 8 so that the t0 are spaced far enough apart to not interefere in the coherent sink
-params['t_shifts'] = [ 0 , 32, 16, 48, 8 , 40, 24, 56, 4 , 36, 20, 52, 12, 44, 28, 60 ]
+params['t_shifts'] = [ 0, 32, 16, 48,    8, 40, 24, 56,    4, 36, 20, 52,    12, 44, 28, 60 ]
 params['generator'] = sources.oa(int(params['NL']))
+params['t_hisq']   = [0,  8, 16, 24, 32, 40, 48, 56]
 
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10
@@ -78,14 +80,13 @@ params['MESONS_PSQ_MAX']  = 0
 params['BARYONS_PSQ_MAX'] = 0
 
 params['run_3pt'] = True
-params['t_seps']  = [3,4,5,6,7,8]
+params['t_seps']  = [3,4,5,6,7,8,9]
 params['flavs']   = ['UU','DD']
 params['spins']   = ['up_up','dn_dn']
 params['snk_mom'] = ['0 0 0']
 params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
-params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P']
-#params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
+params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S','T34','T12','CHROMO_MAG']
 
 ''' SCHEDULING PARAMETERS '''
@@ -103,7 +104,7 @@ def mpirun_params(machine):
         params['src_time']    = 5
         params['spec_time']   = 10
 
-        params['cpu_nrs']     = '--nrs 3'
+        params['cpu_nrs']     = '--nrs 6'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a18'
         params['cpu_g_rs']    = ''
@@ -111,11 +112,13 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = 'lassen_bind_cpu.N36.sh'
 
-        params['gpu_nodes']   = 0
+        params['gpu_nodes']   = 3
+        params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 12
         params['gpu_maxcus']  = 1
         params['prop_time']   = 150
         params['seqprop_time']    = 80
+        params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 3'
         params['gpu_rs_node'] = '-r1'
@@ -124,6 +127,23 @@ def mpirun_params(machine):
         params['gpu_c_rs']    = '-c4'
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 3 4 -qmp-geom 1 1 3 4 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
+        params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
+
+
+        params['hisq_nodes']  = 3
+        params['hisq_metaq_nodes'] = 0
+        params['hisq_gpus']   = 12
+        params['hisq_coul_spec'] = 16
+        params['hisq_spec']   = 3
+        params['hisq_maxcus'] = 1
+
+        params['hisq_nrs']     = '--nrs 3'
+        params['hisq_rs_node'] = '-r1'
+        params['hisq_a_rs']    = '-a4'
+        params['hisq_g_rs']    = '-g4'
+        params['hisq_c_rs']    = '-c4'
+        params['hisq_latency'] = '-l gpu-cpu'
+        params['hisq_geom']    = ' -geom 1 1 3 4 -qmp-geom 1 1 3 4 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
     if machine == 'summit':
@@ -148,6 +168,7 @@ def mpirun_params(machine):
         params['gpu_maxcus']      = 1
         params['prop_time']       = 150
         params['seqprop_time']    = 80
+        params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 2'
         params['gpu_rs_node'] = '-r1'
@@ -157,5 +178,20 @@ def mpirun_params(machine):
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 3 4'
         params['gpu_bind']    = ''
+
+        params['hisq_nodes']  = 2
+        params['hisq_metaq_nodes'] = 0
+        params['hisq_gpus']   = 12
+        params['hisq_coul_spec'] = 16
+        params['hisq_spec']   = 3
+        params['hisq_maxcus'] = 1
+
+        params['hisq_nrs']     = '--nrs 2'
+        params['hisq_rs_node'] = '-r1'
+        params['hisq_a_rs']    = '-a6'
+        params['hisq_g_rs']    = '-g6'
+        params['hisq_c_rs']    = '-c6'
+        params['hisq_latency'] = '-l gpu-cpu'
+        params['hisq_geom']    = ' -qmp-geom 1 1 3 4'
 
     return params

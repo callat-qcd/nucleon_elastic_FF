@@ -157,7 +157,7 @@ class AvgWorkFlowTest(TestCase):
         """Tests if avaraging fails if the number of sources is incorrect
         """
         LOGGER.info("--- Running `test_01_avg_raise_expected_source_exception` ---")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             average.source_average(TMPDIR, overwrite=False, n_expected_sources=3)
 
     def test_02_dset_avg_call_args(self):  # pylint: disable=R0914
@@ -179,7 +179,9 @@ class AvgWorkFlowTest(TestCase):
             for out_file, file_group in self.file_groups.items():
                 mocked_calls.append((file_group, out_file, dset_replace_pattern))
 
-            average.source_average(TMPDIR, overwrite=False, n_expected_sources=2)
+            average.source_average(
+                TMPDIR, overwrite=False, expected_sources=self.file_pars["src"]
+            )
 
             self.assertEqual(len(mocked_dset_avg.call_args_list), len(mocked_calls))
 
@@ -218,3 +220,12 @@ class AvgWorkFlowTest(TestCase):
                 TMPDIR, ensemble + "_" + stream, "formfac_4D_tslice_src_avg"
             )
             self.assertTrue(os.path.exists(tslice_path))
+
+    def test_03_avg_raise_expected_sources_exception(self):
+        """Tests if avaraging fails if the number of sources is incorrect
+        """
+        LOGGER.info("--- Running `test_03_avg_raise_expected_sources_exception` ---")
+        with self.assertRaises(AssertionError):
+            average.source_average(
+                TMPDIR, overwrite=False, expected_sources=["x20y0z2t7", "x30y4z9t78"]
+            )

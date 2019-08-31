@@ -20,6 +20,7 @@ ens,stream = c51.ens_base()
 ens_s = ens+'_'+stream
 
 area51 = importlib.import_module(ens)
+
 params = area51.params
 params['machine'] = c51.machine
 params['ENS_LONG'] = c51.ens_long[ens]
@@ -50,7 +51,22 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+if args.src:
+    params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
+else:
+    params['N_SEQ'] = len(srcs[cfgs_run[0]])
 
 if args.priority:
     q = 'priority'
@@ -107,6 +123,15 @@ params['A_RS']        = params['gpu_a_rs']
 params['G_RS']        = params['gpu_g_rs']
 params['C_RS']        = params['gpu_c_rs']
 params['L_GPU_CPU']   = params['gpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
+
+n_curr = len(params['curr_4d'])
+n_flav = len(params['flavs'])
+n_spin = len(params['spins'])
+n_par  = len(params['particles'])
+coherent_ff_size_4d = n_curr * n_flav * n_spin * n_par *int(nt)*int(nl)**3 * 2*8
+src_ext = "%d-%d" %(params['si'],params['sf'])
+params['SRC_LST'] = src_ext
 
 for c in cfgs_run:
     no = str(c)
@@ -129,18 +154,21 @@ for c in cfgs_run:
         for dt_int in t_seps:
             dt = str(dt_int)
             params['T_SEP'] = dt
-            params['N_SEQ'] = str(len(srcs[c]))
             ''' Do the 3pt files exist? '''
             have_3pts = True
             for s0 in srcs[c]:
                 params['SRC'] = s0
                 coherent_formfac_name  = c51.names['coherent_ff'] % params
                 coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
-                coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
-                if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                coherent_formfac_file_4D = coherent_formfac_file.replace('formfac','formfac_4D')
+                utils.check_file(coherent_formfac_file_4D,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'],debug=args.debug)
+                utils.check_file(coherent_formfac_file,params['ff_size'],params['file_time_delete'],params['corrupt'],debug=args.debug)
+                if not os.path.exists(coherent_formfac_file) or not os.path.exists(coherent_formfac_file_4D):
                     have_3pts = False
                     have_all_3pts = False
             if not have_3pts:
+                if args.debug:
+                    print('DEBUG: have_3pts',have_3pts)
                 for fs in flav_spin:
                     flav,snk_spin,src_spin=fs.split('_')
                     params['FLAV']=flav
@@ -170,6 +198,7 @@ for c in cfgs_run:
                                 params['SRC'] = s0
                                 seqsrc_name = c51.names['seqsrc'] %params
                                 seqsrc_file = params['seqsrc']+'/'+seqsrc_name+'.'+params['SP_EXTENSION']
+                                utils.check_file(seqsrc_file,seqprop_size,params['file_time_delete'],params['corrupt'])
                                 if not os.path.exists(seqsrc_file):
                                     if args.verbose:
                                         print('    missing sink',seqsrc_file)
@@ -232,10 +261,16 @@ for c in cfgs_run:
                                     params['INI']       = xmlini
                                     params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                                     params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                                    params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
-                                    params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '
-                                    params['CLEANUP']  += params['CFG']+' -t'+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
-                                    params['CLEANUP']  += 'sleep 5'
+                                    # restore T_SEP to just positive value
+                                    params['T_SEP']     = dt
+                                    params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                                    params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                                    params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '
+                                    params['CLEANUP']  += params['CFG']+' -t '+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                                    params['CLEANUP']  += '    sleep 5\n'
+                                    params['CLEANUP']  += 'else\n'
+                                    params['CLEANUP']  += '    echo "mpirun failed"\n'
+                                    params['CLEANUP']  += 'fi\n'
                                     mtype = args.mtype
                                     try:
                                         if params['metaq_split']:
@@ -245,12 +280,13 @@ for c in cfgs_run:
                                     scheduler.make_task(metaq,mtype,params,folder=q)
                                 else:
                                     if not args.verbose:
-                                        print('    task is in use or overwrite is false')
+                                        print('    task is in use or overwrite is false:',metaq)
                         else:
-                            print('seqprop exists',seqprop_file)
+                            if args.verbose:
+                                print('seqprop exists',seqprop_file)
             else:
                 if args.verbose:
-                    print('    3pt corr exists:',coherent_formfac_file)
+                    print('    3pt corr exists:')
         if not have_seqsrc and not have_all_3pts:
             print('python METAQ_seqsource.py %s -v' %(c))
             os.system('python %s/METAQ_seqsource.py %s %s -v' %(params['SCRIPT_DIR'],c,params['PRIORITY']))

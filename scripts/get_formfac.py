@@ -35,6 +35,7 @@ print('ENSEMBLE:',ens_s)
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
 parser.add_argument('-s','--src',type=str,help='src [xXyYzZtT] None=All')
+parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('--move',default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
@@ -47,7 +48,19 @@ dtype = np.complex64
 data_dir = c51.data_dir % params
 utils.ensure_dirExists(data_dir)
 
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+src_ext = "%d-%d" %(params['si'],params['sf'])
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
@@ -67,13 +80,20 @@ params['M1']=m1
 params['M2']=m2
 params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 
+if args.t_sep == None:
+    pass
+else:
+    params['t_seps'] = args.t_sep
+print('getting t_sep values')
+print(params['t_seps'])
+
 for cfg in cfgs_run:
     no = str(cfg)
     print(no)
     params['CFG'] = no
     params = c51.ensemble(params)
     for tsep in params['t_seps']:
-        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'.h5','a')
+        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
         params['T_SEP'] = tsep
         files = []
         params['N_SEQ'] = len(srcs[cfg])

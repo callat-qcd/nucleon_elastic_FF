@@ -51,7 +51,24 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
+if 'si' in params and 'sf' in params and 'ds' in params:
+    tmp_params = dict()
+    tmp_params['si'] = params['si']
+    tmp_params['sf'] = params['sf']
+    tmp_params['ds'] = params['ds']
+    params = sources.src_start_stop(params,ens,stream)
+    params['si'] = tmp_params['si']
+    params['sf'] = tmp_params['sf']
+    params['ds'] = tmp_params['ds']
+else:
+    params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+if args.src:
+    params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
+else:
+    params['N_SEQ'] = len(srcs[cfgs_run[0]])
+src_ext = "%d-%d" %(params['si'],params['sf'])
+params['SRC_LST'] = src_ext
 
 if args.priority:
     q = 'priority'
@@ -103,6 +120,7 @@ params['A_RS']        = params['cpu_a_rs']
 params['G_RS']        = params['cpu_g_rs']
 params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
+params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 for c in cfgs_run:
     no = str(c)
@@ -125,7 +143,6 @@ for c in cfgs_run:
         for dt_int in t_seps:
             dt = str(dt_int)
             params['T_SEP'] = dt
-            params['N_SEQ'] = str(len(srcs[c]))
             for s0 in srcs[c]:
                 params['SRC'] = s0
                 coherent_formfac_name  = c51.names['coherent_ff'] % params
@@ -140,7 +157,17 @@ for c in cfgs_run:
                 params['SRC'] = s0
                 prop_name = c51.names['prop'] % params
                 prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
-                if os.path.exists(prop_file):
+                file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                prop_exists = os.path.exists(prop_file)
+                # a12m130 used h5 props
+                if ens in ['a12m130','a15m135XL'] and not prop_exists:
+                    prop_file = params['prop'] + '/' + prop_name+'.h5'
+                    file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                    utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                    prop_exists = os.path.exists(prop_file)
+
+                if os.path.exists(prop_exists):
                     for fs in flav_spin:
                         flav,snk_spin,src_spin=fs.split('_')
                         params['FLAV']=flav
@@ -175,15 +202,28 @@ for c in cfgs_run:
                                 fin.write(xml_input.head)
                                 ''' read prop '''
                                 params['OBJ_TYPE']    = 'LatticePropagator'
-                                params['H5_PATH']     = ''
-                                params['H5_OBJ_NAME'] = 'propagator'
                                 t0=int(s0.split('t')[1])
                                 params['OBJ_ID']      = prop_name
-                                ''' ADD SWITCH BASED ON PROP EXTENSION, H5 vs LIME '''
-                                params['H5_FILE']     = prop_file
-                                params['LIME_FILE']   = prop_file
                                 params['PROP_NAME']   = prop_name
-                                fin.write(xml_input.qio_read % params)
+                                ''' ADD SWITCH BASED ON PROP EXTENSION, H5 vs LIME '''
+                                prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
+                                if os.path.exists(prop_file):
+                                    params['LIME_FILE'] = prop_file
+                                    fin.write(xml_input.qio_read % params)
+                                else:
+                                    prop_file = params['prop'] + '/' + prop_name+'.h5'
+                                    params['H5_FILE']     = prop_file
+                                    if ens == 'a12m130':
+                                        if params['si'] in [0, 8]:
+                                            params['H5_PATH'] = '48_64'
+                                            params['H5_OBJ_NAME'] = 'prop1'
+                                        else:
+                                            params['H5_PATH'] = ''
+                                            params['H5_OBJ_NAME'] = 'prop'
+                                    else:
+                                        params['H5_PATH'] = ''
+                                        params['H5_OBJ_NAME'] = 'prop'
+                                    fin.write(xml_input.hdf5_read % params)
                                 ''' do smearing if need be '''
                                 if params['SS_PS'] == 'SS':
                                     params['SMEARED_PROP'] = prop_name+'_SS'
@@ -214,10 +254,14 @@ for c in cfgs_run:
                                 params['INI']       = xmlini
                                 params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                                 params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                                params['CLEANUP']   = 'cd '+params['ENS_DIR']+'\n'
-                                params['CLEANUP']  += 'python '+params['SCRIPT_DIR']+'/METAQ_coherent_seqprop.py '
-                                params['CLEANUP']  += params['CFG']+' -t'+params['T_SEP']+' '+params['PRIORITY']+'\n'
-                                params['CLEANUP']  += 'sleep 5'
+                                params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                                params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_seqprop.py '
+                                params['CLEANUP']  += params['CFG']+' '+params['PRIORITY']+'\n'
+                                params['CLEANUP']  += '    sleep 5\n'
+                                params['CLEANUP']  += 'else\n'
+                                params['CLEANUP']  += '    echo "mpirun failed"\n'
+                                params['CLEANUP']  += 'fi\n'
                                 mtype = args.mtype
                                 try:
                                     if params['metaq_split']:
