@@ -6,7 +6,6 @@ import argparse
 '''
     NUCLEON_ELASTIC_FF IMPORTS
 '''
-# test change
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 import xml_input
@@ -92,9 +91,9 @@ params['C_RS']        = params['hisq_c_rs']
 params['L_GPU_CPU']   = params['hisq_latency']
 params['IO_OUT']      = '$ini >> $stdout'
 
-u0 = params['U0'] 
+u0 = params['U0']
 ml = params['MS_L']
-ms = params['MS_S']  
+ms = params['MS_S']
 mc = params['MS_C']
 params['ML'] = params['MS_L']
 params['MS'] = params['MS_S']
@@ -195,7 +194,7 @@ forget
                 fin = open(in_file,'w')
                 in_tmp = open(c51.script_dir + '/hisq_spec.in').read()
                 fin.write(in_tmp % params)
-                fin.close()    
+                fin.close()
 
                 ''' make METAQ task '''
                 params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
@@ -224,7 +223,7 @@ forget
 """
     if os.path.exists(cfg_coul):
         for t in t_srcs:
-            t0=str(t)	
+            t0=str(t)
             if save_prop:
                params.update({
                   'PROP_L':'save_parallel_scidac_ksprop '+params['prop']+'/hisq_prop_mq'+ml+'_t'+t0,
@@ -233,7 +232,7 @@ forget
                   })
             else:
                params.update({'PROP_L':'forget_ksprop','PROP_S':'forget_ksprop','PROP_C':'forget_ksprop'})
-		
+
             params['SRC'] = 'x0y0z0t'+str(t0)
             if args.verbose:
                 print(c,t0)
@@ -253,7 +252,7 @@ forget
                     fin = open(in_file,'w')
                     in_tmp = open(c51.script_dir + '/hisq_spec.in').read()
                     fin.write(in_tmp % params)
-                    fin.close()        
+                    fin.close()
 
                     ''' make METAQ task '''
                     params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')

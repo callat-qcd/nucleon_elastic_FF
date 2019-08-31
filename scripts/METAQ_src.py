@@ -198,7 +198,7 @@ for c in cfgs_run:
                             if args.strange and not os.path.exists(prop_strange):
                                 params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_strange_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
                             elif not args.strange and not os.path.exists(prop_strange) and params['run_strange']:
-                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_strange_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'                                
+                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_strange_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
                             params['CLEANUP']  += '    sleep 5\n'
                             params['CLEANUP']  += 'else\n'
                             params['CLEANUP']  += '    echo "mpirun failed"\n'

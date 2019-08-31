@@ -333,7 +333,7 @@ for c in cfgs_run:
                             print('tslice or tslice_src_avg exists')
                             print(coherent_ff_4D_tslice.split('/')[-1])
                             print(coherent_ff_4D_tslice_avg.split('/')[-1])
-                        
+
             else:
                 print('    missing FLAV or SPIN seqprops, dt=',dt)
         if not have_all_seqprops:
