@@ -198,7 +198,7 @@ for corr in par:
                         tmp.append(src.read())
                         ns += 1
                     if args.v:
-                        sys.stdout.write('%s %s %s %s %s Ns = %.2f\r' %(corr,src.__vname__,mq,mom,no,ns))
+                        sys.stdout.write('%s %s %s %s %s Ns = %.2f\r' %(corr,s,mq,mom,no,ns))
                         sys.stdout.flush()
                         #print(corr,s,mq,no,mom,'Ns = ',ns)
                     tmp = np.array(tmp)
