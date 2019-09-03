@@ -37,6 +37,7 @@ parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
 parser.add_argument('--fout',type=str,help='name of output file')
+parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -57,9 +58,13 @@ if 'si' in params and 'sf' in params and 'ds' in params:
     params['ds'] = tmp_params['ds']
 else:
     params = sources.src_start_stop(params,ens,stream)
+if args.src_index:# override src index in sources and area51 files for collection
+    params['si'] = args.src_index[0]
+    params['sf'] = args.src_index[1]
+    params['ds'] = args.src_index[2]
+src_ext = "%d-%d" %(params['si'],params['sf'])
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
-src_ext = "%d-%d" %(params['si'],params['sf'])
 if 'indvdl' in ens:
     params['N_SEQ'] = 1
 else:
