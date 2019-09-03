@@ -23,12 +23,13 @@ from nucleon_elastic_ff.data.scripts.utilities import assert_patterns_present
 LOGGER = set_up_logger("nucleon_elastic_ff")
 
 
-def dset_avg(  # pylint: disable=R0914
+def dset_avg(  # pylint: disable=R0914, R0913
     files: List[str],
     out_file: str,
     dset_replace_patterns: Optional[Dict[str, str]],
     overwrite: bool = False,
     expected_dsets: Optional[int] = None,
+    fail_unexpected_dsets: bool = True,
 ):
     """Reads h5 files and exports the average of datasets across files.
 
@@ -83,8 +84,13 @@ def dset_avg(  # pylint: disable=R0914
                 Overwrite existing sliced files.
 
             expected_dsets: Optional[int] = None
-                If true, raises an error if number of found dsets is less then the number
-                of specified desets.
+                If specified, only writes dsets when the group contains exactly the
+                specified amount of dsets.
+
+            fail_unexpected_dsets: bool = True
+                If True, fails if number of found dsets in a group is unequal to
+                ``expected_dsets``.
+
     """
     dsets_paths = {}
     n_dsets = {}
@@ -133,7 +139,7 @@ def dset_avg(  # pylint: disable=R0914
                     n_dsets[out_grp] = 1
                     dset_meta[out_grp] = meta
 
-    if expected_dsets is not None:
+    if expected_dsets is not None and fail_unexpected_dsets:
         for group, count in n_dsets.items():
             if count != expected_dsets:
                 raise KeyError(
@@ -153,6 +159,10 @@ def dset_avg(  # pylint: disable=R0914
                 n_dsets[key],
                 dset_meta[key],
             )
+
+            if expected_dsets is not None and n_dsets[key] != expected_dsets:
+                LOGGER.debug("Skipping dset because not right amount of entries")
+                continue
 
             acc = 0
             for file, path in paths:
@@ -380,7 +390,8 @@ def main():
     parser = argparse.ArgumentParser(
         description="Reads h5 files and exports the average of datasets across files."
         " Each group in the file list will be averaged over files."
-        " Fails if it finds less dsets then specified files for each group."
+        " Only writes dsets if number matches the number specified files for each group"
+        " (see `--pass-expected-dsets` flag in case you want it to fail)."
     )
 
     parser.add_argument(
@@ -405,6 +416,15 @@ def main():
         default=False,
         help="Overwrite hdf5 files if they already exist. [default=%(default)s]",
     )
+    parser.add_argument(
+        "--fail-unexpected-dsets",
+        "-u",
+        action="store_true",
+        default=False,
+        help="If False, does not raises exception if number of found dsets"
+        " are unequal to the number of input files (just skips them)."
+        " [default=%(default)s]",
+    )
     args = parser.parse_args()
 
     if args.input is None:
@@ -419,6 +439,7 @@ def main():
         dset_replace_patterns=None,
         overwrite=args.overwrite,
         expected_dsets=len(args.input),
+        fail_unexpected_dsets=args.fail_unexpected_dsets,
     )
 
 
