@@ -39,6 +39,7 @@ parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [def
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('--move',default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -59,8 +60,12 @@ if 'si' in params and 'sf' in params and 'ds' in params:
     params['ds'] = tmp_params['ds']
 else:
     params = sources.src_start_stop(params,ens,stream)
-cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+if args.src_index:# override src index in sources and area51 files for collection
+    params['si'] = args.src_index[0]
+    params['sf'] = args.src_index[1]
+    params['ds'] = args.src_index[2]
 src_ext = "%d-%d" %(params['si'],params['sf'])
+cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
