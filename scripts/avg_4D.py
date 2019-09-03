@@ -72,7 +72,7 @@ from nucleon_elastic_ff.utilities import set_up_logger
 LOGGER = set_up_logger("nucleon_elastic_ff") # get the logger for the module
 fh = [h for h in LOGGER.handlers if isinstance(h, logging.FileHandler)][0] # get the file logger
 LOGGER.removeHandler(fh) # remove the file logger
-new_fh = logging.FileHandler(c51.scratch+'/production/'+ens_s+'/nucleon_elastic_ff_'+args.data+'.log')
+new_fh = logging.FileHandler(c51.scratch+'/production/'+ens_s+'/nucleon_elastic_ff_'+args.data+'_avg.log')
 new_fh.setLevel(logging.INFO)
 new_fh.setFormatter(fh.formatter)
 LOGGER.addHandler(new_fh)

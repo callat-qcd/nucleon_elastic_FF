@@ -62,8 +62,18 @@ if 'si' in params and 'sf' in params and 'ds' in params:
 else:
     params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
-
 src_ext = "%d-%d" %(params['si'],params['sf'])
+
+# modify logging info and location
+import logging
+from nucleon_elastic_ff.utilities import set_up_logger
+LOGGER = set_up_logger("nucleon_elastic_ff") # get the logger for the module
+fh = [h for h in LOGGER.handlers if isinstance(h, logging.FileHandler)][0] # get the file logger
+LOGGER.removeHandler(fh) # remove the file logger
+new_fh = logging.FileHandler(c51.scratch+'/production/'+ens_s+'/nucleon_elastic_ff_'+args.data+'_tslice.log')
+new_fh.setLevel(logging.INFO)
+new_fh.setFormatter(fh.formatter)
+LOGGER.addHandler(new_fh)
 
 for c in cfgs_run:
     no = str(c)
