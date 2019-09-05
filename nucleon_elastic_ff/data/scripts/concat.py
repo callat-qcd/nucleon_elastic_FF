@@ -30,6 +30,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
     axis: int = 0,
     dset_replace_patterns: Optional[Dict[str, str]] = None,
     ignore_containers: Optional[List[str]] = None,
+    pass_unpaired_dsets: bool = False,
     write_unpaired_dsets: bool = False,
     overwrite: bool = False,
 ):
@@ -88,10 +89,16 @@ def concat_dsets(  # pylint: disable=R0913, R0914
                 Ignores the following h5 containers (groups or dsets) when concatinating.
                 (dont write them at all).
 
+            pass_unpaired_dsets: bool = False
+                If False, fails if it finds a fewer or more then expected dsets.
+                If True, ignores them.
+                Prints warning to stdout if numbers don't match in any case.
+
             write_unpaired_dsets: bool = False
                 Also write group of data sets where the number of data sets is fewer or
                 more then the number of input files.
                 Prints warning to stdout if numbers don't match in any case.
+                This flag overwrites `pass_unpaired_dsets`.
 
             overwrite: bool = False
                 Overwrite existing files.
@@ -186,7 +193,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
                         overwrite=overwrite,
                     )
                     h5f[key].attrs["meta"] = dsets_meta[key]
-                else:
+                elif not pass_unpaired_dsets:
                     raise ValueError(
                         "Expected %d but found %d dsets with same name for key `%s`"
                         % (n_files, len(dset_list), key)
