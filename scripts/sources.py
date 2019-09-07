@@ -37,12 +37,12 @@ def src_start_stop(params,ens,stream):
                 sys.exit()
     if ens == 'a12m130':
         if any(host in hn for host in ['lassen']):
-            params['si'] = 24
-            params['sf'] = 31
+            params['si'] = 16
+            params['sf'] = 23
             params['ds'] = 1
         elif any(host in hn for host in ['login','batch']):
-            params['si'] = 8
-            params['sf'] = 15
+            params['si'] = 24
+            params['sf'] = 31
             params['ds'] = 1
     return params
 
