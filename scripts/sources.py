@@ -44,6 +44,13 @@ def src_start_stop(params,ens,stream):
             params['si'] = 24
             params['sf'] = 31
             params['ds'] = 1
+    if ens == 'a12m180L':
+        if any(host in hn for host in ['lassen']):
+            pass
+        elif any(host in hn for host in ['login','batch']):
+            params['si'] = 8
+            params['sf'] = 15
+            params['ds'] = 1
     return params
 
 def xyzt(src):

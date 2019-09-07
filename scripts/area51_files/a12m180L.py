@@ -65,7 +65,7 @@ params['seed']['c'] = '1c'
 params['seed']['d'] = '1d'
 params['seed']['e'] = '1e'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
-params['t_shifts'] = [ 0, 32  , 16  , 48     ]
+params['t_shifts'] = [ 0, 32  , 16  , 48    , 8, 40, 24, 56 ]
 params['generator'] = sources.oa(int(params['NL']))
 params['t_hisq']   = [0,  8, 16, 24, 32, 40, 48, 56]
 
