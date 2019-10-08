@@ -1,9 +1,9 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = True
+params['tuning_mq'] = False
 params['tuning_ms'] = False
-params['run_ff']    = False
+params['run_ff']    = True
 params['run_strange'] = True
 
 #l4864f211b600m00339m0507m628a.
@@ -152,7 +152,7 @@ def mpirun_params(machine):
         params['gpu_gpus']          = 12
         params['gpu_maxcus']        = 1
         params['prop_time']         = 35
-        params['seqprop_time']      = 20
+        params['seqprop_time']      = 27
         params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 2'
