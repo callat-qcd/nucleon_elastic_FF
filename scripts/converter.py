@@ -1,7 +1,3 @@
-# NOTE from AWL
-# - we need the valence fermion action to have multiple quark masses
-# - we need to set the gaugeaction smearing to HISQ or something
-# - we need to have the valence action have the FLOW_TIME params
 """Dictionary which maps nucleon_elastic_FF parameters to lattedb parameters
 
 We are going to create a `OneToAll` propagator.
@@ -36,11 +32,11 @@ ONE_TO_ALL_TREE = {
     "gaugeconfig": "Nf211",
     "gaugeconfig.gaugeaction": "LuescherWeisz",
     "gaugeconfig.light": "Hisq",
-    "gaugeconfig.light.linksmear": "WilsonFlow",
+    "gaugeconfig.light.linksmear": "Unsmeared",
     "gaugeconfig.strange": "Hisq",
-    "gaugeconfig.strange.linksmear": "WilsonFlow",
+    "gaugeconfig.strange.linksmear": "Unsmeared",
     "gaugeconfig.charm": "Hisq",
-    "gaugeconfig.charm.linksmear": "WilsonFlow",
+    "gaugeconfig.charm.linksmear": "Unsmeared",
     "sourcesmear": "GaugeCovariantGaussian",
     "sinksmear": "Point",
 }
@@ -50,30 +46,29 @@ INVERTER = {}
 
 # Here we need to enter the name of the parameter used in nucleon_elastic_FF
 
-# gagugeconfig
-CONVERTER["STREAM"] = "gagugeconfig.stream"  # Stream tag for Monte Carlo
-CONVERTER["CFG"] = "gagugeconfig.config"  # Configuration number
-CONVERTER["NL"] = "gagugeconfig.nx"  # Spatial length in lattice units
-CONVERTER["NL"] = "gagugeconfig.ny"  # Spatial length in lattice units
-CONVERTER["NL"] = "gagugeconfig.nz"  # Spatial length in lattice units
-CONVERTER["NT"] = "gagugeconfig.nt"  # Temporal length in lattice units
+# gaugeconfig
+CONVERTER["STREAM"] = "gaugeconfig.stream"  # Stream tag for Monte Carlo
+CONVERTER["CFG"] = "gaugeconfig.config"  # Configuration number
+INVERTER["gaugeconfig.nx"] = lambda params: params["NL"]
+INVERTER["gaugeconfig.ny"] = lambda params: params["NL"]
+INVERTER["gaugeconfig.nz"] = lambda params: params["NL"]
+CONVERTER["NT"] = "gaugeconfig.nt"  # Temporal length in lattice units
 CONVERTER[
     "ENS_ABBR"
-] = "gagugeconfig.short_tag"  # (Optional) Short name (e.g. 'a15m310')
-
+] = "gaugeconfig.short_tag"  # (Optional) Short name (e.g. 'a15m310')
 
 def get_a(params):
     a = params["ENS_ABBR"].split("m")[0]
     a = a.split("a")[1]
+    a = "0.%s" %(str(a))
     return a
-
 
 def get_mpi(params):
     m = params["ENS_ABBR"].split("m")[1]
     return m
 
 
-INVERTER["gagugeconfig.mpi"] = get_mpi
+INVERTER["gaugeconfig.mpi"] = get_mpi
 INVERTER["gaugeconfig.gaugeaction.a_fm"] = get_a
 
 # gaugeconfig.gaugeaction
@@ -81,7 +76,6 @@ def get_beta(params):
     b = params["ENS_LONG"].split("b")[1].split("m")[0]
     beta = b[0] + "." + b[1:]
     return beta
-
 
 INVERTER["gaugeconfig.gaugeaction.beta"] = get_beta
 # CONVERTER["BETA"] = "gaugeconfig.gaugeaction.beta"  # Coupling constant
@@ -92,11 +86,6 @@ CONVERTER["U0"] = "gaugeconfig.gaugeaction.u0"  # Tadpole improvement coefficien
 INVERTER["gaugeconfig.light.quark_tag"] = lambda params: "light"
 CONVERTER["MS_L"] = "gaugeconfig.light.quark_mass"  # Input quark mass
 INVERTER["gaugeconfig.light.naik"] = lambda params: 0.0
-
-# gaugeconfig.light.linksmear
-INVERTER["flowtime"] = lambda params: params["FLOW_TIME"]
-INVERTER["flowstep"] = lambda params: params["FLOW_STEP"]
-
 
 # gaugeconfig.strange
 INVERTER["gaugeconfig.strange.quark_tag"] = lambda params: "strange"
@@ -109,30 +98,27 @@ CONVERTER["MS_C"] = "gaugeconfig.charm.quark_mass"  # Input quark mass
 INVERTER["gaugeconfig.charm.naik"] = lambda params: params["NAIK"]
 
 # fermionaction
-CONVERTER[""] = "fermionaction.quark_mass"  # Input quark mass
-CONVERTER[""] = "fermionaction.quark_tag"  # Type of quark
+CONVERTER["MV_L"] = "fermionaction.quark_mass"  # Input quark mass
+INVERTER["fermionaction.quark_tag"] = lambda params: "light"
 CONVERTER["L5"] = "fermionaction.l5"  # Length of 5th dimension
 CONVERTER["M5"] = "fermionaction.m5"  # 5th dimensional mass
-CONVERTER[
-    "B5"
-] = "fermionaction.b5"  # Mobius kernel parameter [a5 = b5 - c5, alpha5 * a5…
+CONVERTER["B5"] = "fermionaction.b5"  # Mobius kernel parameter [a5 = b5 - c5, alpha5 * a5…
 CONVERTER["C5"] = "fermionaction.c5"  # Mobius kernal perameter
 
 # fermionaction.linksmear
-CONVERTER[""] = "fermionaction.linksmear.flowtime"  # Flow time in lattice units
-CONVERTER[""] = "fermionaction.linksmear.flowstep"  # Number of diffusion steps
-
+INVERTER["fermionaction.linksmear.flowtime"] = lambda params: params["FLOW_TIME"]
+INVERTER["fermionaction.linksmear.flowstep"] = lambda params: params["FLOW_STEP"]
 
 # sourcesmear
-CONVERTER[""] = "radius"  # Smearing radius in lattice units
-CONVERTER[""] = "step"  # Number of smearing steps
+CONVERTER["WF_S"] = "radius"  # Smearing radius in lattice units
+CONVERTER["WF_N"] = "step"  # Number of smearing steps
 
 
 # propagator OneToAll
-CONVERTER["x"] = "origin_x"  # x-coordinate origin location of the propagator
-CONVERTER["y"] = "origin_y"  # y-coordinate origin location of the propagator
-CONVERTER["z"] = "origin_z"  # z-coordinate origin location of the propagator
-CONVERTER["t"] = "origin_t"  # t-coordinate origin location of the propagator
+CONVERTER["X0"] = "origin_x"  # x-coordinate origin location of the propagator
+CONVERTER["Y0"] = "origin_y"  # y-coordinate origin location of the propagator
+CONVERTER["Z0"] = "origin_z"  # z-coordinate origin location of the propagator
+CONVERTER["T0"] = "origin_t"  # t-coordinate origin location of the propagator
 
 
 def get_lattedb_params(params: Dict[str, Any]) -> Dict[str, Any]:
