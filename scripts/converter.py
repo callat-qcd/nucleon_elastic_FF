@@ -1,4 +1,4 @@
-# NOTE from AWL 
+# NOTE from AWL
 # - we need the valence fermion action to have multiple quark masses
 # - we need to set the gaugeaction smearing to HISQ or something
 # - we need to have the valence action have the FLOW_TIME params
@@ -27,6 +27,7 @@ See also https://ithems.lbl.gov/lattedb/documentation/propagator/#onetoall for t
 infos.
 Or https://ithems.lbl.gov/lattedb/populate/ to create an actual run script.
 """
+from typing import Dict, Any
 
 # This dictionary specifies which tables we want to use to create a one to all propagator
 ONE_TO_ALL_TREE = {
@@ -45,7 +46,7 @@ ONE_TO_ALL_TREE = {
 }
 
 CONVERTER = {}
-INVERTER  = {}
+INVERTER = {}
 
 # Here we need to enter the name of the parameter used in nucleon_elastic_FF
 
@@ -56,32 +57,41 @@ CONVERTER["NL"] = "gagugeconfig.nx"  # Spatial length in lattice units
 CONVERTER["NL"] = "gagugeconfig.ny"  # Spatial length in lattice units
 CONVERTER["NL"] = "gagugeconfig.nz"  # Spatial length in lattice units
 CONVERTER["NT"] = "gagugeconfig.nt"  # Temporal length in lattice units
-CONVERTER["ENS_ABBR"] = "gagugeconfig.short_tag"  # (Optional) Short name (e.g. 'a15m310')
+CONVERTER[
+    "ENS_ABBR"
+] = "gagugeconfig.short_tag"  # (Optional) Short name (e.g. 'a15m310')
+
+
 def get_a(params):
-    a = params["ENS_ABBR"].split('m')[0]
-    a = a.split('a')[1]
+    a = params["ENS_ABBR"].split("m")[0]
+    a = a.split("a")[1]
     return a
+
+
 def get_mpi(params):
-    m = params["ENS_ABBR"].split('m')[1]
+    m = params["ENS_ABBR"].split("m")[1]
     return m
+
 
 INVERTER["gagugeconfig.mpi"] = get_mpi
 INVERTER["gaugeconfig.gaugeaction.a_fm"] = get_a
 
 # gaugeconfig.gaugeaction
 def get_beta(params):
-    b = params["ENS_LONG"].split('b')[1].split('m')[0]
-    beta = b[0]+'.'+b[1:]
+    b = params["ENS_LONG"].split("b")[1].split("m")[0]
+    beta = b[0] + "." + b[1:]
     return beta
+
+
 INVERTER["gaugeconfig.gaugeaction.beta"] = get_beta
-#CONVERTER["BETA"] = "gaugeconfig.gaugeaction.beta"  # Coupling constant
+# CONVERTER["BETA"] = "gaugeconfig.gaugeaction.beta"  # Coupling constant
 CONVERTER["U0"] = "gaugeconfig.gaugeaction.u0"  # Tadpole improvement coefficient
 
 
 # gaugeconfig.light
 INVERTER["gaugeconfig.light.quark_tag"] = lambda params: "light"
 CONVERTER["MS_L"] = "gaugeconfig.light.quark_mass"  # Input quark mass
-INVERTER["gaugeconfig.light.naik"] = lambda params: 0.
+INVERTER["gaugeconfig.light.naik"] = lambda params: 0.0
 
 # gaugeconfig.light.linksmear
 INVERTER["flowtime"] = lambda params: params["FLOW_TIME"]
@@ -91,7 +101,7 @@ INVERTER["flowstep"] = lambda params: params["FLOW_STEP"]
 # gaugeconfig.strange
 INVERTER["gaugeconfig.strange.quark_tag"] = lambda params: "strange"
 CONVERTER["MS_S"] = "gaugeconfig.strange.quark_mass"  # Input quark mass
-INVERTER["gaugeconfig.strange.naik"] = lambda params: 0.
+INVERTER["gaugeconfig.strange.naik"] = lambda params: 0.0
 
 # gaugeconfig.charm
 INVERTER["gaugeconfig.charm.quark_tag"] = lambda params: "charm"
@@ -103,7 +113,9 @@ CONVERTER[""] = "fermionaction.quark_mass"  # Input quark mass
 CONVERTER[""] = "fermionaction.quark_tag"  # Type of quark
 CONVERTER["L5"] = "fermionaction.l5"  # Length of 5th dimension
 CONVERTER["M5"] = "fermionaction.m5"  # 5th dimensional mass
-CONVERTER["B5"] = "fermionaction.b5"  # Mobius kernel parameter [a5 = b5 - c5, alpha5 * a5…
+CONVERTER[
+    "B5"
+] = "fermionaction.b5"  # Mobius kernel parameter [a5 = b5 - c5, alpha5 * a5…
 CONVERTER["C5"] = "fermionaction.c5"  # Mobius kernal perameter
 
 # fermionaction.linksmear
@@ -121,3 +133,33 @@ CONVERTER["x"] = "origin_x"  # x-coordinate origin location of the propagator
 CONVERTER["y"] = "origin_y"  # y-coordinate origin location of the propagator
 CONVERTER["z"] = "origin_z"  # z-coordinate origin location of the propagator
 CONVERTER["t"] = "origin_t"  # t-coordinate origin location of the propagator
+
+
+def get_lattedb_params(params: Dict[str, Any]) -> Dict[str, Any]:
+    """Uses the converter and inverter dictionaries to map nucleon_elastic_FF keys
+    to lattedb keys.
+    """
+    lattedb_params = {}
+
+    for nuc_key, lattedb_key in CONVERTER.items():
+        lattedb_params[lattedb_key] = params[nuc_key]
+
+    for lattedb_key, mapping in INVERTER.items():
+        lattedb_params[lattedb_key] = mapping(params)
+
+    return lattedb_params
+
+
+def get_or_create_one_to_all(lattedb_params: Dict[str, Any]) -> "OneToAll":
+    """Creates a OneToAll propagator for input parameters
+    """
+    from lattedb.propagator.models import OneToAll
+
+    propagator, created = OneToAll.get_or_create_from_parameters(
+        lattedb_params, tree=ONE_TO_ALL_TREE
+    )
+
+    if created:
+        print(f"Propagator entry {propagator} was created")
+
+    return propagator
