@@ -15,6 +15,8 @@ import c51_mdwf_hisq as c51
 import sources
 import utils
 import scheduler
+import converter
+from lattedb.project.ga_q2.models import OneToAllStatus
 
 ens,stream = c51.ens_base()
 ens_s = ens+'_'+stream
@@ -62,6 +64,7 @@ if 'si' in params and 'sf' in params and 'ds' in params:
 else:
     params = sources.src_start_stop(params,ens,stream)
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+src_set = "%d-%d" %(params['si'],params['sf'])
 
 if args.p:
     q = 'priority'
@@ -116,6 +119,16 @@ for c in cfgs_run:
         params['CFG_FILE'] = cfg_file
         for s0 in srcs[c]:
             params['SRC'] = s0
+            x0,y0,z0,t0 = sources.xyzt(s0)
+            params['X0'] = x0
+            params['Y0'] = y0
+            params['Z0'] = z0
+            params['T0'] = t0
+            ''' check converter '''
+            lattedb_params = converter.get_lattedb_params(params)
+            for k in  lattedb_params:
+                print(k,lattedb_params[k])
+            prop_row = converter.get_or_create_one_to_all(lattedb_params)
             if args.verbose:
                 print(c,s0)
             ''' check if spectrum exists '''
@@ -126,6 +139,15 @@ for c in cfgs_run:
             if not spec_exists or args.force:
                 prop_name = c51.names['prop'] % params
                 prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
+                # LATTEDB 
+                status_data = OneToAllStatus.get_file_info(prop_file)
+                status_data['propagator'] = prop_row
+                status_data['short_tag']  = ens # add stream to ensemble table so we can add here
+                status_data['src_set']    = src_set
+                OneToAllStatus.objects.get_or_create(**status_data)
+                print(status_data)
+                sys.exit()
+                # END LATTEEDB
                 ''' make sure prop is correct size '''
                 file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                 utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
