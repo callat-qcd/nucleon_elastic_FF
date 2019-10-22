@@ -139,10 +139,9 @@ for c in cfgs_run:
             if not spec_exists or args.force:
                 prop_name = c51.names['prop'] % params
                 prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
-                # LATTEDB 
+                # LATTEDB
                 status_data = OneToAllStatus.get_file_info(prop_file)
                 status_data['propagator'] = prop_row
-                status_data['short_tag']  = ens # add stream to ensemble table so we can add here
                 status_data['src_set']    = src_set
                 OneToAllStatus.objects.get_or_create(**status_data)
                 print(status_data)
