@@ -104,6 +104,56 @@ def mpirun_params(machine):
         params['src_time']    = 5
         params['spec_time']   = 10
 
+        params['cpu_nrs']     = '--nrs 8'
+        params['cpu_rs_node'] = '-r2'
+        params['cpu_a_rs']    = '-a18'
+        params['cpu_g_rs']    = ''
+        params['cpu_c_rs']    = '-c18'
+        params['cpu_latency'] = '-l cpu-cpu'
+        params['cpu_bind']    = 'lassen_bind_cpu.N36.sh'
+
+        params['gpu_nodes']   = 3
+        params['gpu_metaq_nodes'] = 0
+        params['gpu_gpus']    = 12
+        params['gpu_maxcus']  = 1
+        params['prop_time']   = 150
+        params['seqprop_time']    = 80
+        params['strange_prop_time'] = 15
+
+        params['gpu_nrs']     = '--nrs 4'
+        params['gpu_rs_node'] = '-r1'
+        params['gpu_a_rs']    = '-a4'
+        params['gpu_g_rs']    = '-g4'
+        params['gpu_c_rs']    = '-c4'
+        params['gpu_latency'] = '-l gpu-cpu'
+        params['gpu_geom']    = ' -geom 1 1 1 16 -qmp-geom 1 1 1 16 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
+        params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
+
+
+        params['hisq_nodes']  = 3
+        params['hisq_metaq_nodes'] = 0
+        params['hisq_gpus']   = 12
+        params['hisq_coul_spec'] = 16
+        params['hisq_spec']   = 4
+        params['hisq_maxcus'] = 1
+
+        params['hisq_nrs']     = '--nrs 4'
+        params['hisq_rs_node'] = '-r1'
+        params['hisq_a_rs']    = '-a4'
+        params['hisq_g_rs']    = '-g4'
+        params['hisq_c_rs']    = '-c4'
+        params['hisq_latency'] = '-l gpu-cpu'
+        params['hisq_geom']    = ' -geom 1 1 1 16 -qmp-geom 1 1 1 16 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
+        params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
+
+    if machine == 'lassen_3node':
+        params['cpu_nodes']   = 3
+        params['cpu_gpus']    = 0
+        params['cpu_maxcus']  = 1
+        params['gflow_time']  = 25
+        params['src_time']    = 5
+        params['spec_time']   = 10
+
         params['cpu_nrs']     = '--nrs 6'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a18'
