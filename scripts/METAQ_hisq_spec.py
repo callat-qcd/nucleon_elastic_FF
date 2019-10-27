@@ -170,7 +170,7 @@ forget
         params.update({'HISQ_CORR_FILE':hisq_spec_file,'V_INV':1./V3,
                 'NL':nl,'NT':nt,'JOB_ID':ens+'_'+no+'_hisq',
                 'T0':t0,'MAX_CG_ITER':7000,'MAX_CG_RESTART':5,
-                'M_L':ml,'M_S':ms,'M_C':mc,'NAIK_c':params['naik'],
+                'M_L':ml,'M_S':ms,'M_C':mc,'NAIK_c':params['NAIK'],
                 'ERR_L':1.e-7,'REL_ERR_L':0,
                 })
 

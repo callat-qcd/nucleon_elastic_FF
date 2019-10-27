@@ -9,7 +9,7 @@ params['run_strange'] = False
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
 #params['si'] = 0
-#params['sf'] = 0
+#params['sf'] = 7
 #params['ds'] = 1
 
 params['cfg_i'] = 78
@@ -24,6 +24,7 @@ params['U0']   = '0.874164'
 params['MS_L'] = '0.001326'
 params['MS_S'] = '0.03636'
 params['MS_C'] = '0.4313'
+params['NAIK'] = '-0.1204'
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
@@ -41,8 +42,8 @@ params['alpha5'] = '2.0'
 params['MV_L'] = '0.00152'
 params['MV_S'] = '0.0491'
 
-params['spec_size'] = 1
-params['ff_size']   = 1
+params['spec_size'] = 51312
+params['ff_size']   = 435560
 
 params['MAX_ITER']   = '18000'
 params['RSD_TARGET'] = '1.e-7'
