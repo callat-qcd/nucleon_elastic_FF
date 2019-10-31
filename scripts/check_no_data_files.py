@@ -91,7 +91,7 @@ else:
     print('recognized list: spec spec_4D spec_4D_tslice formfac formfac_4D formfac_4D_tslice')
     sys.exit()
 
-missing = open('missing_'+args.data+'_srcs'+params['si']+'-'+params['sf']+'.lst','w')
+missing = open('missing_'+args.data+'_srcs'+str(params['si'])+'-'+str(params['sf'])+'.lst','w')
 for c in cfgs_run:
     no = str(c)
     sys.stdout.write('    cfg=%4d\r' %(c))
