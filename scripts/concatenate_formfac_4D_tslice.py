@@ -108,7 +108,8 @@ print('    ',params['particles'],flav_spin)
 if args.current != None:
     params['curr_4d'] = args.current
 print('    ',params['curr_4d'])
-print('    cfgs:',cfgs_run[0],'-',cfgs_run[-1])
+cfgs_set = cfgs_run[0],'-',cfgs_run[-1]
+print('    cfgs:',cfgs_set)
 if args.t_sep != None:
     params['t_seps'] = args.t_sep
 
@@ -118,7 +119,7 @@ for corr in params['particles']:
             if args.fout:
                 fout_name = args.fout
             else:
-                fout_name = ff_data_dir+'/formfac_4D_'+ens_s+'_'+corr+'_'+fs+'_'+curr+'_'+src_ext+'.h5'
+                fout_name = ff_data_dir+'/formfac_4D_'+ens_s+'_'+corr+'_'+fs+'_'+curr+'_cfgs_'+cfgs_set+'_srcs_'+src_ext+'.h5'
             for tsep in params['t_seps']:
                 dt = str(tsep)
                 params['T_SEP'] = dt
