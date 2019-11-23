@@ -98,7 +98,7 @@ for cfg in cfgs_run:
         all_files = True
         for src in srcs[cfg]:
             params['SRC'] = src
-            ff_name = (c51.names['coherent_ff'] % params).replace('formfac_','formfac_4D_tslice_')
+            ff_name = (c51.names['formfac'] % params).replace('formfac_','formfac_4D_tslice_')
             ff_file = params['formfac_4D_tslice'] +'/'+ ff_name+'.h5'
             n_curr = len(params['curr_4d'])
             n_flav = len(params['flavs'])
@@ -126,7 +126,7 @@ for cfg in cfgs_run:
                                 sys.stdout.write('    %s\r' %src)
                                 sys.stdout.flush()
                             params['SRC'] = src
-                            ff_name = (c51.names['coherent_ff'] % params).replace('formfac_','formfac_4D_tslice_')
+                            ff_name = (c51.names['formfac'] % params).replace('formfac_','formfac_4D_tslice_')
                             ff_file = params['formfac_4D_tslice'] +'/'+ ff_name+'.h5'
                             f_in = h5.open_file(ff_file,'r')
                             s_split = sources.src_split(src)

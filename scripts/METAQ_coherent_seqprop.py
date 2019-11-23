@@ -158,7 +158,7 @@ for c in cfgs_run:
             have_3pts = True
             for s0 in srcs[c]:
                 params['SRC'] = s0
-                coherent_formfac_name  = c51.names['coherent_ff'] % params
+                coherent_formfac_name  = c51.names['formfac'] % params
                 coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
                 coherent_formfac_file_4D = coherent_formfac_file.replace('formfac','formfac_4D')
                 utils.check_file(coherent_formfac_file_4D,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'],debug=args.debug)

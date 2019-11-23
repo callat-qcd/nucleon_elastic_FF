@@ -128,7 +128,7 @@ for c in cfgs_run:
             print("printing t:", t)
             params['T_SEP'] = str(t)
             params['SRC'] = 'src_avg'+src_ext
-            formfac_name = c51.names['coherent_ff'] % params
+            formfac_name = c51.names['formfac'] % params
             formfac_file = params['formfac'] +'/'+ formfac_name+'.h5'
             formfac_file_4D_avg = formfac_file.replace('formfac_','formfac_4D_tslice_src_avg_').replace('/formfac/','/formfac_4D_tslice_src_avg/')
             do_avg = True
@@ -138,7 +138,7 @@ for c in cfgs_run:
                 avg_files = True
                 for s0 in srcs[c]:
                     params['SRC'] = s0
-                    formfac_name = c51.names['coherent_ff'] % params
+                    formfac_name = c51.names['formfac'] % params
                     formfac_file = params['formfac'] +'/'+ formfac_name+'.h5'
                     formfac_file_4D = formfac_file.replace('formfac_','formfac_4D_tslice_').replace('/formfac/','/formfac_4D_tslice/')
                     if not os.path.exists(formfac_file_4D):

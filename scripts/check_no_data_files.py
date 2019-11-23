@@ -120,7 +120,7 @@ for c in cfgs_run:
         elif dtype == 'formfac':
             for t_sep in params['t_seps']:
                 params['T_SEP'] = str(t_sep)
-                coherent_formfac_name  = c51.names['coherent_ff'] % params
+                coherent_formfac_name  = c51.names['formfac'] % params
                 coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
                 s_file = coherent_formfac_file.replace('formfac',args.data)
                 if not os.path.exists(s_file):

@@ -104,6 +104,7 @@ def ensemble(params):
     for d in dirs+dirs_no:
         utils.ensure_dirExists(params[d])
     params['formfac_4D_tslice'] = params['prod']+'/'+'formfac_4D_tslice'+'/'+params['CFG']
+    params['formfac_4D_tslice_src_avg'] = params['prod']+'/'+'formfac_4D_tslice_src_avg'+'/'+params['CFG']
 
     return params
 
@@ -129,6 +130,6 @@ names['coherent_seqsrc'] += '_%(MOM)s_dt%(T_SEP)s_Nsnk%(N_SEQ)s_%(SS_PS)s'
 names['seqprop']          = 'seqprop_%(ENS_S)s_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s'
 names['seqprop']         += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
 names['seqprop']         += '_%(MOM)s_dt%(T_SEP)s_Srcs%(SRC_LST)s_%(SS_PS)s'
-names['coherent_ff']      = 'formfac_%(ENS_S)s_%(CFG)s'
-names['coherent_ff']     += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
-names['coherent_ff']     += '_%(MOM)s_dt%(T_SEP)s_Nsnk%(N_SEQ)s_%(SRC)s_%(SS_PS)s'
+names['formfac']          = 'formfac_%(ENS_S)s_%(CFG)s'
+names['formfac']         += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
+names['formfac']         += '_%(MOM)s_dt%(T_SEP)s_Nsnk%(N_SEQ)s_%(SRC)s_%(SS_PS)s'

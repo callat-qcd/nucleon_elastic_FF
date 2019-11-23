@@ -106,7 +106,7 @@ for cfg in cfgs_run:
             params['N_SEQ'] = 1
         for src in srcs[cfg]:
             params['SRC'] = src
-            ff_name = c51.names['coherent_ff'] % params
+            ff_name = c51.names['formfac'] % params
             ff_file = params['formfac'] +'/'+ ff_name+'.h5'
             utils.check_file(ff_file,params['ff_size'],params['file_time_delete'],params['corrupt'])
             if os.path.exists(ff_file):

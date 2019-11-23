@@ -145,7 +145,7 @@ for c in cfgs_run:
             params['T_SEP'] = dt
             for s0 in srcs[c]:
                 params['SRC'] = s0
-                coherent_formfac_name  = c51.names['coherent_ff'] % params
+                coherent_formfac_name  = c51.names['formfac'] % params
                 coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
                 coherent_formfac_file_4D = coherent_formfac_file.replace('formfac_','formfac_4D_')
                 if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):

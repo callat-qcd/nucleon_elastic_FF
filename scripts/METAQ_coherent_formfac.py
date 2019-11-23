@@ -182,7 +182,7 @@ for c in cfgs_run:
                     ''' Does the 3pt file exist? '''
                     ''' dt and -dt in same file, labled by dt '''
                     params['T_SEP'] = dt
-                    coherent_formfac_name  = c51.names['coherent_ff'] % params
+                    coherent_formfac_name  = c51.names['formfac'] % params
                     coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
                     coherent_formfac_file_4D = coherent_formfac_file.replace('formfac','formfac_4D')
                     coherent_ff_4D_tslice = coherent_formfac_file_4D.replace('formfac_4D','formfac_4D_tslice')
