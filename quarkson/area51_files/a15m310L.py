@@ -2,7 +2,7 @@ import sources
 
 params = dict()
 params["ENS_ABBR"] = "a15m310L"
-
+params["ENS_LONG"] = "l2448f211b580m013m065m838"
 params["tuning_mq"] = False
 params["run_ff"] = True
 
@@ -21,6 +21,7 @@ params["cfg_d"] = 5
 params["cfg_min"] = 300
 params["cfg_max"] = 5295
 params["naik"] = "-0.3582"
+params["beta"] = "5.80"
 
 params["FLOW_TIME"] = "1.0"
 params["FLOW_STEP"] = "40"

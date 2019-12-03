@@ -8,6 +8,7 @@ params["run_ff"] = True
 # you must specify all three of these params to override the default
 
 params["ENS_ABBR"] = "a12m310"
+params["ENS_LONG"] = "l2464f211b600m102m0509m635"
 params["NL"] = "24"
 params["NT"] = "64"
 params["U0"] = "0.86372"
@@ -20,6 +21,7 @@ params["cfg_d"] = 5
 params["cfg_min"] = 300
 params["cfg_max"] = 5560
 params["naik"] = "-0.2308"
+params["beta"] = "6.00"
 
 params["FLOW_TIME"] = "1.0"
 params["FLOW_STEP"] = "40"

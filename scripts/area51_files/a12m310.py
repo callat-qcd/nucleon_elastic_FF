@@ -1,6 +1,13 @@
 import sources
 
 params = dict()
+# new adds
+params["ENS_LONG"] = "l2464f211b600m102m0509m635"
+params["cfg_min"] = 300
+params["cfg_max"] = 5560
+params["naik"] = "-0.2308"
+params["beta"] = "6.00"
+
 params['tuning_mq'] = False
 params['run_ff'] = True
 
