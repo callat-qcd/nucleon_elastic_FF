@@ -38,6 +38,7 @@ parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [def
 parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific current or currents? [A3 V4 ...]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('-f','--force',default=False,action='store_const',const=True,help='concat even if cfgs missing? [%(default)s]')
 parser.add_argument('--fout',type=str,help='name of output file')
 parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
@@ -144,31 +145,45 @@ for corr in params['particles']:
                 if get_data:
                     cfgs_srcs = []
                     first_data = True
-                    for cfg in cfgs_run:
-                        sys.stdout.write('    cfg=%4d\r' %(cfg))
-                        sys.stdout.flush()
-                        no = str(cfg)
-                        fin_file = ff_data_dir+'/../formfac_4D_tslice_src_avg/'+no+'/formfac_4D_tslice_src_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_px0py0pz0_dt'+str(tsep)+'_Nsnk'+str(params['N_SEQ'])+'_src_avg'+src_ext+'_SS.h5'
-                        if os.path.exists(fin_file):
-                            fin = h5.open_file(fin_file,'r')
-                            tmp = fin.get_node('/'+fin_path).read()
-                            fin.close()
-                            f5_out = h5.open_file(fout_name,'a')
-                            if first_data:
-                                shape = (0,)+tmp.shape
-                                data = np.zeros((1,)+tmp.shape,dtype=tmp.dtype)
-                                data[0] = tmp
-                                f5_out.create_earray(h5_out_path+'/'+curr,'local_current',shape=shape,createparents=True,obj=data,expectedrows=len(cfgs_run))
-                                first_data = False
+                    # make sure all configs exist
+                    if not args.force:
+                        print('    checking for all files')
+                        concat = True
+                        for cfg in cfgs_run:
+                            no = str(cfg)
+                            fin_file = ff_data_dir+'/../formfac_4D_tslice_src_avg/'+no+'/formfac_4D_tslice_src_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_px0py0pz0_dt'+str(tsep)+'_Nsnk'+str(params['N_SEQ'])+'_src_avg'+src_ext+'_SS.h5'
+                            if not os.path.exists(fin_file):
+                                print('    MISSING cfg=%d' %cfg)
+                                concat = False
+                    else:
+                        concat = True
+                    if concat:
+                        print('    concatenating files!')
+                        for cfg in cfgs_run:
+                            sys.stdout.write('    cfg=%4d\r' %(cfg))
+                            sys.stdout.flush()
+                            no = str(cfg)
+                            fin_file = ff_data_dir+'/../formfac_4D_tslice_src_avg/'+no+'/formfac_4D_tslice_src_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_px0py0pz0_dt'+str(tsep)+'_Nsnk'+str(params['N_SEQ'])+'_src_avg'+src_ext+'_SS.h5'
+                            if os.path.exists(fin_file):
+                                fin = h5.open_file(fin_file,'r')
+                                tmp = fin.get_node('/'+fin_path).read()
+                                fin.close()
+                                f5_out = h5.open_file(fout_name,'a')
+                                if first_data:
+                                    shape = (0,)+tmp.shape
+                                    data = np.zeros((1,)+tmp.shape,dtype=tmp.dtype)
+                                    data[0] = tmp
+                                    f5_out.create_earray(h5_out_path+'/'+curr,'local_current',shape=shape,createparents=True,obj=data,expectedrows=len(cfgs_run))
+                                    first_data = False
+                                else:
+                                    data = f5_out.get_node(h5_out_path+'/'+curr+'/local_current')
+                                    data.append(np.array([tmp]))
+                                f5_out.close()
+                                cfgs_srcs.append([cfg,params['N_SEQ']])
                             else:
-                                data = f5_out.get_node(h5_out_path+'/'+curr+'/local_current')
-                                data.append(np.array([tmp]))
-                            f5_out.close()
-                            cfgs_srcs.append([cfg,params['N_SEQ']])
-                        else:
-                            print('missing',fin_file)
-                    #print(cfgs_srcs)
-                    cfgs_srcs = np.array(cfgs_srcs)
-                    print('    Nc=%4d, Ns=%.7f' %(cfgs_srcs.shape[0],cfgs_srcs.mean(axis=0)[1]))
+                                print('missing',fin_file)
+                        #print(cfgs_srcs)
+                        cfgs_srcs = np.array(cfgs_srcs)
+                        print('    Nc=%4d, Ns=%.7f' %(cfgs_srcs.shape[0],cfgs_srcs.mean(axis=0)[1]))
                 else:
                     print('data exists and overwrite = False')
