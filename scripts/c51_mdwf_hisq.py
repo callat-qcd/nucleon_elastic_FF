@@ -26,6 +26,7 @@ elif any(host in hn for host in ['login','batch']):
     ''' TERRIBLE LOGIN NAME FOR SUMMIT '''
     manage   = '/ccs/proj/lgt100/c51/x_files/project_2'
     scratch  = '/gpfs/alpine/proj-shared/lgt100/c51/x_files/project_2'
+    tape     = '/proj/lgt100/c51/x_files/project_2/production'
     machine  = 'summit'
     env      = 'source /ccs/proj/lgt100/c51/software/summit_smpi/install/env.sh'
     env     += '\nmodule load python/3.7.0-anaconda3-5.3.0'
