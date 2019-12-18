@@ -65,6 +65,7 @@ if args.src_index:# override src index in sources and area51 files for collectio
 src_ext = "%d-%d" %(params['si'],params['sf'])
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
+cfgs_set = "%d-%d" %(cfgs_run[0],cfgs_run[-1])
 if 'indvdl' in ens:
     params['N_SEQ'] = 1
 else:
@@ -84,7 +85,7 @@ par = ['proton','proton_np']
 if args.fout:
     fout_name = args.fout
 else:
-    fout_name = data_dir+'/spec_4D_'+ens_s+'_tslice_avg'+src_ext+'.h5'
+    fout_name = data_dir+'/spec_4D_'+ens_s+'_tslice_avg_cfgs_'+cfgs_set+'_srcs_'+src_ext+'.h5'
 print('out file')
 print(fout_name)
 for corr in params['particles']:

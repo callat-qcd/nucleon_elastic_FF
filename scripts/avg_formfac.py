@@ -159,7 +159,7 @@ for corr in params['particles']:
                                         if srcs._v_nchildren > 0:
                                             good_cfg = True
                                     else:
-                                        print('NOT COLLECTED:',mom_dir)
+                                        print('NOT COLLECTED:',cfg,mom_dir)
                                         good_cfg = False
                                 except:
                                     print('ERROR reading ',file_in)
