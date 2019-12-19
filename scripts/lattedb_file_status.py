@@ -197,20 +197,35 @@ for cfg in cfgs:
             for tsep in params['t_seps']:
                 dt = str(tsep)
                 params['T_SEP'] = dt
+                # complete entries for f_dict
                 f_name = (c51.names['formfac'] % params).replace('formfac_','formfac_4D_tslice_src_avg_')+'.h5'
                 f_dict['t_separation'] = tsep
                 f_dict['name']         = f_name
+                # make disk and tape entries
+                d_dict = dict()
                 t_dict = dict()
                 t_dict['machine']      = c51.machine
-                print('BEFORE')
-                for k in t_dict:
-                    print(k,t_dict[k])
-                print('AFTER')
-                t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no,f_name,t_dict)
-                for k in t_dict:
-                    print(k,t_dict[k])
-                    if k == 'date_modified':
-                        print(k,t_dict[k].astimezone(pytz.timezone("US/Pacific")))
+                # Ask if entry is in DB already
+                # first check if f_dict is in db
+                entry = db_entries.filter(**f_dict).first()
+                if entry:# if it exists, then check if it exists on tape
+                    if not hasattr(entry, 'tape'):
+                        if args.debug:
+                            print('collecting tape info:',f_name)
+                        t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no,f_name,t_dict)
+                        t_dict['file'] = entry
+                        db_nexists_tape.append(t_dict)
+
+# test bulk create
+try:
+    tape_push = []
+    for tt in db_nexists_tape:
+        tape_push.append(latte_tape(**tt))
+    latte_tape.objects.bulk_create(tape_push)
+except Exception as e:
+    print(e)
+    print('you messed up')
+
 
 '''
     OLD BELOW
