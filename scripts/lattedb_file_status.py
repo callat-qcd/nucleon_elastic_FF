@@ -249,7 +249,7 @@ for cfg in cfgs:
                     if hasattr(entry, 'tape') and (args.update or args.tape_update):
                         t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
                         # add querry of entry.tape.exists to compare
-                    else:
+                    elif not hasattr(entry, 'tape'):
                         t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
                         t_dict['file'] = entry
                         db_new_tape.append(t_dict)
@@ -257,7 +257,7 @@ for cfg in cfgs:
                     if hasattr(entry, 'disk') and (args.update or args.disk_update):
                         d_dict = check_disk(data_dir, f_name)
                         # add querry of entry.disk.exists to compare
-                    else:
+                    elif not hasattr(entry, 'disk'):
                         d_dict = check_disk(data_dir, f_name)
                         d_dict['file'] = entry
                         db_new_disk.append(d_dict)
