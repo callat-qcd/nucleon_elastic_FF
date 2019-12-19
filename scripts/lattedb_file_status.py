@@ -46,6 +46,7 @@ parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [def
 parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific current or currents? [A3 V4 ...]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
 parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--update',default=False,action='store_const',const=True,help='update disk and tape entries? [%(default)s]')
 parser.add_argument('--disk_update',default=False,action='store_const',const=True,help='update disk=exists entries? [%(default)s]')
 parser.add_argument('--tape_update',default=False,action='store_const',const=True,help='update tape=exists entries? [%(default)s]')
 parser.add_argument('--debug',default=False,action='store_const',const=True,help='debug? [%(default)s]')
@@ -244,12 +245,22 @@ for cfg in cfgs:
                     create disk/tape status and append to list
                 '''
                 if entry:# if it exists, then check if it exists on tape
-                    if not hasattr(entry, 'tape'):
-                        if args.debug:
-                            print('collecting tape info:',f_name)
+                    # check tape
+                    if hasattr(entry, 'tape') and (args.update or args.tape_update):
+                        t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
+                        # add querry of entry.tape.exists to compare
+                    else:
                         t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
                         t_dict['file'] = entry
                         db_new_tape.append(t_dict)
+                    # check disk
+                    if hasattr(entry, 'disk') and (args.update or args.disk_update):
+                        d_dict = check_disk(data_dir, f_name)
+                        # add querry of entry.disk.exists to compare
+                    else:
+                        d_dict = check_disk(data_dir, f_name)
+                        d_dict['file'] = entry
+                        db_new_disk.append(d_dict)
                 else:
                     t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
                     d_dict = check_disk(data_dir, f_name)
@@ -278,12 +289,23 @@ try:
 except Exception as e:
     print(e)
     print('you messed up')
-# test bulk create
+# bulk tape entries for pre-existing file entries
 try:
+    print('pushing new TAPE entries for existing file entries')
     tape_push = []
     for tt in db_new_tape:
         tape_push.append(latte_tape(**tt))
     latte_tape.objects.bulk_create(tape_push)
 except Exception as e:
     print(e)
-    print('you messed up')
+    print('you messed up bulk TAPE create')
+# bulk tape entries for pre-existing file entries
+try:
+    print('pushing new DISK entries for existing file entries')
+    disk_push = []
+    for dd in db_new_disk:
+        disk_push.append(latte_disk(**dd))
+    latte_disk.objects.bulk_create(disk_push)
+except Exception as e:
+    print(e)
+    print('you messed up bulk DISK create')
