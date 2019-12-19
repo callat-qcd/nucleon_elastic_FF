@@ -10,7 +10,7 @@ from glob import glob
 from datetime import datetime
 import pytz
 from tzlocal import get_localzone
-local_tz = get_localzone() 
+local_tz = get_localzone()
 from django.db.models import Q
 from tqdm import tqdm
 
@@ -134,7 +134,9 @@ if args.debug:
     print(db_entries.to_dataframe(fieldnames=['ensemble','stream','configuration','source_set','t_separation','name','last_modified']))
 
 # search tape
-def check_tape(t_path,t_file,t_dict):
+def check_tape(t_path,t_file):
+    t_dict = dict()
+    t_dict['machine'] = c51.machine
     check = os.popen('hsi -P ls -l -D %s' %(t_path+'/'+t_file)).read().split('\n')
     #On Summit, the first line from hsi returns the directory one is looking at
     # the "-D" option in ls gives the full date/time information
@@ -153,14 +155,29 @@ def check_tape(t_path,t_file,t_dict):
     else:
         t_dict['exists'] = False
     return t_dict
-    
+
+def check_disk(d_path,d_file):
+    d_dict = dict()
+    d_dict['path'] = d_path
+    d_dict['machine'] =  c51.machine
+    if os.path.exists(d_path+'/'+d_file):
+        d_dict['exists'] = True
+        d_dict['size']   = os.path.getsize(d_path+'/'+d_file)
+        utc = datetime.utcfromtimestamp(os.path.getmtime(d_path+'/'+d_file))
+        local_time = utc.replace(tzinfo=pytz.utc).astimezone(local_tz)
+        d_dict['date_modified'] = local_time
+    else:
+        d_dict['size']          = None
+        d_dict['date_modified'] = None
+    return d_dict
 
 # LOOP OVER FILES to check
 print('checking database entries')
-db_exists_disk  = []
-db_nexists_disk = []
-db_exists_tape  = []
-db_nexists_tape = []
+db_update_disk = []
+db_new_disk    = []
+db_update_tape = []
+db_new_tape    = []
+db_new_entry   = []
 
 if args.disk_update:
     disk_entries = db_entries.all()
@@ -187,39 +204,78 @@ for cfg in cfgs:
     else:# src averaged file types
         params['SRC'] = 'src_avg'+src_set
         if args.debug:
-            print('\nDEBUG:',data_dir)        
-        f_dict = dict()
-        f_dict['ensemble']      = ens
-        f_dict['stream']        = stream        
-        f_dict['configuration'] = cfg
-        f_dict['source_set']    = src_set
+            print('\nDEBUG:',data_dir)
         if 'formfac' in f_type:
             for tsep in params['t_seps']:
                 dt = str(tsep)
                 params['T_SEP'] = dt
-                # complete entries for f_dict
+                # make file entry
+                f_dict = dict()
+                f_dict['ensemble']      = ens
+                f_dict['stream']        = stream
+                f_dict['configuration'] = cfg
+                f_dict['source_set']    = src_set
                 f_name = (c51.names['formfac'] % params).replace('formfac_','formfac_4D_tslice_src_avg_')+'.h5'
                 f_dict['t_separation'] = tsep
                 f_dict['name']         = f_name
-                # make disk and tape entries
-                d_dict = dict()
-                t_dict = dict()
-                t_dict['machine']      = c51.machine
-                # Ask if entry is in DB already
-                # first check if f_dict is in db
+                # filter db for unique entry
                 entry = db_entries.filter(**f_dict).first()
+                ''' LOGIC of DISK/TAPE check
+                if entry in db:
+                    if entry has tape attribute:
+                        if update or update_tape:
+                            check_tape
+                            if entry_tape_exists != tape_exists::
+                                add to update_tape list
+                    else:
+                        get tape status and append to list
+                    if disk in db entry:
+                        if update or update_disk:
+                            check disk
+                            if db.exists != disk.exists:
+                                append to upate_disk list
+                    else:
+                        get disk status and append to list
+                    if disk_exists and not tape_exists:
+                        add to put to tape list
+                    if tape_exists and not disk_exists and pull_tape:
+                        add to pull from tape list
+                else:
+                    create disk/tape status and append to list
+                '''
                 if entry:# if it exists, then check if it exists on tape
                     if not hasattr(entry, 'tape'):
                         if args.debug:
                             print('collecting tape info:',f_name)
-                        t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no,f_name,t_dict)
+                        t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
                         t_dict['file'] = entry
-                        db_nexists_tape.append(t_dict)
+                        db_new_tape.append(t_dict)
+                else:
+                    t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
+                    t_dict['file'] = entry
+                    d_dict = check_disk(data_dir, f_name)
+                    d_dict['file'] = entry
+                    db_new_entry.append((f_dict,d_dict,t_dict))
 
+# bulk create all completely new entries
+try:
+    all_f = []
+    all_d = []
+    all_t = []
+    for ff,dd,tt in db_new_entry:
+        all_f.append(latte_file(**ff))
+        all_d.append(latte_disk(**dd))
+        all_t.append(latte_tape(**tt))
+    latte_file.objects.bulk_create(all_f)
+    latte_disk.objects.bulk_create(all_d)
+    latte_tape.objects.bulk_create(all_t)
+except Exception as e:
+    print(e)
+    print('you messed up')
 # test bulk create
 try:
     tape_push = []
-    for tt in db_nexists_tape:
+    for tt in db_new_tape:
         tape_push.append(latte_tape(**tt))
     latte_tape.objects.bulk_create(tape_push)
 except Exception as e:
@@ -270,7 +326,7 @@ for cfg in cfgs:
             disk_dict['date_modified']   = local_time
         else:
             disk_dict['size']            = None
-            disk_dict['date_modified']   = None      
+            disk_dict['date_modified']   = None
         # move this before looking on the file system
         # is this dictionary already in the db?
         if not disk_exist_db.filter(**ff_dict).exists():
