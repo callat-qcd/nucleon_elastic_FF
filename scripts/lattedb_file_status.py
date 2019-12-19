@@ -252,22 +252,28 @@ for cfg in cfgs:
                         db_new_tape.append(t_dict)
                 else:
                     t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
-                    t_dict['file'] = entry
                     d_dict = check_disk(data_dir, f_name)
-                    d_dict['file'] = entry
                     db_new_entry.append((f_dict,d_dict,t_dict))
 
 # bulk create all completely new entries
 try:
+    print('pushing new entries')
     all_f = []
     all_d = []
     all_t = []
     for ff,dd,tt in db_new_entry:
-        all_f.append(latte_file(**ff))
-        all_d.append(latte_disk(**dd))
-        all_t.append(latte_tape(**tt))
+        f = latte_file(**ff)
+        all_f.append(f)
+    print('  pushing file entries')
     latte_file.objects.bulk_create(all_f)
+    for i,f in enumerate(all_f):
+        d = latte_disk(file=f,**db_new_entry[i][1])
+        all_d.append(d)
+        t = latte_tape(file=f,**db_new_entry[i][2])
+        all_t.append(t)
+    print('  pushing disk entries')
     latte_disk.objects.bulk_create(all_d)
+    print('  pushing tape entries')
     latte_tape.objects.bulk_create(all_t)
 except Exception as e:
     print(e)
@@ -281,85 +287,3 @@ try:
 except Exception as e:
     print(e)
     print('you messed up')
-
-
-'''
-    OLD BELOW
-'''
-sys.exit()
-
-
-print('querrying file system')
-print('%11s %4s %5s %7s' %('ens_s','cfg','tsep','src_set'))
-for cfg in cfgs:
-    no = str(cfg)
-    params['CFG'] = no
-    ''' set up ensemble and make sure all dirs exist '''
-    params = c51.ensemble(params)
-    params['RUN_DIR'] = params['prod']
-    ff_data_dir = params['formfac_4D_tslice']
-    ff_data_dir = ff_data_dir.replace('tslice','tslice_src_avg')
-    for tsep in params['t_seps']:
-        dt = str(tsep)
-        params['T_SEP'] = dt
-        sys.stdout.write('%11s %4s %5s %7s\r' %(ens_s,no,dt,src_set))
-        sys.stdout.flush()
-        fout_name = ff_data_dir+'/formfac_4D_tslice_src_avg_'+ens_s+'_'+no+'_'+val+'_mq'+mv_l+'_'+params['MOM']+'_dt'+dt+'_Nsnk8_src_avg'+src_set+'_'+params['SS_PS']+'.h5'
-        ff_file = fout_name.split('/')[-1]
-        #print(os.path.exists(fout_name),fout_name)
-        ff_dict = dict()
-        ff_dict['name']          = ff_file
-        ff_dict['ensemble']      = ens
-        ff_dict['stream']        = stream
-        ff_dict['configuration'] = cfg
-        ff_dict['source_set']    = src_set
-        ff_dict['t_separation']  = tsep
-        #
-        disk_dict = dict()
-        disk_dict['path']                = ff_data_dir
-        disk_dict['exists']              = os.path.exists(fout_name)
-        disk_dict['machine']             = params['machine']
-        if os.path.exists(fout_name):
-            disk_dict['size']            = os.path.getsize(fout_name)
-            utc = datetime.utcfromtimestamp(os.path.getmtime(fout_name))
-            local_time = utc.replace(tzinfo=pytz.utc).astimezone(local_tz)
-            disk_dict['date_modified']   = local_time
-        else:
-            disk_dict['size']            = None
-            disk_dict['date_modified']   = None
-        # move this before looking on the file system
-        # is this dictionary already in the db?
-        if not disk_exist_db.filter(**ff_dict).exists():
-            new_db_list.append((ff_dict,disk_dict))
-        elif disk_tape_not_exist.filter(**ff_dict).exists():
-            disk_tape_miss_list.append((ff_dict,disk_dict))
-
-print('\nloading database')
-print('pushing %d new entries' %(len(new_db_list)))
-
-all_fs = []
-all_ds = []
-for ff,dd in new_db_list:
-    f = TSlicedSAveragedFormFactor4DFile(**ff)
-    all_fs.append(f)
-TSlicedSAveragedFormFactor4DFile.objects.bulk_create(all_fs)
-for i,f in enumerate(all_fs):
-    d = DiskTSlicedSAveragedFormFactor4DFile(file=f,**new_db_list[i][1])
-    all_ds.append(d)
-DiskTSlicedSAveragedFormFactor4DFile.objects.bulk_create(all_ds)
-
-if len(disk_tape_miss_list) > 0:
-    print('updating %d existing entries' %(len(disk_tape_miss_list)))
-    all_ds = []
-
-    for ff,dd in tqdm(disk_tape_miss_list):
-        #print(ff)
-        f = disk_tape_not_exist.filter(**ff).first()
-        # this is slow cause we are querrying for each ff,dd iteration
-        d = f.disk.first()
-        for k,v in dd.items():
-            setattr(d,k,v)
-        all_ds.append(d)
-    DiskTSlicedSAveragedFormFactor4DFile.objects.bulk_update(all_ds,fields=list(dd.keys()))
-else:
-    print('nothing to update')
