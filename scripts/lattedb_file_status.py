@@ -190,7 +190,7 @@ else:
     tape_entries = db_entries.filter(Q(tape__exists=False) | Q(tape__isnull=True))
 
 for cfg in cfgs:
-    sys.stdout.write('    cfg = %d' %cfg)
+    sys.stdout.write('    cfg = %d\r' %cfg)
     sys.stdout.flush()
     no = str(cfg)
     params['CFG'] = no
@@ -248,7 +248,9 @@ for cfg in cfgs:
                     # check tape
                     if hasattr(entry, 'tape') and (args.update or args.tape_update):
                         t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
-                        # add querry of entry.tape.exists to compare
+                        if entry.tape.exists != t_dict['exists']:
+                            t_dict['file'] = entry
+                            db_update_tape.append((f_dict,t_dict))
                     elif not hasattr(entry, 'tape'):
                         t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
                         t_dict['file'] = entry
@@ -256,7 +258,9 @@ for cfg in cfgs:
                     # check disk
                     if hasattr(entry, 'disk') and (args.update or args.disk_update):
                         d_dict = check_disk(data_dir, f_name)
-                        # add querry of entry.disk.exists to compare
+                        if entry.disk.exists != d_dict['exists']:
+                            d_dict['file'] = entry
+                            db_update_disk.append((f_dict,d_dict))
                     elif not hasattr(entry, 'disk'):
                         d_dict = check_disk(data_dir, f_name)
                         d_dict['file'] = entry
@@ -268,7 +272,7 @@ for cfg in cfgs:
 
 # bulk create all completely new entries
 try:
-    print('pushing new entries')
+    print('pushing %d new entries' %len(db_new_entry))
     all_f = []
     all_d = []
     all_t = []
@@ -289,9 +293,10 @@ try:
 except Exception as e:
     print(e)
     print('you messed up')
+
 # bulk tape entries for pre-existing file entries
 try:
-    print('pushing new TAPE entries for existing file entries')
+    print('pushing %d new TAPE entries for existing file entries' %len(db_new_tape))
     tape_push = []
     for tt in db_new_tape:
         tape_push.append(latte_tape(**tt))
@@ -299,9 +304,10 @@ try:
 except Exception as e:
     print(e)
     print('you messed up bulk TAPE create')
+
 # bulk tape entries for pre-existing file entries
 try:
-    print('pushing new DISK entries for existing file entries')
+    print('pushing %d new DISK entries for existing file entries' %len(db_new_disk))
     disk_push = []
     for dd in db_new_disk:
         disk_push.append(latte_disk(**dd))
@@ -309,3 +315,29 @@ try:
 except Exception as e:
     print(e)
     print('you messed up bulk DISK create')
+
+# bulk update disk
+print('updating %d DISK entries for existing file entries' %len(db_update_disk))
+if len(db_update_disk) > 0:
+    disk_push = []
+    for ff,dd in tqdm(db_update_disk):
+        # this is slow cause we querry the DB for each entry
+        f = db_entries.filter(**ff).first()
+        d = f.disk
+        for k,v in dd.items():
+            setattr(d,k,v)
+        disk_push.append(d)
+    latte_disk.objects.bulk_update(disk_push,fields=list(dd.keys()))
+
+# bulk update tape
+print('updating %d TAPE entries for existing file entries' %len(db_update_tape))
+if len(db_update_tape) > 0:
+    tape_push = []
+    for ff,tt in tqdm(db_update_tape):
+        # this is slow cause we querry the DB for each entry
+        f = db_entries.filter(**ff).first()
+        t = f.tape
+        for k,v in tt.items():
+            setattr(t,k,v)
+        tape_push.append(t)
+    latte_tape.objects.bulk_update(tape_push,fields=list(tt.keys()))
