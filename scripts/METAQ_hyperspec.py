@@ -135,7 +135,7 @@ for c in cfgs_run:
                 utils.check_file(light_prop_file,file_size,params['file_time_delete'],params['corrupt'])
                 light_prop_exists = os.path.exists(light_prop_file)
                 # a12m130 used h5 props
-                if ens in ['a12m130'] and not light_prop_exists:
+                if ens in ['a15m135XL','a12m130'] and not light_prop_exists:
                     light_prop_file = params['prop'] + '/' + light_prop_name+'.h5'
                     utils.check_file(light_prop_file,file_size,params['file_time_delete'],params['corrupt'])
                     light_prop_exists = os.path.exists(light_prop_file)
