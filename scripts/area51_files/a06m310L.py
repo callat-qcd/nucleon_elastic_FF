@@ -41,8 +41,9 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.00617'
 params['MV_S'] = '0.0309'
 
-params['spec_size'] = 1
+params['spec_size'] = 51312
 params['ff_size']   = 1
+params['hyperspec_size'] = 486080
 
 params['MAX_ITER']   = '8000'
 params['RSD_TARGET'] = '1.e-7'
@@ -54,6 +55,7 @@ params['SP_EXTENSION'] = 'lime'
 params['seed'] = dict()
 params['seed']['a'] = '1a'
 params['seed']['b'] = '1b'
+params['seed']['c'] = '1c'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
 params['t_shifts'] = [ 0, 48  , 24  , 72 ,   12,  60, 36, 84 ]
 params['generator'] = sources.oa(int(params['NL']))
@@ -99,9 +101,10 @@ def mpirun_params(machine):
 
         params['gpu_nodes']   = 8
         params['gpu_metaq_nodes'] = 0
-        params['gpu_gpus']    = 8
+        params['gpu_gpus']    = 32
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 30
+        params['prop_time']   = 20
+        params['strange_prop_time'] = 10
 
         params['gpu_nrs']     = '--nrs 8'
         params['gpu_rs_node'] = '-r1'
