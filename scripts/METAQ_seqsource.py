@@ -167,7 +167,7 @@ for c in cfgs_run:
                     utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
                     prop_exists = os.path.exists(prop_file)
 
-                if os.path.exists(prop_exists):
+                if prop_exists:
                     for fs in flav_spin:
                         flav,snk_spin,src_spin=fs.split('_')
                         params['FLAV']=flav
