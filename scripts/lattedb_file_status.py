@@ -13,6 +13,8 @@ from tzlocal import get_localzone
 local_tz = get_localzone()
 from django.db.models import Q
 from tqdm import tqdm
+# tape utils from Evan's hpss module
+import hpss.hsi as hsi
 
 
 '''
@@ -357,10 +359,11 @@ if len(db_update_tape) > 0:
 if args.save_tape:
     print('saving %d files to tape' %(len(save_to_tape)))
     for f in save_to_tape:
-        os.chdir(f[1])
-        os.system('hsi -P "mkdir -p %s; chmod ug+rwx %s"' %(f[2],f[2]))
-        os.system('hsi -P "cd %s; cput %s"' %(f[2],f[0]))
-        os.system('hsi -P chmod ug+rw %s' %(f[2]+'/'+f[0]))
+        #os.chdir(f[1])
+        #os.system('hsi -P "mkdir -p %s; chmod ug+rwx %s"' %(f[2],f[2]))
+        #os.system('hsi -P "cd %s; cput %s"' %(f[2],f[0]))
+        #os.system('hsi -P chmod ug+rw %s' %(f[2]+'/'+f[0]))
+        hsi.cput(f[1]+'/'+f[0],f[2]+'/'+f[0])
 else:
     print('skipping %d files to save to tape' %(len(save_to_tape)))
 
