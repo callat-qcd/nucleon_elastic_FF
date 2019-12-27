@@ -48,7 +48,8 @@ parser.add_argument('-v',default=True,action='store_const',const=False,help='ver
 parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
 parser.add_argument('--update',default=False,action='store_const',const=True,help='update disk and tape entries? [%(default)s]')
 parser.add_argument('--disk_update',default=False,action='store_const',const=True,help='update disk=exists entries? [%(default)s]')
-parser.add_argument('--tape_update',default=False,action='store_const',const=True,help='update tape=exists entries? [%(default)s]')
+parser.add_argument('--tape_update',default=True,action='store_const',const=False,help='update tape=exists entries? [%(default)s]')
+parser.add_argument('--save_tape',default=True,action='store_const',const=False,help='save files to tape? [%{default)s]')
 parser.add_argument('--debug',default=False,action='store_const',const=True,help='debug? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
@@ -179,6 +180,7 @@ db_new_disk    = []
 db_update_tape = []
 db_new_tape    = []
 db_new_entry   = []
+save_to_tape   = []
 
 if args.disk_update:
     disk_entries = db_entries.all()
@@ -196,7 +198,8 @@ for cfg in cfgs:
     params['CFG'] = no
     params = c51.ensemble(params)
     params['RUN_DIR'] = params['prod']
-    data_dir = params[f_type]
+    tape_dir = c51.tape+'/'+ens_s+'/'+f_type+'/'+no
+    disk_dir = params[f_type]
     # if the type of file we are checking has srcs (not src_averaged), then add this info
     if src_type:
         for s0 in srcs[cfg]:
@@ -205,7 +208,7 @@ for cfg in cfgs:
     else:# src averaged file types
         params['SRC'] = 'src_avg'+src_set
         if args.debug:
-            print('\nDEBUG:',data_dir)
+            print('\nDEBUG:',disk_dir)
         if 'formfac' in f_type:
             for tsep in params['t_seps']:
                 dt = str(tsep)
@@ -246,6 +249,9 @@ for cfg in cfgs:
                 '''
                 if entry:# if it exists, then check if it exists on tape
                     # check tape
+                    if hasattr(entry, 'tape'):
+                        t_dict = dict()
+                        t_dict['exists'] = entry.tape.exists
                     if hasattr(entry, 'tape') and (args.update or args.tape_update):
                         t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
                         if entry.tape.exists != t_dict['exists']:
@@ -256,20 +262,25 @@ for cfg in cfgs:
                         t_dict['file'] = entry
                         db_new_tape.append(t_dict)
                     # check disk
+                    if hasattr(entry, 'disk'):
+                        d_dict = dict()
+                        d_dict['exists'] = entry.disk.exists
                     if hasattr(entry, 'disk') and (args.update or args.disk_update):
-                        d_dict = check_disk(data_dir, f_name)
+                        d_dict = check_disk(disk_dir, f_name)
                         if entry.disk.exists != d_dict['exists']:
                             d_dict['file'] = entry
                             db_update_disk.append((f_dict,d_dict))
                     elif not hasattr(entry, 'disk'):
-                        d_dict = check_disk(data_dir, f_name)
+                        d_dict = check_disk(disk_dir, f_name)
                         d_dict['file'] = entry
                         db_new_disk.append(d_dict)
                 else:
                     t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
-                    d_dict = check_disk(data_dir, f_name)
+                    d_dict = check_disk(disk_dir, f_name)
                     db_new_entry.append((f_dict,d_dict,t_dict))
-
+                # find files that exist on disk and not tape
+                if d_dict['exists'] and not t_dict['exists']:
+                    save_to_tape.append([f_name, disk_dir, tape_dir])
 # bulk create all completely new entries
 try:
     print('pushing %d new entries' %len(db_new_entry))
@@ -341,3 +352,15 @@ if len(db_update_tape) > 0:
             setattr(t,k,v)
         tape_push.append(t)
     latte_tape.objects.bulk_update(tape_push,fields=list(tt.keys()))
+
+# save to tape
+if args.save_tape:
+    print('saving %d files to tape' %(len(save_to_tape)))
+    for f in save_to_tape:
+        os.chdir(f[1])
+        os.system('hsi -P "mkdir -p %s; chmod ug+rwx %s"' %(f[2],f[2]))
+        os.system('hsi -P "cd %s; cput %s"' %(f[2],f[0]))
+        os.system('hsi -P chmod ug+rw %s' %(f[2]+'/'+f[0]))
+else:
+    print('skipping %d files to save to tape' %(len(save_to_tape)))
+
