@@ -171,6 +171,7 @@ def check_disk(d_path,d_file):
         local_time = utc.replace(tzinfo=pytz.utc).astimezone(local_tz)
         d_dict['date_modified'] = local_time
     else:
+        d_dict['exists']        = False
         d_dict['size']          = None
         d_dict['date_modified'] = None
     return d_dict
@@ -183,6 +184,7 @@ db_update_tape = []
 db_new_tape    = []
 db_new_entry   = []
 save_to_tape   = []
+data_collect   = []
 
 if args.disk_update:
     disk_entries = db_entries.all()
@@ -283,6 +285,9 @@ for cfg in cfgs:
                 # find files that exist on disk and not tape
                 if d_dict['exists'] and not t_dict['exists']:
                     save_to_tape.append([f_name, disk_dir, tape_dir])
+                if not d_dict['exists'] and not t_dict['exists']:
+                    data_collect.append(f_name)
+
 # bulk create all completely new entries
 try:
     print('pushing %d new entries' %len(db_new_entry))
@@ -366,4 +371,9 @@ if args.save_tape:
         hsi.cput(f[1]+'/'+f[0],f[2]+'/'+f[0])
 else:
     print('skipping %d files to save to tape' %(len(save_to_tape)))
+
+# collect data
+print('data collect')
+for f in data_collect:
+    print(f)
 
