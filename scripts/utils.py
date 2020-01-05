@@ -41,22 +41,26 @@ def check_file(f_name,f_size,time_delete,bad_file_dir,debug=False):
     return os.path.exists(f_name)
 
 def parse_cfg_argument(cfg_arg, params):
+    allowed_cfgs = range(params['cfg_i'],params['cfg_f']+1,params['cfg_d'])
     if not cfg_arg:
         ci = params['cfg_i']
         cf = params['cfg_f']
         dc = params['cfg_d']
-    elif len(cfg_arg) == 1:
-        ci = int(cfg_arg[0])
-        cf = int(cfg_arg[0])
-        dc = 1
-    elif len(cfg_arg) == 3:
-        ci = int(cfg_arg[0])
-        cf = int(cfg_arg[1])
-        dc = int(cfg_arg[2])
     else:
-        print('unrecognized use of cfg arg')
-        print('cfg_i [cfg_f cfg_d]')
-        sys.exit()
+        if int(cfg_arg[0]) not in allowed_cfgs:
+            sys.exit('you selected configs not allowed for %s: allowed_cfgs = range(%d, %d, %d)' %(params['ENS_S'],params['cfg_i'], params['cfg_f'], params['cfg_d']))
+        elif len(cfg_arg) == 1:
+            ci = int(cfg_arg[0])
+            cf = int(cfg_arg[0])
+            dc = 1
+        elif len(cfg_arg) == 3:
+            ci = int(cfg_arg[0])
+            cf = int(cfg_arg[1])
+            dc = int(cfg_arg[2])
+        else:
+            print('unrecognized use of cfg arg')
+            print('cfg_i [cfg_f cfg_d]')
+            sys.exit()
     return range(ci,cf+dc,dc)
 
 def parse_cfg_src_argument(cfg_arg,src_arg,params,src_type=[]):
