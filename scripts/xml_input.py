@@ -607,3 +607,52 @@ dd_pairs = '''<elem>
 
 '''
 
+src_sh_stag = '''<elem>
+<Name>MAKE_SOURCE_STAG</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>2</version>
+  <SourceType>SHELL_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X0)s %(Y0)s %(Z0)s %(T0)s</t_srce>
+  <SmearingParam>
+    <wvf_kind>GAUGE_INV_GAUSSIAN</wvf_kind>
+    <wvf_param>%(WF_S)s</wvf_param>
+    <wvfIntPar>%(WF_N)s</wvfIntPar>
+    <no_smear_dir>3</no_smear_dir>
+  </SmearingParam>
+  <Displacement>
+    <version>1</version>
+    <DisplacementType>SCALAR_STAG_FLAV</DisplacementType>
+    <mu>1</mu>
+    <nu>2</nu>
+  </Displacement>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>%(GAUGE_FIELD)s</gauge_id>
+  <source_id>%(SRC_ID)s</source_id>
+</NamedObject>
+</elem>
+
+'''
+
+stag_src_write = '''<elem>
+ <Name>MILC_WRITE_STAGGERED_SOURCE</Name>
+ <Frequency>1</Frequency>
+ <Param>
+   <OutputFile>%(FILE_DIR)s/%(FILE_NAME)s</OutputFile>
+   <OutputVolfmt>SINGLEFILE</OutputVolfmt>
+   <Precision>single</Precision>
+   <parallel_io>true</parallel_io>
+   <t_slice>%(T0)s</t_slice>
+ </Param>
+ <NamedObject>
+   <source_id>%(SRC_ID)s</source_id>
+ </NamedObject>
+</elem>
+
+'''
+
