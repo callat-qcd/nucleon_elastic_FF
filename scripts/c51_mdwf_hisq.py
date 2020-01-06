@@ -22,6 +22,7 @@ elif any(host in hn for host in ['lassen']):
     machine   = 'lassen'
     env       = 'source /usr/workspace/coldqcd/software/lassen_smpi_RR/install/env.sh'
     bind_dir  = '/usr/workspace/coldqcd/software/callat_build_scripts/binding_scripts/'
+    milc_dir  = '/usr/workspace/coldqcd/software/lassen_smpi_RR/install/lattice_milc_qcd'
 elif any(host in hn for host in ['login','batch']):
     ''' TERRIBLE LOGIN NAME FOR SUMMIT '''
     manage   = '/ccs/proj/lgt100/c51/x_files/project_2'
@@ -98,7 +99,7 @@ def ensemble(params):
     ''' DIRECTORIES '''
     params['METAQ_DIR']   = metaq_dir
     dirs    = ['cfgs_flow','corrupt','src','quda_resource']
-    dirs_no = ['xml','stdout','prop','spec','spec_4D','seqsrc','seqprop','formfac','formfac_4D','hisq_spec','prop_strange','hyperspec']
+    dirs_no = ['xml','stdout','prop','spec','spec_4D','seqsrc','seqprop','formfac','formfac_4D','hisq_spec','prop_strange','hyperspec','mixed']
     for d in dirs:
         params[d] = params['prod']+'/'+d
     for d in dirs_no:
@@ -135,3 +136,9 @@ names['seqprop']         += '_%(MOM)s_dt%(T_SEP)s_Srcs%(SRC_LST)s_%(SS_PS)s'
 names['formfac']          = 'formfac_%(ENS_S)s_%(CFG)s'
 names['formfac']         += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
 names['formfac']         += '_%(MOM)s_dt%(T_SEP)s_Nsnk%(N_SEQ)s_%(SRC)s_%(SS_PS)s'
+names['formfac_4D']                = names['formfac'].replace('formfac','formfac_4D')
+names['formfac_4D_tslice']         = names['formfac'].replace('formfac','formfac_4D_tslice')
+names['formfac_4D_tslice_src_avg'] = names['formfac'].replace('formfac','formfac_4D_tslice_src_avg')
+
+names['mixed_corr']       = 'dwf_hisq_spec_%(ENS_S)s_wflow%(FLOW_TIME)s_M5%(M5)s_L5%(L5)s'
+names['mixed_corr']      += '_a%(alpha5)s_cfg_%(CFG)s_src%(SRC)s_%(SMR)s_ml%(MQ_L)s_ms%(MQ_S)s.corr'
