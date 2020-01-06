@@ -175,7 +175,7 @@ for no in cfgs:
     hisq_spectrum = '/usr/workspace/coldqcd/software/lassen_smpi/install/lattice_milc_qcd/ks_spectrum_hisq'
 
     print(ens+'_'+str(no)+'_hisq_hisq')
-    params['SCRIPT_DIR']='/p/gpfs1/mcamacho/nucleon_elastic_FF_hisq_spec/scripts'
+    #params['SCRIPT_DIR']='/p/gpfs1/mcamacho/nucleon_elastic_FF_hisq_spec/scripts'
     
     # HISQ-HISQ SPEC
 
@@ -266,14 +266,14 @@ for no in cfgs:
 
         if pq_del[mq]:
             if str(no)+'/'+prop not in p_del and os.path.exists(params['PROP_DIR']+'/'+prop):
-                p_del.append(no+'/'+prop)
+                p_del.append(str(no)+'/'+prop)
         else:
             if str(no)+'/'+prop not in p_get and not os.path.exists(params['PROP_DIR']+'/'+prop):
                 p_get.append(str(no)+'/'+prop)
 
         if pq_del[mq]:
             if str(no)+'/'+prop not in p_del and os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop):
-                p_del.append(no+'/'+prop)
+                p_del.append(str(no)+'/'+prop)
         else:
             if str(no)+'/'+prop not in p_get and not os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop):
                 p_get.append(str(no)+'/'+prop)

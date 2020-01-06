@@ -225,3 +225,4 @@ correlator SS_5  p000  1 * %(V_INV)s pion5  0 0 0 E E E
 correlator SS_I  p000  1 * %(V_INV)s pions  0 0 0 E E E
 
 number_of_baryons 0
+
