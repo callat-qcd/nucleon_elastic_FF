@@ -71,16 +71,19 @@ def check_disk(d_path,d_file):
     return d_dict
 
 def check_ff_4D_tslice_src_avg(
-        params,         # a dictionary of information about the file names, locations, etc.
-        db_entries,     # the db querry
-        db_update_disk, # list of disk updates
-        db_new_disk,    # list of new disk entries
-        db_update_tape, # list of tape updates
-        db_new_tape,    # list of new tape entries
-        db_new_entry,   # list of new db entries
-        save_to_tape,   # list of files to save to tape
-        data_collect,   # list of files to try and collect
+        params,            # a dictionary of information about the file names, locations, etc.
+        db_entries,        # the db querry
+        db_update_disk,    # list of disk updates
+        db_new_disk,       # list of new disk entries
+        db_update_tape,    # list of tape updates
+        db_new_tape,       # list of new tape entries
+        db_new_entry,      # list of new db entries
+        save_to_tape,      # list of files to save to tape
+        data_collect,      # list of files to try and collect
     ):
+    f_type = 'formfac_4D_tslice_src_avg'
+    no = str(params['CFG'])
+    disk_dir = params[f_type]
     for tsep in params['t_seps']:
         dt = str(tsep)
         params['T_SEP'] = dt
@@ -90,9 +93,9 @@ def check_ff_4D_tslice_src_avg(
         f_dict['stream']        = params['STREAM']
         f_dict['configuration'] = int(params['CFG'])
         f_dict['source_set']    = params['SRC_SET']
-        f_name = (c51.names['formfac'] % params).replace('formfac_','formfac_4D_tslice_src_avg_')+'.h5'
-        f_dict['t_separation'] = tsep
-        f_dict['name']         = f_name
+        f_dict['t_separation']  = tsep
+        f_name                  = (c51.names[f_type]+'.h5') % params
+        f_dict['name']          = f_name
         # filter db for unique entry
         entry = db_entries.filter(**f_dict).first()
         if entry:# if it exists, then check if it exists on tape
@@ -100,20 +103,20 @@ def check_ff_4D_tslice_src_avg(
             if hasattr(entry, 'tape'):
                 t_dict = dict()
                 t_dict['exists'] = entry.tape.exists
-            if hasattr(entry, 'tape') and (args.update or args.tape_update):
-                t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
+            if hasattr(entry, 'tape') and (params['UPDATE'] or params['TAPE_UPDATE']):
+                t_dict = check_tape(c51.tape+'/'+params['ENS_S']+'/'+f_type+'/'+no, f_name)
                 if entry.tape.exists != t_dict['exists']:
                     t_dict['file'] = entry
                     db_update_tape.append((f_dict,t_dict))
             elif not hasattr(entry, 'tape'):
-                t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
+                t_dict = check_tape(c51.tape+'/'+params['ENS_S']+'/'+f_type+'/'+no, f_name)
                 t_dict['file'] = entry
                 db_new_tape.append(t_dict)
             # check disk
             if hasattr(entry, 'disk'):
                 d_dict = dict()
                 d_dict['exists'] = entry.disk.exists
-            if hasattr(entry, 'disk') and (args.update or args.disk_update):
+            if hasattr(entry, 'disk') and (params['UPDATE'] or params['DISK_UPDATE']):
                 d_dict = check_disk(disk_dir, f_name)
                 if entry.disk.exists != d_dict['exists']:
                     d_dict['file'] = entry
@@ -123,13 +126,12 @@ def check_ff_4D_tslice_src_avg(
                 d_dict['file'] = entry
                 db_new_disk.append(d_dict)
         else:
-            t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
+            t_dict = check_tape(c51.tape+'/'+params['ENS_S']+'/'+f_type+'/'+no, f_name)
             d_dict = check_disk(disk_dir, f_name)
             db_new_entry.append((f_dict,d_dict,t_dict))
         # find files that exist on disk and not tape
         if d_dict['exists'] and not t_dict['exists']:
-            save_to_tape.append([f_name, disk_dir, tape_dir])
+            save_to_tape.append([f_name, disk_dir, params['TAPE_DIR']])
         if not d_dict['exists'] and not t_dict['exists']:
             data_collect.append(f_name)
 
-    #return db_update_tape, db_new_tape, db_update_disk, db_new_disk, db_new_entry, save_to_tape, data_collect

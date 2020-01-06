@@ -205,8 +205,11 @@ for cfg in cfgs:
     params['CFG'] = no
     params = c51.ensemble(params)
     params['RUN_DIR'] = params['prod']
-    tape_dir = c51.tape+'/'+ens_s+'/'+f_type+'/'+no
     disk_dir = params[f_type]
+    params['TAPE_DIR'] = c51.tape+'/'+ens_s+'/'+f_type+'/'+no
+    params['UPDATE'] = args.update
+    params['DISK_UPDATE'] = args.disk_update
+    params['TAPE_UPDATE'] = args.tape_update
     # if the type of file we are checking has srcs (not src_averaged), then add this info
     if src_type:
         for s0 in srcs[cfg]:
@@ -216,62 +219,12 @@ for cfg in cfgs:
         params['SRC'] = 'src_avg'+src_set
         if args.debug:
             print('\nDEBUG:',disk_dir)
-        if 'formfac' in f_type:
+        if f_type == 'formfac_4D_tslice_src_avg':
             lattedb_ff.check_ff_4D_tslice_src_avg(params, db_entries, 
                 db_update_disk, db_new_disk, db_update_tape, db_new_tape, db_new_entry, save_to_tape, data_collect)
-            '''
-            for tsep in params['t_seps']:
-                dt = str(tsep)
-                params['T_SEP'] = dt
-                # make file entry
-                f_dict = dict()
-                f_dict['ensemble']      = ens
-                f_dict['stream']        = stream
-                f_dict['configuration'] = cfg
-                f_dict['source_set']    = src_set
-                f_name = (c51.names['formfac'] % params).replace('formfac_','formfac_4D_tslice_src_avg_')+'.h5'
-                f_dict['t_separation'] = tsep
-                f_dict['name']         = f_name
-                # filter db for unique entry
-                entry = db_entries.filter(**f_dict).first()
-                if entry:# if it exists, then check if it exists on tape
-                    # check tape
-                    if hasattr(entry, 'tape'):
-                        t_dict = dict()
-                        t_dict['exists'] = entry.tape.exists
-                    if hasattr(entry, 'tape') and (args.update or args.tape_update):
-                        t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
-                        if entry.tape.exists != t_dict['exists']:
-                            t_dict['file'] = entry
-                            db_update_tape.append((f_dict,t_dict))
-                    elif not hasattr(entry, 'tape'):
-                        t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
-                        t_dict['file'] = entry
-                        db_new_tape.append(t_dict)
-                    # check disk
-                    if hasattr(entry, 'disk'):
-                        d_dict = dict()
-                        d_dict['exists'] = entry.disk.exists
-                    if hasattr(entry, 'disk') and (args.update or args.disk_update):
-                        d_dict = check_disk(disk_dir, f_name)
-                        if entry.disk.exists != d_dict['exists']:
-                            d_dict['file'] = entry
-                            db_update_disk.append((f_dict,d_dict))
-                    elif not hasattr(entry, 'disk'):
-                        d_dict = check_disk(disk_dir, f_name)
-                        d_dict['file'] = entry
-                        db_new_disk.append(d_dict)
-                else:
-                    t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
-                    d_dict = check_disk(disk_dir, f_name)
-                    db_new_entry.append((f_dict,d_dict,t_dict))
-                # find files that exist on disk and not tape
-                if d_dict['exists'] and not t_dict['exists']:
-                    save_to_tape.append([f_name, disk_dir, tape_dir])
-                if not d_dict['exists'] and not t_dict['exists']:
-                    data_collect.append(f_name)
-            '''
+
 # bulk create all completely new entries
+print(db_new_entry)
 try:
     print('pushing %d new entries' %len(db_new_entry))
     all_f = []
@@ -292,8 +245,8 @@ try:
     print('  pushing tape entries')
     latte_tape.objects.bulk_create(all_t)
 except Exception as e:
-    print(e)
     print('you messed up')
+    print(e)
 
 # bulk tape entries for pre-existing file entries
 try:
