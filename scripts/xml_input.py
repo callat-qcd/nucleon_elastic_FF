@@ -589,3 +589,21 @@ lalibe_formfac_old='''<elem>
 </elem>
 
 '''
+
+dd_pairs = '''<elem>
+  <Name>USQCD_WRITE_DD_PAIRS_PROP</Name>
+  <Frequency>1</Frequency>
+  <Param>
+    <OutputFile>%(PROP_DIR)s/%(PROP_ID_DD)s</OutputFile>
+    <OutputVolfmt>SINGLEFILE</OutputVolfmt>
+    <Precision>single</Precision>
+    <parallel_io>true</parallel_io>
+  </Param>
+  <NamedObject>
+<prop_id>%(PROP_ID)s</prop_id>
+<gauge_id>default_gauge_field</gauge_id>
+  </NamedObject>
+</elem>
+
+'''
+

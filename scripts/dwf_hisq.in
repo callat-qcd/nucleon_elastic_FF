@@ -1,0 +1,322 @@
+prompt 0
+nx %(NL)s
+ny %(NL)s
+nz %(NL)s
+nt %(NT)s
+iseed 5682304
+job_id %(JOB_ID)s
+
+######################################################################
+# source time 0
+######################################################################
+
+# Gauge field description
+# no_gauge_fix, coulomb_gauge_fix
+
+reload_parallel %(milc_cfg)s
+u0 %(U0)s
+no_gauge_fix
+forget
+staple_weight 0
+ape_iter 0
+coordinate_origin 0 0 0 0
+
+time_bc antiperiodic
+
+# Inversion control
+
+max_cg_iterations %(MAX_CG_ITER)s
+max_cg_restarts %(MAX_CG_RESTART)s
+
+# Description of base sources
+
+number_of_base_sources 2
+
+# base source 0
+
+vector_field KS
+subset full
+origin %(X0)s %(Y0)s %(Z0)s %(T0)s
+load_source %(SRC_DIR)s/%(SRC_HISQ)s
+ncolor 3
+momentum 0 0 0
+source_label gcsmr
+forget_source
+
+# base_source 1
+
+gaussian Dirac
+subset full
+origin %(X0)s %(Y0)s %(Z0)s %(T0)s
+r0 1.5
+source_label 1S
+forget_source
+
+number_of_modified_sources 0
+
+# Description of propagators
+
+number_of_propagators 4
+
+# propagator 0
+
+propagator_type KS
+mass %(M_L)s
+naik_term_epsilon 0.
+check no
+error_for_propagator %(ERR_L)s
+rel_error_for_propagator %(REL_ERR_L)s
+precision 1
+momentum_twist 0 0 0
+
+source 0
+
+fresh_ksprop
+forget_ksprop
+
+# propagator 1
+
+propagator_type KS
+mass %(M_S)s
+naik_term_epsilon 0.
+check no
+error_for_propagator %(ERR_S)s
+rel_error_for_propagator %(REL_ERR_S)s
+precision 1
+momentum_twist 0 0 0
+
+source 0
+
+fresh_ksprop
+forget_ksprop
+
+# propagator 2
+
+propagator_type clover
+kappa %(MV_L)s
+clov_c 1.
+check no
+error_for_propagator 1e-6
+rel_error_for_propagator 1e-6
+precision 1
+momentum_twist 0 0 0
+
+source 1
+
+reload_parallel_wprop %(PROP_DIR)s/%(PROP_L)s
+forget_wprop
+
+# propagator 3
+
+propagator_type clover
+kappa %(MV_S)s
+clov_c 1.
+check no
+error_for_propagator 1e-6
+rel_error_for_propagator 1e-6
+precision 1
+momentum_twist 0 0 0
+
+source 1
+
+reload_parallel_wprop %(PROP_DIR_STRANGE)s/%(PROP_S)s
+forget_wprop
+
+# quarks
+number_of_quarks 4
+
+# mass 0
+
+propagator 0
+
+identity
+op_label d
+forget_wprop
+
+# mass 1
+
+propagator 1
+
+identity
+op_label d
+forget_wprop
+
+# dwf l
+
+propagator 2
+
+identity
+op_label d
+forget_wprop
+
+# dwf s
+
+propagator 3
+
+identity
+op_label d
+forget_wprop
+
+# Description of mesons
+number_of_pairings 12
+
+# HISQ HISQ
+# PHI_JJ
+pair 0 0
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+correlator PION_5  p000  1 * %(V_INV)s G5 G5  0 0 0 E E E
+
+
+# PHI_JR
+pair 0 1
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+correlator KAON_5  p000  1 * %(V_INV)s G5 G5  0 0 0 E E E
+
+
+# PHI_RR
+pair 1 1
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+correlator SS_5  p000  1 * %(V_INV)s G5 G5  0 0 0 E E E
+
+
+# PHI_UU 
+pair 2 2
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+correlator PHI_UU  p000  1 * %(V_INV)s G5 G5  0 0 0 E E E
+
+
+# PHI_JU
+pair 0 2
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+# NOTE we are using G1 = identity cause the Dslash convention
+# is opposite between MILC and Chroma
+correlator PHI_JU  p000  1 * %(V_INV)s G1 G1  0 0 0 E E E
+
+
+# PHI_UJ
+pair 2 0
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+# NOTE we are using G1 = identity cause the Dslash convention
+# is opposite between MILC and Chroma
+correlator PHI_UJ  p000  1 * %(V_INV)s G1 G1  0 0 0 E E E
+
+
+# PHI_JS
+pair 0 3
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+# NOTE we are using G1 = identity cause the Dslash convention
+# is opposite between MILC and Chroma
+correlator PHI_JS  p000  1 * %(V_INV)s G1 G1  0 0 0 E E E
+
+
+# PHI_SJ
+pair 3 0
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+# NOTE we are using G1 = identity cause the Dslash convention
+# is opposite between MILC and Chroma
+correlator PHI_SJ  p000  1 * %(V_INV)s G1 G1  0 0 0 E E E
+
+
+# PHI_RU
+pair 1 2
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+# NOTE we are using G1 = identity cause the Dslash convention
+# is opposite between MILC and Chroma
+correlator PHI_RU  p000  1 * %(V_INV)s G1 G1  0 0 0 E E E
+
+
+# PHI_UR
+pair 2 1
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+# NOTE we are using G1 = identity cause the Dslash convention
+# is opposite between MILC and Chroma
+correlator PHI_UR  p000  1 * %(V_INV)s G1 G1  0 0 0 E E E
+
+
+# PHI_RS
+pair 1 3
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+# NOTE we are using G1 = identity cause the Dslash convention
+# is opposite between MILC and Chroma
+correlator PHI_RS  p000  1 * %(V_INV)s G1 G1  0 0 0 E E E
+
+
+# PHI_SR
+pair 3 1
+spectrum_request meson
+save_corr_fnal %(HISQ_CORR_FILE)s
+r_offset 0 0 0 %(T0)s
+
+number_of_correlators 1
+
+# Normalization is 1/vol3
+# NOTE we are using G1 = identity cause the Dslash convention
+# is opposite between MILC and Chroma
+correlator PHI_SR  p000  1 * %(V_INV)s G1 G1  0 0 0 E E E
+
