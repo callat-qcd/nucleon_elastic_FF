@@ -13,7 +13,7 @@ params['run_strange'] = False
 #params['ds'] = 1
 
 params['cfg_i'] = 78
-params['cfg_f'] = 3072
+params['cfg_f'] = 3096
 params['cfg_d'] = 6
 
 params['ENS_ABBR'] = 'a09m135'

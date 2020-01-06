@@ -51,7 +51,7 @@ parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
 parser.add_argument('--update',default=False,action='store_const',const=True,help='update disk and tape entries? [%(default)s]')
 parser.add_argument('--disk_update',default=False,action='store_const',const=True,help='update disk=exists entries? [%(default)s]')
 parser.add_argument('--tape_update',default=True,action='store_const',const=False,help='update tape=exists entries? [%(default)s]')
-parser.add_argument('--save_tape',default=True,action='store_const',const=False,help='save files to tape? [%{default)s]')
+parser.add_argument('--save_tape',default=True,action='store_const',const=False,help='save files to tape? [%(default)s]')
 parser.add_argument('--debug',default=False,action='store_const',const=True,help='debug? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
@@ -60,7 +60,9 @@ print('')
 
 tape_lst = ['formfac_4D_tslice_src_avg','spec_4D_tslice','spec_4D_tslice_avg']
 
+# LATTEDB imports
 f_type = args.f_type
+import lattedb_ff_disk_tape_functions as lattedb_ff
 if f_type == 'formfac_4D_tslice_src_avg':
     from lattedb.project.formfac.models import TSlicedSAveragedFormFactor4DFile     as latte_file
     from lattedb.project.formfac.models import DiskTSlicedSAveragedFormFactor4DFile as latte_disk
@@ -90,6 +92,7 @@ if args.src_set:# override src index in sources and area51 files for collection
     params['sf'] = args.src_set[1]
     params['ds'] = args.src_set[2]
 src_set = "%d-%d" %(params['si'],params['sf'])
+params['SRC_SET'] = src_set
 
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
@@ -214,6 +217,9 @@ for cfg in cfgs:
         if args.debug:
             print('\nDEBUG:',disk_dir)
         if 'formfac' in f_type:
+            lattedb_ff.check_ff_4D_tslice_src_avg(params, db_entries, 
+                db_update_disk, db_new_disk, db_update_tape, db_new_tape, db_new_entry, save_to_tape, data_collect)
+            '''
             for tsep in params['t_seps']:
                 dt = str(tsep)
                 params['T_SEP'] = dt
@@ -228,29 +234,6 @@ for cfg in cfgs:
                 f_dict['name']         = f_name
                 # filter db for unique entry
                 entry = db_entries.filter(**f_dict).first()
-                ''' LOGIC of DISK/TAPE check
-                if entry in db:
-                    if entry has tape attribute:
-                        if update or update_tape:
-                            check_tape
-                            if entry_tape_exists != tape_exists::
-                                add to update_tape list
-                    else:
-                        get tape status and append to list
-                    if disk in db entry:
-                        if update or update_disk:
-                            check disk
-                            if db.exists != disk.exists:
-                                append to upate_disk list
-                    else:
-                        get disk status and append to list
-                    if disk_exists and not tape_exists:
-                        add to put to tape list
-                    if tape_exists and not disk_exists and pull_tape:
-                        add to pull from tape list
-                else:
-                    create disk/tape status and append to list
-                '''
                 if entry:# if it exists, then check if it exists on tape
                     # check tape
                     if hasattr(entry, 'tape'):
@@ -287,7 +270,7 @@ for cfg in cfgs:
                     save_to_tape.append([f_name, disk_dir, tape_dir])
                 if not d_dict['exists'] and not t_dict['exists']:
                     data_collect.append(f_name)
-
+            '''
 # bulk create all completely new entries
 try:
     print('pushing %d new entries' %len(db_new_entry))
