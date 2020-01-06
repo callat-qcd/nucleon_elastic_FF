@@ -31,7 +31,7 @@ parser.add_argument('cfgs',nargs='+',type=int,help='cfg[s] no to check: ni [nf d
 parser.add_argument('--src',type=str,help='pass a specific src if desired')
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
-parser.add_argument('--mtype',default='cpu',help='specify metaq dir [%(default)s]')
+parser.add_argument('--mtype',default='gpu',help='specify metaq dir [%(default)s]')
 parser.add_argument('--metaQ',default=True,action='store_const',const=False,\
     help='make metaQ files at submission time instead of running executable in run environment [%(default)s]')
 parser.add_argument('-p',default=False,action='store_const',const=True,\
