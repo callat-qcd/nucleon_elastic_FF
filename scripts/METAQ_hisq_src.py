@@ -87,7 +87,7 @@ if ni > nf:
     sys.exit(-1)
 
 p_size = {
-    'a06m310L':41708255696,
+    'a06m310L':41708250000,
 }
 s_i = params['si']
 s_f = params['sf']

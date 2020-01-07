@@ -337,9 +337,9 @@ for c in cfgs:
             else:
                 if not os.path.exists( params['milc_cfg']):
                     print('DOES NOT EXIST:\n'+ params['milc_cfg'])
-                if not os.path.exists(params['PROP_DIR']+'/'+prop_l):
-                    print('DOES NOT EXIST:\n'+params['PROP_DIR']+'/'+prop_l)        
-                if not os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop_s):
-                    print('DOES NOT EXIST:\n'+params['PROP_DIR_STRANGE']+'/'+prop_s)
+                if not os.path.exists(params['PROP_DIR']+'/'+prop_l) or not os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop_s):
+                    print('missing light or strange ddpair')
+                    print('python %s/METAQ_hisq_src.py %s --si %s %s' %(params['SCRIPT_DIR'],no,args.si,params['PRIORITY']))
+                    os.system('python %s/METAQ_hisq_src.py %s --si %s %s' %(params['SCRIPT_DIR'],no,args.si,params['PRIORITY']))
                 if os.path.exists(mixed_dir+'/'+mixed_corr):
                     print('EXISTS!\n'+mixed_corr)
