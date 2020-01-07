@@ -289,7 +289,7 @@ for c in cfgs_run:
                     print('    3pt corr exists:')
         if not have_seqsrc and not have_all_3pts:
             print('python METAQ_seqsource.py %s -v' %(c))
-            os.system('python %s/METAQ_seqsource.py %s %s -v' %(params['SCRIPT_DIR'],c,params['PRIORITY']))
+            os.system(c51.python+' %s/METAQ_seqsource.py %s %s -v' %(params['SCRIPT_DIR'],c,params['PRIORITY']))
 
     else:
         if not os.path.exists(cfg_file):

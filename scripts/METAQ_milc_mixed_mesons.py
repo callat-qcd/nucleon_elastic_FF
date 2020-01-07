@@ -48,7 +48,7 @@ print('')
 
 if len(args.cfgs) not in [1,3]:
     print('improper usage!')
-    os.system('python '+sys.argv[0]+' -h')
+    os.system(c51.python+' '+sys.argv[0]+' -h')
     sys.exit(-1)
 ni = int(args.cfgs[0])
 if len(args.cfgs) == 3:
@@ -58,7 +58,7 @@ else:
     nf = ni; dn = ni;
 if ni > nf:
     print('improper usage:')
-    os.system('python '+sys.argv[0]+' -h')
+    os.system(c51.python+' '+sys.argv[0]+' -h')
     sys.exit(-1)
 
 cfgs = range(ni,nf+1,dn)
@@ -340,6 +340,6 @@ for c in cfgs:
                 if not os.path.exists(params['PROP_DIR']+'/'+prop_l) or not os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop_s):
                     print('missing light or strange ddpair')
                     print('python %s/METAQ_hisq_src.py %s --si %s %s' %(params['SCRIPT_DIR'],no,args.si,params['PRIORITY']))
-                    os.system('python %s/METAQ_hisq_src.py %s --si %s %s' %(params['SCRIPT_DIR'],no,args.si,params['PRIORITY']))
+                    os.system(c51.python+' %s/METAQ_hisq_src.py %s --si %s %s' %(params['SCRIPT_DIR'],no,args.si,params['PRIORITY']))
                 if os.path.exists(mixed_dir+'/'+mixed_corr):
                     print('EXISTS!\n'+mixed_corr)

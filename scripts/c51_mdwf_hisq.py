@@ -23,6 +23,7 @@ elif any(host in hn for host in ['lassen']):
     env       = 'source /usr/workspace/coldqcd/software/lassen_smpi_RR/install/env.sh'
     bind_dir  = '/usr/workspace/coldqcd/software/callat_build_scripts/binding_scripts/'
     milc_dir  = '/usr/workspace/coldqcd/software/lassen_smpi_RR/install/lattice_milc_qcd'
+    python    = '/usr/workspace/coldqcd/software/python_venv-3.7.2.lassen/bin/python'
 elif any(host in hn for host in ['login','batch']):
     ''' TERRIBLE LOGIN NAME FOR SUMMIT '''
     manage   = '/ccs/proj/lgt100/c51/x_files/project_2'
@@ -32,6 +33,7 @@ elif any(host in hn for host in ['login','batch']):
     env      = 'source /ccs/proj/lgt100/c51/software/summit_smpi/install/env.sh'
     env     += '\nmodule load python/3.7.0-anaconda3-5.3.0'
     bind_dir = ''
+    python   = 'python'
 else:
     print("Host "+hn+" unknown, using default.")
     manage   = os.path.dirname(os.path.abspath(__file__))
@@ -39,6 +41,7 @@ else:
     machine  = 'default'
     env      = ''
     bind_dir = ''
+    python   = 'python'
 print("c51 manage dir is",manage)
 print("c51 scratch dir is",scratch)
 

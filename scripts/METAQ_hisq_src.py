@@ -73,7 +73,7 @@ else:
 
 if len(args.cfgs) not in [1,3]:
     print('improper usage!')
-    os.system('python '+sys.argv[0]+' -h')
+    os.system(c51.python+' '+sys.argv[0]+' -h')
     sys.exit(-1)
 ni = int(args.cfgs[0])
 if len(args.cfgs) == 3:
@@ -83,7 +83,7 @@ else:
     nf = ni; dn = ni;
 if ni > nf:
     print('improper usage:')
-    os.system('python '+sys.argv[0]+' -h')
+    os.system(c51.python+' '+sys.argv[0]+' -h')
     sys.exit(-1)
 
 p_size = {
@@ -242,8 +242,8 @@ for cfg in cfgs_run:
                 params['STDOUT']    = params['INI'].replace('.ini','').replace('xml','stdout')
                 params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                 params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
-                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_milc_mixed_mesons.py '
-                params['CLEANUP']  += params['CFG']+' -s '+str(args.si)+' '+params['PRIORITY']+'\n'
+                params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_milc_mixed_mesons.py '
+                params['CLEANUP']  += params['CFG']+' --si '+str(args.si)+' '+params['PRIORITY']+'\n'
                 params['CLEANUP']  += '    sleep 5\n'
                 params['CLEANUP']  += 'else\n'
                 params['CLEANUP']  += '    echo "mpirun failed"\n'
