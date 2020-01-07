@@ -13,7 +13,7 @@ job_id %(JOB_ID)s
 # Gauge field description
 # no_gauge_fix, coulomb_gauge_fix
 
-reload_parallel %(milc_cfg)s
+reload_parallel %(scidac_cfg)s
 u0 %(U0)s
 no_gauge_fix
 forget

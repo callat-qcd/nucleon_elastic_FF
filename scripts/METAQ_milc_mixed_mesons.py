@@ -279,7 +279,7 @@ for c in cfgs:
             params['MQ_L'],params['MQ_S']=mql,mqs
             mixed_corr = c51.names['mixed_corr']%params
 
-            if os.path.exists(params['milc_cfg']) and os.path.exists(params['PROP_DIR']+'/'+prop_l)\
+            if os.path.exists(params['scidac_cfg']) and os.path.exists(params['PROP_DIR']+'/'+prop_l)\
                                                and os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop_s) \
                                                and not os.path.exists(mixed_dir+'/'+mixed_corr):
                 params.update({'PROP_L':prop_l,'PROP_S':prop_s,'MV_L':mql,'MV_S':mqs,})
@@ -335,8 +335,8 @@ for c in cfgs:
                 else:
                     print('task exists: %s' %metaq)
             else:
-                if not os.path.exists( params['milc_cfg']):
-                    print('DOES NOT EXIST:\n'+ params['milc_cfg'])
+                if not os.path.exists( params['scidac_cfg']):
+                    print('DOES NOT EXIST:\n'+ params['scidac_cfg'])
                 if not os.path.exists(params['PROP_DIR']+'/'+prop_l) or not os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop_s):
                     print('missing light or strange ddpair')
                     print('python %s/METAQ_hisq_src.py %s --si %s %s' %(params['SCRIPT_DIR'],no,args.si,params['PRIORITY']))
