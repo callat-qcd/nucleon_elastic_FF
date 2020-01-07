@@ -240,7 +240,14 @@ for cfg in cfgs_run:
                 params['INI']       = params['prod']+'/xml/'+no+'/'+xmlin
                 params['OUT']       = params['INI'].replace('.ini','.out')
                 params['STDOUT']    = params['INI'].replace('.ini','').replace('xml','stdout')
-                params['CLEANUP']   = ''
+                params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_milc_mixed_mesons.py '
+                params['CLEANUP']  += params['CFG']+' -s '+str(args.si)+' '+params['PRIORITY']+'\n'
+                params['CLEANUP']  += '    sleep 5\n'
+                params['CLEANUP']  += 'else\n'
+                params['CLEANUP']  += '    echo "mpirun failed"\n'
+                params['CLEANUP']  += 'fi\n'
                 mtype = args.mtype
 
                 try:
