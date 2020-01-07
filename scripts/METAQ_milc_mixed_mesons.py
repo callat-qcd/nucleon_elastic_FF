@@ -152,8 +152,8 @@ for c in cfgs:
 
     params.update({
         'V_INV':'%.7e' %(1./float(params['NL'])**3),
-        'MAX_CG_ITER':7000,'MAX_CG_RESTART':5,
-        'PROP_PREC':1,'ERR_L':5.e-7,'REL_ERR_L':0,'ERR_S':2.e-7,'REL_ERR_S':0,
+        'MAX_CG_ITER':10000,'MAX_CG_RESTART':5,
+        'PROP_PREC':2,'ERR_L':5.e-9,'REL_ERR_L':0,'ERR_S':1.e-9,'REL_ERR_S':0,
         'M_L':ms_l,'M_S':ms_s,
         'PROP_DIR':params['prop'],
         'PROP_DIR_STRANGE':params['prop_strange'],
@@ -161,6 +161,8 @@ for c in cfgs:
         'SRC_DIR':params['prod']+'/src','SRC_HISQ':'src_'+str(no)+'_'+src+'_'+smr+'_hisq'
         })
 
+    
+    """
     # HISQ-HISQ SPEC
     if args.hisq and not os.path.exists(mixed_dir+'/'+hisq_file):
         hisq_spectrum = c51.milc_dir+'/ks_spectrum_hisq'
@@ -211,7 +213,7 @@ for c in cfgs:
             scheduler.make_task(metaq,mtype,params,folder=q)
         else:
             print('task exists: %s' %metaq)
-
+    """
     # DWF-HISQ SPEC
     # first - do a check on all props to see if they can be deleted
     mqList=[mv_l,mv_s]

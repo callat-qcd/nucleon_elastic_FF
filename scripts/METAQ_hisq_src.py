@@ -86,9 +86,9 @@ if ni > nf:
     os.system('python '+sys.argv[0]+' -h')
     sys.exit(-1)
 
-cfgs = range(ni,nf+1,dn)
-
-p_size = {'l4896f211b630m00363m0363m430a':12358000000,}
+p_size = {
+    'a06m310L':41708255696,
+}
 s_i = params['si']
 s_f = params['sf']
 
@@ -119,7 +119,7 @@ mqDict={'MS':params['MV_S'],'ML':params['MV_L']}
 
 # make xml file to gauge-fix, flow
 c51.names['prop']=c51.names['prop'].replace('%(CFG)s','%(NCFG)s')
-for cfg in cfgs:
+for cfg in cfgs_run:
     no = str(cfg)
 
     params['NCFG'] = no
@@ -140,19 +140,18 @@ for cfg in cfgs:
     cfg_exist = os.path.exists(params['CFG_FILE'])
     print('CFG_EXISTS: %s' %cfg_exist)
 
-
     # make SRCS
     if args.src == None:
-        #srcs = fr.mk_srcs(no, nl, nt, ep.t_shifts[sloppy], ep.x_shifts[sloppy], nn_srcs, crnr_dl=crnr_dl, seed=params['seed'][ens_stream])
-        srcs = [srcs[int(no)][params['si']]]#hardwire mixed_mesons to be only specified src
+        srcs_cfg = [srcs[cfg][args.si]]#hardwire mixed_mesons to be only specified src
     else:
-        srcs = [args.src]
+        srcs_cfg = [args.src]
 
-    for src in srcs:
+    for src in srcs_cfg:
         print( no, src)
-        xmlin = 'hisq_'+ens_s+'_src'+src+'.ini.xml'
-        xmlout = 'hisq_'+ens_s+'_src'+src+'.out.xml'
-        stdout = 'hisq_'+ens_s+'_src'+src+'.stdout'
+        task_base = 'hisq_src'
+        xmlin  = task_base+'_'+ens_s+'_src'+src+'.ini.xml'
+        xmlout = task_base+'_'+ens_s+'_src'+src+'.out.xml'
+        stdout = task_base+'_'+ens_s+'_src'+src+'.stdout'
         xml_in = open(params['prod']+'/xml/'+no+'/'+xmlin,'w')
         xml_in.write(xml_input.head)
         x0 = src.split('x')[1].split('y')[0]
@@ -188,12 +187,14 @@ for cfg in cfgs:
                 prop = c51.names['prop']%params+'.lime'
 
                 prop_dd = prop.replace('.lime','') + '_ddpairs'
-                if os.path.exists(prop_dir+no+'/'+prop_dd) and os.path.getsize(prop_dir+no+'/'+prop_dd) < p_size[ens_s]:
+                utils.check_file(prop_dir+no+'/'+prop_dd,p_size[ens],params['file_time_delete'],params['corrupt'])
+                '''
+                if os.path.exists(prop_dir+no+'/'+prop_dd) and os.path.getsize(prop_dir+no+'/'+prop_dd) < p_size[ens]:
                     print('DELETING')
                     print(prop_dd)
                     os.remove(prop_dir + '/'+prop_dd)
+                '''
         # make USQCD_DD_PAIRS props
-        print(mqDict)
         for mqn in mqDict:
             mq=mqDict[mqn]
             params['MQ']=mq
@@ -223,8 +224,7 @@ for cfg in cfgs:
 
         # make TASK.sh
         if args.metaQ and make_task:
-           task = 'hisq'
-           metaq= ens_s+'_'+no+'_'+src+'_hisq_'+'wv_w'+params['WF_S']+'_n'+params['WF_N']+'.sh'
+           metaq = task_base +'_'+ens_s+'_'+no+'_'+src+'_wv_w'+params['WF_S']+'_n'+params['WF_N']+'.sh'
 
            t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
            try:
