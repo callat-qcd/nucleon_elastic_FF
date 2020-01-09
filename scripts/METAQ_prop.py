@@ -215,7 +215,7 @@ for c in cfgs_run:
                         if args.verbose:
                             print('    src missing',src_file)
                         print('python METAQ_src.py %s -s %s %s -v' %(c,s0,params['PRIORITY']))
-                        os.system('python %s/METAQ_src.py %s -s %s %s -v' %(params['SCRIPT_DIR'],c,s0,params['PRIORITY']))
+                        os.system(c51.python+' %s/METAQ_src.py %s -s %s %s -v' %(params['SCRIPT_DIR'],c,s0,params['PRIORITY']))
                 else:
                     if args.verbose:
                         print('    prop exists',prop_file)

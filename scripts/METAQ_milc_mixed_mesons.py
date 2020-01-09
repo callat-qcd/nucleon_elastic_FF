@@ -39,6 +39,8 @@ parser.add_argument('-p',default=False,action='store_const',const=True,\
 parser.add_argument('--n_dir',default=True,action='store_const',const=False,\
     help='add tasks to n_dir eg. todo/8 [%(default)s]')
 parser.add_argument('--si',type=int,default=0,help='default src for mixed mesons [%(default)s]')
+parser.add_argument('--hisq',default=False,action='store_const',const=True,\
+    help='create hisq_hisq spectrum? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -46,7 +48,7 @@ print('')
 
 if len(args.cfgs) not in [1,3]:
     print('improper usage!')
-    os.system('python '+sys.argv[0]+' -h')
+    os.system(c51.python+' '+sys.argv[0]+' -h')
     sys.exit(-1)
 ni = int(args.cfgs[0])
 if len(args.cfgs) == 3:
@@ -56,7 +58,7 @@ else:
     nf = ni; dn = ni;
 if ni > nf:
     print('improper usage:')
-    os.system('python '+sys.argv[0]+' -h')
+    os.system(c51.python+' '+sys.argv[0]+' -h')
     sys.exit(-1)
 
 cfgs = range(ni,nf+1,dn)
@@ -116,8 +118,6 @@ scheduler.mpirun['lassen']="jsrun "+params['NRS']+' '+params['RS_NODE']+' '+para
 
 mqList=[params['MV_L'],params['MV_S']]
 
-
-no = args.cfgs
 smr='wv_w'+params['WF_S']+'_n'+params['WF_N']
 params['SMR']=smr
 
@@ -126,28 +126,17 @@ ms_s = params['MS_S']
 mv_l = params['MV_L']
 mv_s = params['MV_S']
 
-c51.names['mixed_file'] ='dwf_hisq_spec_%(ENS_S)s_wflow%(FLOW_TIME)s_M5%(M5)s_L5%(L5)s'
-c51.names['mixed_file']+='_a%(alpha5)s_cfg_%(CFG)s_src%(SRC)s_%(SMR)s_ml%(MQ_L)s_ms%(MQ_S)s.corr'
-
-#cfg = ens_tag+'.'+no#+'.flow_gfix.lime' #+'_wflow'+wt+'.lime' HERE, we want only the raw MILC cfg
 debug=False
 
-for no in cfgs:
+for c in cfgs:
+    no = str(c)
     params['CFG'] = str(no)
     ''' set up ensemble and make sure all dirs exist '''
     params = c51.ensemble(params)
     params['RUN_DIR']     = params['prod']
     mixed_dir = params['prod']+'/mixed/'+params['CFG']
 
-    if debug:
-        params['METAQ_DIR']='/p'
-
-    for idir in ['mixed']:
-        utils.ensure_dirExists(params['prod']+'/'+idir)
-        utils.ensure_dirExists(params['prod']+'/'+idir+'/'+str(no))
-
-
-    src = srcs[no][args.si] #For now - only make mixed with 1 (first) source
+    src = srcs[c][args.si] #For now - only make mixed with 1 (first) source
     x0 = src.split('x')[1].split('y')[0]
     y0 = src.split('y')[1].split('z')[0]
     z0 = src.split('z')[1].split('t')[0]
@@ -163,8 +152,8 @@ for no in cfgs:
 
     params.update({
         'V_INV':'%.7e' %(1./float(params['NL'])**3),
-        'MAX_CG_ITER':7000,'MAX_CG_RESTART':5,
-        'PROP_PREC':1,'ERR_L':5.e-7,'REL_ERR_L':0,'ERR_S':2.e-7,'REL_ERR_S':0,
+        'MAX_CG_ITER':10000,'MAX_CG_RESTART':5,
+        'PROP_PREC':2,'ERR_L':5.e-9,'REL_ERR_L':0,'ERR_S':1.e-9,'REL_ERR_S':0,
         'M_L':ms_l,'M_S':ms_s,
         'PROP_DIR':params['prop'],
         'PROP_DIR_STRANGE':params['prop_strange'],
@@ -172,18 +161,15 @@ for no in cfgs:
         'SRC_DIR':params['prod']+'/src','SRC_HISQ':'src_'+str(no)+'_'+src+'_'+smr+'_hisq'
         })
 
-    hisq_spectrum = '/usr/workspace/coldqcd/software/lassen_smpi/install/lattice_milc_qcd/ks_spectrum_hisq'
-
-    print(ens+'_'+str(no)+'_hisq_hisq')
-    #params['SCRIPT_DIR']='/p/gpfs1/mcamacho/nucleon_elastic_FF_hisq_spec/scripts'
     
+    """
     # HISQ-HISQ SPEC
-
-    if not os.path.exists(mixed_dir+'/'+hisq_file):
+    if args.hisq and not os.path.exists(mixed_dir+'/'+hisq_file):
+        hisq_spectrum = c51.milc_dir+'/ks_spectrum_hisq'
         milc_in = params['xml']+'/'+hisq_id+'.in'
         milc_out = params['xml']+'/'+hisq_id+'.out'
         milc_stdout = params['stdout']+'/'+hisq_id+'.stdout'
-        meta_base = ens+'_'+str(no)+'_hisq_hisq'
+        meta_base = 'hisq_spec_'+ens+'_'+str(no)
         params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+hisq_id+'.log'
         
         params.update({
@@ -225,13 +211,9 @@ for no in cfgs:
             except:
                   pass
             scheduler.make_task(metaq,mtype,params,folder=q)
-            #if debug:
-            #    scheduler.make_task(metaq,'mcamacho',params,folder='gpfs1')
-            #print('Task maker off: '+metaq)
         else:
             print('task exists: %s' %metaq)
-
-
+    """
     # DWF-HISQ SPEC
     # first - do a check on all props to see if they can be deleted
     mqList=[mv_l,mv_s]
@@ -241,9 +223,9 @@ for no in cfgs:
     for mql in [mv_l]:
         for mqs in [mv_s]:
             params['MQ_L'],params['MQ_S']=mql,mqs
-            mixed_file = c51.names['mixed_file']%params
-            if not os.path.exists(mixed_dir+'/'+mixed_file):
-                print('mqs '+mixed_dir+'/'+mixed_file)
+            mixed_corr = c51.names['mixed_corr']%params
+            if not os.path.exists(mixed_dir+'/'+mixed_corr):
+                print('mqs '+mixed_dir+'/'+mixed_corr)
                 pq_del[mql],pq_del[mqs] = False,False
 
     p_del = []
@@ -265,24 +247,21 @@ for no in cfgs:
         prop = c51.names['prop']%params +'_ddpairs'
 
         if pq_del[mq]:
-            if str(no)+'/'+prop not in p_del and os.path.exists(params['PROP_DIR']+'/'+prop):
-                p_del.append(str(no)+'/'+prop)
+            for pdir in [params['PROP_DIR'], params['PROP_DIR_STRANGE']]:
+                p_file = pdir+'/'+prop
+                if p_file not in p_del and os.path.exists(p_file):
+                    p_del.append(p_file)
         else:
-            if str(no)+'/'+prop not in p_get and not os.path.exists(params['PROP_DIR']+'/'+prop):
-                p_get.append(str(no)+'/'+prop)
-
-        if pq_del[mq]:
-            if str(no)+'/'+prop not in p_del and os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop):
-                p_del.append(str(no)+'/'+prop)
-        else:
-            if str(no)+'/'+prop not in p_get and not os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop):
-                p_get.append(str(no)+'/'+prop)
+            for pdir in [params['PROP_DIR'], params['PROP_DIR_STRANGE']]:
+                p_file = pdir+'/'+prop
+                if p_file not in p_get and not os.path.exists(p_file):
+                    p_get.append(p_file)
 
     p_get.sort()
     p_del.sort()
     f_del = open('props_del_%s.lst' %ens_s,'w')
     for p in p_del:
-         print(p, file=f_get)
+         print(p, file=f_del)
     f_del.close()
     f_get = open('props_get_%s.lst' %ens_s,'w')
     for p in p_get:
@@ -298,11 +277,11 @@ for no in cfgs:
             prop_s = c51.names['prop'].replace('MQ','MQS')%params%params +'_ddpairs'
 
             params['MQ_L'],params['MQ_S']=mql,mqs
-            mixed_file = c51.names['mixed_file']%params
+            mixed_corr = c51.names['mixed_corr']%params
 
-            if os.path.exists(params['milc_cfg']) and os.path.exists(params['PROP_DIR']+'/'+prop_l)\
+            if os.path.exists(params['scidac_cfg']) and os.path.exists(params['PROP_DIR']+'/'+prop_l)\
                                                and os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop_s) \
-                                               and not os.path.exists(mixed_dir+'/'+mixed_file):
+                                               and not os.path.exists(mixed_dir+'/'+mixed_corr):
                 params.update({'PROP_L':prop_l,'PROP_S':prop_s,'MV_L':mql,'MV_S':mqs,})
                 mixed_id = 'dwf_hisq_spec_'+str(no)+'_ml'+mql+'_ms'+mqs
                 milc_in = params['xml']+'/'+mixed_id+'.in'
@@ -311,7 +290,7 @@ for no in cfgs:
                 meta_base = ens_s+'_'+str(no)+'_dwf_hisq_ml'+mql+'_ms'+mqs
                 params.update({
                     'JOB_ID':mixed_id,
-                    'HISQ_CORR_FILE':mixed_dir+'/'+mixed_file,
+                    'HISQ_CORR_FILE':mixed_dir+'/'+mixed_corr,
                     'MILC_IN':milc_in,'MILC_OUT':milc_out,'MILC_STDOUT':milc_stdout,
                     })
 
@@ -337,13 +316,8 @@ for no in cfgs:
                     ''' Make METAQ task '''
 
                     #NEED TO CHANGE TO  clov_spectrum 
-                    #params['PROG']        = '"$KS_HISQ_SPEC '+params['hisq_geom']+'"\n'
-                    #params['PROG']        = '"$SU3_CLOV_HISQ_NEW '+params['hisq_geom']+'"\n'
-                    params['PROG']        = '/usr/workspace/coldqcd/software/lassen_smpi_RR/install/lattice_milc_qcd/su3_clov_hisq\n'
-                    params['PROG']        +='geom="'+params['hisq_geom']+'"'
-
-
-
+                    params['PROG']      = hisq_spectrum = c51.milc_dir+'/su3_clov_hisq\n'
+                    params['PROG']     +='geom="'+params['hisq_geom']+'"'
 
                     params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
                     params['INI']       = milc_in
@@ -358,17 +332,14 @@ for no in cfgs:
                     except:
                         pass
                     scheduler.make_task(metaq,mtype,params,folder=q)
-                    #if debug:
-                    #    scheduler.make_task(metaq,'mcamacho',params,folder='gpfs1')
-                    #print('Task maker off: '+metaq)
                 else:
                     print('task exists: %s' %metaq)
             else:
-                if not os.path.exists( params['milc_cfg']):
-                    print('DOES NOT EXIST:\n'+ params['milc_cfg'])
-                if not os.path.exists(params['PROP_DIR']+'/'+prop_l):
-                    print('DOES NOT EXIST:\n'+params['PROP_DIR']+'/'+prop_l)        
-                if not os.path.exists(params['PROP_DIR']+'/'+prop_s):
-                    print('DOES NOT EXIST:\n'+params['PROP_DIR']+'/'+prop_s)
-                if os.path.exists(mixed_dir+'/'+mixed_file):
-                    print('EXISTS!\n'+mixed_file)
+                if not os.path.exists( params['scidac_cfg']):
+                    print('DOES NOT EXIST:\n'+ params['scidac_cfg'])
+                if not os.path.exists(params['PROP_DIR']+'/'+prop_l) or not os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop_s):
+                    print('missing light or strange ddpair')
+                    print('python %s/METAQ_hisq_src.py %s --si %s %s' %(params['SCRIPT_DIR'],no,args.si,params['PRIORITY']))
+                    os.system(c51.python+' %s/METAQ_hisq_src.py %s --si %s %s' %(params['SCRIPT_DIR'],no,args.si,params['PRIORITY']))
+                if os.path.exists(mixed_dir+'/'+mixed_corr):
+                    print('EXISTS!\n'+mixed_corr)

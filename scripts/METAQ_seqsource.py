@@ -275,7 +275,7 @@ for c in cfgs_run:
                 else:
                     print('    missing',prop_file)
                     print('python METAQ_prop.py %s -s %s --force %s' %(c,s0,params['PRIORITY']))
-                    os.system('python %s/METAQ_prop.py %s -s %s --force %s' %(params['SCRIPT_DIR'],c,s0,params['PRIORITY']))
+                    os.system(c51.python+' %s/METAQ_prop.py %s -s %s --force %s' %(params['SCRIPT_DIR'],c,s0,params['PRIORITY']))
                     #sys.exit()
         else:
             print('    coherent_formfacs exist')

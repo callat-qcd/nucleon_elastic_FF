@@ -234,7 +234,7 @@ for c in cfgs_run:
                         print(light_prop_file)
                         print(strange_prop_file)
                     print('python METAQ_strange_prop.py %s -s %s' %(c,s0))
-                    os.system('python %s/METAQ_strange_prop.py %s -s %s %s' \
+                    os.system(c51.python+' %s/METAQ_strange_prop.py %s -s %s %s' \
                         %(params['SCRIPT_DIR'],c,s0,params['PRIORITY']))
             else:
                 if args.verbose:
