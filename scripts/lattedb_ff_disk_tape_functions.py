@@ -80,9 +80,9 @@ def check_ff_4D_tslice_src_avg(
         db_new_entry,      # list of new db entries
         save_to_tape,      # list of files to save to tape
         data_collect,      # list of files to try and collect
-    ):
+        ):
     f_type = 'formfac_4D_tslice_src_avg'
-    no = str(params['CFG'])
+    no = params['CFG']
     disk_dir = params[f_type]
     for tsep in params['t_seps']:
         dt = str(tsep)
@@ -135,3 +135,50 @@ def check_ff_4D_tslice_src_avg(
         if not d_dict['exists'] and not t_dict['exists']:
             data_collect.append(f_name)
 
+def check_ff_4D_tslice(
+        params,            # a dictionary of information about the file names, locations, etc.
+        db_entries,        # the db querry
+        db_update_disk,    # list of disk updates
+        db_new_disk,       # list of new disk entries
+        db_new_entry,      # list of new db entries
+        check_exists=False,# return existence if True
+        #data_collect,      # list of files to try and collect
+        ):
+    f_type = 'formfac_4D_tslice'
+    no = params['CFG']
+    disk_dir = params[f_type]
+    for tsep in params['t_seps']:
+        dt = str(tsep)
+        params['T_SEP'] = dt
+        # make file entry
+        f_dict = dict()
+        f_dict['ensemble']      = params['ENS_S'].split('_')[0]
+        f_dict['stream']        = params['STREAM']
+        f_dict['configuration'] = int(params['CFG'])
+        f_dict['source_set']    = params['SRC_SET']
+        f_dict['t_separation']  = tsep
+        f_name                  = (c51.names[f_type]+'.h5') % params
+        f_dict['name']          = f_name
+        # filter db for unique entry
+        entry = db_entries.filter(**f_dict).first()
+        if entry:# if it exists, then check if it exists on tape
+            # check disk
+            if hasattr(entry, 'disk'):
+                d_dict = dict()
+                d_dict['exists'] = entry.disk.exists
+            if hasattr(entry, 'disk') and (params['UPDATE'] or params['DISK_UPDATE']):
+                d_dict = check_disk(disk_dir, f_name)
+                if entry.disk.exists != d_dict['exists']:
+                    d_dict['file'] = entry
+                    db_update_disk.append((f_dict,d_dict))
+            elif not hasattr(entry, 'disk'):
+                d_dict = check_disk(disk_dir, f_name)
+                d_dict['file'] = entry
+                db_new_disk.append(d_dict)
+        else:
+            d_dict = check_disk(disk_dir, f_name)
+            db_new_entry.append((f_dict,d_dict))
+
+
+def collect_ff4D_tslice_src_avg(ff_list):
+    return None

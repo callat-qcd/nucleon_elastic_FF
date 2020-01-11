@@ -37,7 +37,8 @@ parser.add_argument('data',type=str,help='what data type to average [spec formfa
 parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -58,10 +59,10 @@ if 'si' in params and 'sf' in params and 'ds' in params:
     params['ds'] = tmp_params['ds']
 else:
     params = sources.src_start_stop(params,ens,stream)
-if args.src_index:# override src index in sources and area51 files for collection
-    params['si'] = args.src_index[0]
-    params['sf'] = args.src_index[1]
-    params['ds'] = args.src_index[2]
+if args.src_set:# override src index in sources and area51 files for collection
+    params['si'] = args.src_set[0]
+    params['sf'] = args.src_set[1]
+    params['ds'] = args.src_set[2]
 src_ext = "%d-%d" %(params['si'],params['sf'])
 
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
@@ -79,6 +80,12 @@ LOGGER.addHandler(new_fh)
 
 
 params['MQ'] = params['MV_L']
+if args.t_sep == None:
+    t_seps  = params['t_seps']
+else:
+    t_seps = args.t_sep
+
+
 missing_srcs = []
 
 curr_dir = os.getcwd()
@@ -123,7 +130,7 @@ for c in cfgs_run:
         params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
         params['N_SEQ'] = len(srcs[c])
         # loop over tseps
-        for t in params['t_seps']:
+        for t in t_seps:
             # does avg file exist?
             print("printing t:", t)
             params['T_SEP'] = str(t)
