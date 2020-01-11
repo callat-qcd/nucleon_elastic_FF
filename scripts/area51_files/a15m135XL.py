@@ -24,7 +24,7 @@ params['MS_S'] = '0.06730'
 params['MS_C'] = '0.8447'
 params['NAIK'] = '-0.358920'
 params['cfg_i'] = 500
-params['cfg_f'] = 1745
+params['cfg_f'] = 2995
 params['cfg_d'] = 5
 params['save_hisq_prop'] = False
 
