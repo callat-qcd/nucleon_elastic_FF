@@ -35,7 +35,7 @@ print('ENSEMBLE:',ens_s)
 parser = argparse.ArgumentParser(description='average phi_qq')
 parser.add_argument('data',type=str,help='what data type to average [spec formfac]?')
 parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-t','--tslice_fact',type=float,help='what time factor to cut by? [0.5 -> NT / 2]')
+parser.add_argument('-t','--tslice_fact',type=float,help='OVERIDE tslice factor by? [0.5 -> NT / 2]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
 args = parser.parse_args()
@@ -46,8 +46,8 @@ if args.data not in ['spec','formfac']:
     print('unrecognized data type')
     print(args.data,' not in [ spec formfac ]')
     sys.exit()
-if args.data == 'spec' and args.tslice_fact is None:
-    print('tslicing spec must specify tslice_fact')
+if args.data == 'spec' and not args.tslice_fact is None:
+    print('you are overiding the area51 tslice_fact: not yet supported')
     sys.exit()
 
 if 'si' in params and 'sf' in params and 'ds' in params:
@@ -82,13 +82,13 @@ for c in cfgs_run:
     d_dir = params['prod']+'/'+args.data+'_4D/'+no
     if args.data == 'spec':
         tslice.tslice(
-            root       = d_dir,
-            name_input = "spec_4D",
-            name_output= "spec_4D_tslice",
-            overwrite  = args.o,
-            tslice_fact= args.tslice_fact,
-            dset_patterns=["4D_correlator/x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+"],
-            boundary_sign_flip=True
+            root               = d_dir,
+            name_input         = "spec_4D",
+            name_output        = "spec_4D_tslice",
+            overwrite          = args.o,
+            tslice_fact        = params['spec_4D_tslice_fact'],
+            dset_patterns      = ["4D_correlator/x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+"],
+            boundary_sign_flip = True
         )
     elif args.data == 'formfac':
         tslice.tslice(

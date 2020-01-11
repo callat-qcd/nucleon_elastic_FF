@@ -48,6 +48,7 @@ params['MV_S'] = '0.0945'
 params['spec_size'] = 43000
 params['hyperspec_size'] = 383680
 params['ff_size']   = 429000
+params['spec_4D_tslice_fact'] = 0.5
 
 params['MAX_ITER']   = '17000'
 params['RSD_TARGET'] = '1.e-7'
