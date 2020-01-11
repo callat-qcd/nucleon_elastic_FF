@@ -137,7 +137,8 @@ for c in cfgs_run:
             params['SRC'] = 'src_avg'+src_ext
             formfac_name = c51.names['formfac'] % params
             formfac_file = params['formfac'] +'/'+ formfac_name+'.h5'
-            formfac_file_4D_avg = formfac_file.replace('formfac_','formfac_4D_tslice_src_avg_').replace('/formfac/','/formfac_4D_tslice_src_avg/')
+            formfac_file_4D_avg = params['formfac_4D_tslice_src_avg'] +'/'+ (c51.names['formfac_4D_tslice_src_avg'] % params)+'.h5'
+            #formfac_file_4D_avg = formfac_file.replace('formfac_','formfac_4D_tslice_src_avg_').replace('/formfac/','/formfac_4D_tslice_src_avg/')
             do_avg = True
             if os.path.exists(formfac_file_4D_avg) and not args.o:
                 do_avg = False
@@ -147,7 +148,8 @@ for c in cfgs_run:
                     params['SRC'] = s0
                     formfac_name = c51.names['formfac'] % params
                     formfac_file = params['formfac'] +'/'+ formfac_name+'.h5'
-                    formfac_file_4D = formfac_file.replace('formfac_','formfac_4D_tslice_').replace('/formfac/','/formfac_4D_tslice/')
+                    formfac_file_4D = params['formfac_4D_tslice'] +'/'+ (c51.names['formfac_4D_tslice'] % params)+'.h5'
+                    #formfac_file_4D = formfac_file.replace('formfac_','formfac_4D_tslice_').replace('/formfac/','/formfac_4D_tslice/')
                     if not os.path.exists(formfac_file_4D):
                         avg_files = False
                         if c not in missing_srcs: missing_srcs.append(c)
@@ -156,6 +158,7 @@ for c in cfgs_run:
                     average.source_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext, additional_file_patterns='dt'+str(t)+'_')
                 else:
                     print('missing srcs on cfg = %d' %c)
+                    os.system(c51.python+' %s/tslice_4D.py formfac --cfgs %s' %(c51.script_dir, no))
             else:
                 print('overwrite =',args.o,' and exists:',args.o,formfac_file_4D_avg.split('/')[-1])
     if args.data == 'spec_full':
