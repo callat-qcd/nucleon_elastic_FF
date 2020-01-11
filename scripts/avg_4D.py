@@ -87,20 +87,62 @@ else:
 
 def check_ff_tslice(params,c51,srcs):
     all_files = True
+    all_sizes = []
     for s0 in srcs:
         params['SRC'] = s0
-        formfac_file_4D = params['formfac_4D_tslice'] +'/'+ (c51.names['formfac_4D_tslice'] % params)+'.h5'
-        if not os.path.exists(formfac_file_4D):
+        file_4D = params['formfac_4D_tslice'] +'/'+ (c51.names['formfac_4D_tslice'] % params)+'.h5'
+        if not os.path.exists(file_4D):
             all_files = False
+        else:
+            all_sizes.append(os.path.getsize(file_4D))
+    if not all(size == all_sizes[0] for size in all_sizes):
+        print('BAD FORMFAC_4D_TSLICE FILE SIZE(s)')
+        all_files = False
     return all_files
 
 def check_ff(params,c51,srcs):
     all_files = True
+    all_sizes = []
     for s0 in srcs:
         params['SRC'] = s0
         formfac_4D = params['formfac_4D'] +'/'+ (c51.names['formfac_4D'] % params)+'.h5'
         if not os.path.exists(formfac_4D):
             all_files = False
+        else:
+            all_sizes.append(os.path.getsize(formfac_4D))
+    if not all(size == all_sizes[0] for size in all_sizes):
+        print('BAD FORMFAC_4D FILE SIZE(s)')
+        all_files = False
+    return all_files
+
+def check_spec_4D_tslice(params,c51,srcs):
+    all_files = True
+    all_sizes = []
+    for s0 in srcs:
+        params['SRC'] = s0
+        file_4D = params['spec_4D_tslice'] +'/'+ (c51.names['spec_4D_tslice'] % params)+'.h5'
+        if not os.path.exists(file_4D):
+            all_files = False
+        else:
+            all_sizes.append(os.path.getsize(file_4D))
+    if not all(size == all_sizes[0] for size in all_sizes):
+        print('BAD SPEC_4D_TSLICE FILE SIZE(s)')
+        all_files = False
+    return all_files
+
+def check_spec_4D(params,c51,srcs):
+    all_files = True
+    all_sizes = []
+    for s0 in srcs:
+        params['SRC'] = s0
+        spec_file = params['spec_4D'] +'/'+ (c51.names['spec_4D'] % params)+'.h5'
+        if not os.path.exists(spec_file):
+            all_files = False
+        else:
+            all_sizes.append(os.path.getsize(spec_file))
+    if not all(size == all_sizes[0] for size in all_sizes):
+        print('BAD SPEC_4D FILE SIZE(s)')
+        all_files = False
     return all_files
 
 missing_srcs = []
@@ -113,15 +155,29 @@ for c in cfgs_run:
     params = c51.ensemble(params)
     if args.data == 'spec':
         # does avg file exist already?
-        params['SRC'] = 'src_avg'+src_ext
-        spec_name    = c51.names['spec'] % params
-        spec_file    = params['spec'] +'/'+ spec_name+'.h5'
-        spec_file_4D_avg = spec_file.replace('spec_','spec_4D_tslice_avg_').replace('/spec/','/spec_4D_tslice_avg/')
+        params['SRC']    = 'src_avg'+src_ext
+        spec_name        = c51.names['spec'] % params
+        spec_file        = params['spec'] +'/'+ spec_name+'.h5'
+        spec_file_4D_avg = params['spec_4D_tslice_avg'] +'/'+ (c51.names['spec_4D_tslice_avg'] % params)+'.h5'
         do_avg = True
         if os.path.exists(spec_file_4D_avg) and not args.o:
             do_avg = False
         if do_avg:
+            run_avg = check_spec_4D_tslice(params,c51,srcs[c])
+            if not run_avg:
+                have_spec = check_spec_4D(params,c51,srcs[c])
+                if have_spec:
+                    print('  have all spec_4D files cfg=%d, trying to tslice' %(c))
+                    os.system(c51.python+' %s/tslice_4D.py spec --cfgs %d' %(c51.script_dir, c))
+                    run_avg = check_spec_4D_tslice(params,c51,srcs[c])
+            if run_avg:
+                d_dir = params['spec_4D_tslice']
+                average.spec_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext)
+            else:
+                print('missing srcs on cfg = %d' %c)
+                if c not in missing_srcs: missing_srcs.append(c)
             # for spec_4D - we have to ensure all srcs exist
+            '''
             avg_files = True
             for s0 in srcs[c]:
                 params['SRC'] = s0
@@ -136,6 +192,7 @@ for c in cfgs_run:
                 average.spec_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext)
             else:
                 print('missing srcs on cfg = %d' %c)
+            '''
         else:
             print('overwrite =',args.o,' and exists:',args.o,spec_file_4D_avg)
     elif args.data == 'formfac':
@@ -167,7 +224,8 @@ for c in cfgs_run:
                         os.system(c51.python+' %s/tslice_4D.py formfac --cfgs %s' %(c51.script_dir, no))
                         run_avg = check_ff_tslice(params,c51,srcs[c])
                 if run_avg:
-                    d_dir = params['prod']+'/'+args.data+'_4D_tslice/'+no
+                    #d_dir = params['prod']+'/'+args.data+'_4D_tslice/'+no
+                    d_dir = params['formfac_4D_tslice']
                     average.source_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext, additional_file_patterns='dt'+str(t)+'_')
                 else:
                     print('missing srcs for cfg %d t_sep %d' %(c,t))

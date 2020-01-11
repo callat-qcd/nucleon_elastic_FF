@@ -109,8 +109,10 @@ def ensemble(params):
         params[d] = params['prod']+'/'+d+'/'+params['CFG']
     for d in dirs+dirs_no:
         utils.ensure_dirExists(params[d])
-    params['formfac_4D_tslice'] = params['prod']+'/'+'formfac_4D_tslice'+'/'+params['CFG']
-    params['formfac_4D_tslice_src_avg'] = params['prod']+'/'+'formfac_4D_tslice_src_avg'+'/'+params['CFG']
+    params['spec_4D_tslice']     = params['prod']+'/spec_4D_tslice/'+params['CFG']
+    params['spec_4D_tslice_avg'] = params['prod']+'/spec_4D_tslice_avg/'+params['CFG']
+    params['formfac_4D_tslice']  = params['prod']+'/formfac_4D_tslice/'+params['CFG']
+    params['formfac_4D_tslice_src_avg'] = params['prod']+'/formfac_4D_tslice_src_avg/'+params['CFG']
 
     return params
 
@@ -124,6 +126,9 @@ names['prop_xml']         = 'prop_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%
 names['prop_xml']        += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_%(SRC)s'
 names['spec']             = 'spec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['spec']            += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
+names['spec_4D']            = names['spec'].replace('spec_','spec_4D_')
+names['spec_4D_tslice']     = names['spec'].replace('spec_','spec_4D_tslice_')
+names['spec_4D_tslice_avg'] = names['spec'].replace('spec_','spec_4D_tslice_avg_')
 names['hyperspec']        = 'hyperspec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['hyperspec']       += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_ml%(MV_L)s_ms%(MV_S)s_%(SRC)s'
 names['hisq_spec']        = 'hisq_spec_%(ENS_S)s_ml%(ML)s_ms%(MS)s_%(CFG)s_%(SRC)s'
