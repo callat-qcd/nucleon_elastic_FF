@@ -44,6 +44,7 @@ parser.add_argument('-f','--force',default=False,action='store_const',const=True
     help='force create props? [%(default)s]')
 parser.add_argument('--strange',default=False,action='store_const',const=True,\
     help='submit METAQ_strange_prop when finished? [%(default)s]')
+parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -63,6 +64,15 @@ if 'si' in params and 'sf' in params and 'ds' in params:
     params['ds'] = tmp_params['ds']
 else:
     params = sources.src_start_stop(params,ens,stream)
+if args.src_set:# override src index in sources and area51 files for collection
+    params['si'] = args.src_set[0]
+    params['sf'] = args.src_set[1]
+    params['ds'] = args.src_set[2]
+    src_args = '--src_set %d %d %d ' %(args.src_set[0],args.src_set[1],args.src_set[2])
+else:
+    src_args = ''
+src_ext = "%d-%d" %(params['si'],params['sf'])
+
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 
 if args.p:
@@ -76,6 +86,8 @@ nt = int(params['NT'])
 nl = int(params['NL'])
 
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
+print('srcs:',src_ext)
+time.sleep(1)
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -194,11 +206,14 @@ for c in cfgs_run:
                             params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                             params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                             if not prop_exists:
-                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                                params['CLEANUP'] += '    python %s %s -s %s %s %s\n'\
+                                    %(params['SCRIPT_DIR']+'/METAQ_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
                             if args.strange and not os.path.exists(prop_strange):
-                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_strange_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                                params['CLEANUP'] += '    python %s %s -s %s %s %s\n'\
+                                    %(params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
                             elif not args.strange and not os.path.exists(prop_strange) and params['run_strange']:
-                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_strange_prop.py '+params['CFG']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                                params['CLEANUP'] += '    python %s %s -s %s %s %s\n'\
+                                    %(params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
                             params['CLEANUP']  += '    sleep 5\n'
                             params['CLEANUP']  += 'else\n'
                             params['CLEANUP']  += '    echo "mpirun failed"\n'
