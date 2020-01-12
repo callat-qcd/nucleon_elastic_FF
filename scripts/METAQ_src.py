@@ -87,7 +87,7 @@ nl = int(params['NL'])
 
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
 print('srcs:',src_ext)
-time.sleep(1)
+#time.sleep(1)
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']

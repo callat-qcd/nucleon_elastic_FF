@@ -90,7 +90,7 @@ nl = int(params['NL'])
 
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
 print('srcs:',src_ext)
-time.sleep(1)
+#time.sleep(1)
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -299,7 +299,7 @@ for c in cfgs_run:
                 if args.verbose:
                     print('    3pt corr exists:')
         if not have_seqsrc and not have_all_3pts:
-            print('python METAQ_seqsource.py %s -v' %(c))
+            print('python METAQ_seqsource.py %s %s -v' %(c, src_args))
             os.system(c51.python+' %s/METAQ_seqsource.py %s %s %s -v' %(params['SCRIPT_DIR'], c, src_args, params['PRIORITY']))
 
     else:
