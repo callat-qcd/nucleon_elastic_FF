@@ -127,29 +127,30 @@ states = mixed_states
 for state in states:
     first_data = True
     cfgs_srcs = []
+    all_cfgs = True
     for cfg in cfgs_run:
         no = str(cfg)
-        #print('Opening File: '+fin_dir+'/mixed_'+ens_s+'_'+no+'.h5')
-        fin = h5.open_file(fin_dir+'/mixed_'+ens_s+'_'+no+'.h5')
-        good_cfg = False
-        #print 'state: ',state,'cfg: ', cfg, 'ml: ', ml, 'ms: ',ms
-        #cfgs_srcs = []
-
-        f5dir = '/'+val
-        #print 'getting',state,'ml:',ml,'ms:',ms
-        #data = np.array([])
         try:
-            #print(f5dir+'/spectrum/'+vs+'/'+state)
+            fin = h5.open_file(fin_dir+'/mixed_'+ens_s+'_'+no+'.h5')
+            f5dir = '/'+val
             srcs = fin.get_node(f5dir+'/mixed_spec/'+vs+'/'+state)
             if srcs._v_nchildren > 0:
                 good_cfg = True
                 if srcs._v_nchildren != 1:
                     print('%s: more than 1 source found'%(no))
-        except:
-            print('ERROR reading '+f5dir+'/mixed_spec/'+vs+'/'+state+' '+no)
-
-
-        if good_cfg:
+            fin.close()
+        except Exception as e:
+            print(e)
+            all_cfgs = False
+            
+    if not all_cfgs:
+        sys.exit('missing some configs')
+    else:
+        for cfg in cfgs_run:
+            no = str(cfg)    
+            fin = h5.open_file(fin_dir+'/mixed_'+ens_s+'_'+no+'.h5')
+            f5dir = '/'+val
+            srcs = fin.get_node(f5dir+'/mixed_spec/'+vs+'/'+state)
             ns = 0
             tmp = []
             for src in srcs:
@@ -167,32 +168,32 @@ for state in states:
             else:
                 data = np.append(data,[tmp.mean(axis=0)],axis=0)
             cfgs_srcs.append([cfg,ns])
-        fin.close()
+            fin.close()
 
-    cfgs_srcs = np.array(cfgs_srcs)
-    #print 'cfgs_srcs:', cfgs_srcs
-    nc = cfgs_srcs.shape[0]
-    #ns_avg = cfgs_srcs.mean(axis=0)[1]
-    if nc > 0:
-        print ('concatenated %s ml=%s ms=%s: Ncfg = %d' %(state,ml,ms,nc))
-        group = val+'/'+'mixed_spec/'+vs
-        sdir = ''
-        for i,gi in enumerate(group.split('/')):
-            if gi not in fout.get_node('/'+sdir):
-                fout.create_group('/'+sdir,gi)
-            sdir += '/'+gi
-        if state not in fout.get_node(sdir):
-            fout.create_group(sdir,state)
-            fout.create_array(sdir+'/'+state,'corr',data)
-            fout.create_array(sdir+'/'+state,'cfgs_srcs',cfgs_srcs)
-        elif state in fout.get_node(sdir) and args.o:
-            fout.remove_node(sdir+'/'+state+'/corr')
-            fout.create_array(sdir+'/'+state,'corr',data)
-            fout.remove_node(sdir+'/'+state+'/cfgs_srcs')
-            fout.create_array(sdir+'/'+state,'cfgs_srcs',cfgs_srcs)
-        elif state in fout.get_node(sdir) and not args.o:
-            print(state+' exists: overwrite = False')
-        fout.flush()
-        completeFile.write('ml: '+str(ml)+'ms: '+str(ms)+'cfg: '+str(cfg)+'\n')        
+        cfgs_srcs = np.array(cfgs_srcs)
+        #print 'cfgs_srcs:', cfgs_srcs
+        nc = cfgs_srcs.shape[0]
+        #ns_avg = cfgs_srcs.mean(axis=0)[1]
+        if nc > 0:
+            print ('concatenated %s ml=%s ms=%s: Ncfg = %d' %(state,ml,ms,nc))
+            group = val+'/'+'mixed_spec/'+vs
+            sdir = ''
+            for i,gi in enumerate(group.split('/')):
+                if gi not in fout.get_node('/'+sdir):
+                    fout.create_group('/'+sdir,gi)
+                sdir += '/'+gi
+            if state not in fout.get_node(sdir):
+                fout.create_group(sdir,state)
+                fout.create_array(sdir+'/'+state,'corr',data)
+                fout.create_array(sdir+'/'+state,'cfgs_srcs',cfgs_srcs)
+            elif state in fout.get_node(sdir) and args.o:
+                fout.remove_node(sdir+'/'+state+'/corr')
+                fout.create_array(sdir+'/'+state,'corr',data)
+                fout.remove_node(sdir+'/'+state+'/cfgs_srcs')
+                fout.create_array(sdir+'/'+state,'cfgs_srcs',cfgs_srcs)
+            elif state in fout.get_node(sdir) and not args.o:
+                print(state+' exists: overwrite = False')
+            fout.flush()
+            completeFile.write('ml: '+str(ml)+'ms: '+str(ms)+'cfg: '+str(cfg)+'\n')        
 fout.close()
 
