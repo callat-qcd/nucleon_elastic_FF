@@ -109,9 +109,9 @@ print( 'no cfgs = %d' %len(cfgs_run))
 
 # MIXED STATES
 mixed_states = [#'phi_uu','phi_us','phi_ss',#THESE come from the regular spectrum
-    'phi_ju',#'phi_jj',#the mixed (ju) and sea (jj) pions
-    'phi_js','phi_ur',#'phi_jr',#the mixed (js, ur) and sea (jr) kaon
-    'phi_rs',#'phi_rr'# the mixed (sr) and sea (rr) ssbar
+    'phi_ju','phi_jj_5',#the mixed (ju) and sea (jj) pions
+    'phi_js','phi_ur','phi_jr_5',#the mixed (js, ur) and sea (jr) kaon
+    'phi_rs','phi_rr_5'# the mixed (sr) and sea (rr) ssbar
     ]
 
 ml = ms_l
@@ -132,7 +132,7 @@ for state in states:
         no = str(cfg)
         try:
             fin = h5.open_file(fin_dir+'/mixed_'+ens_s+'_'+no+'.h5')
-            f5dir = '/'+val
+            f5dir = '/'+val_p
             srcs = fin.get_node(f5dir+'/mixed_spec/'+vs+'/'+state)
             if srcs._v_nchildren > 0:
                 good_cfg = True
@@ -149,7 +149,7 @@ for state in states:
         for cfg in cfgs_run:
             no = str(cfg)    
             fin = h5.open_file(fin_dir+'/mixed_'+ens_s+'_'+no+'.h5')
-            f5dir = '/'+val
+            f5dir = '/'+val_p
             srcs = fin.get_node(f5dir+'/mixed_spec/'+vs+'/'+state)
             ns = 0
             tmp = []
@@ -176,7 +176,7 @@ for state in states:
         #ns_avg = cfgs_srcs.mean(axis=0)[1]
         if nc > 0:
             print ('concatenated %s ml=%s ms=%s: Ncfg = %d' %(state,ml,ms,nc))
-            group = val+'/'+'mixed_spec/'+vs
+            group = val_p+'/'+'mixed_spec/'+vs
             sdir = ''
             for i,gi in enumerate(group.split('/')):
                 if gi not in fout.get_node('/'+sdir):

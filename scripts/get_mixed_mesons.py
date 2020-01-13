@@ -154,7 +154,7 @@ for cfg in cfgs_run:
         mls = 'ml'+ms_l.replace('.','p')
         mss = 'ms'+ms_s.replace('.','p')
         cdir = '/'
-        group=(val+'/mixed_spec/val_'+mlv+'_'+msv+'_sea_'+mls+'_'+mss).split('/')
+        group=(val_p+'/mixed_spec/val_'+mlv+'_'+msv+'_sea_'+mls+'_'+mss).split('/')
         for g_i in range(len(group)):
            if group[g_i] not in f5.get_node(cdir):
                f5.create_group(cdir,group[g_i])
