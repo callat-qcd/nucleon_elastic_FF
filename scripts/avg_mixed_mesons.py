@@ -85,7 +85,10 @@ print ('ms:', mv_s)
 # input dir
 fin_dir = data_dir
 # output dir
-f_out = data_dir+'/avg/mixed_'+ens_s+'_avg.h5'
+if not args.fout:
+    f_out = data_dir+'/avg/mixed_'+ens_s+'_avg.h5'
+else:
+    f_out = args.fout
 
 print('input:\t'+fin_dir)
 print('output:\t'+f_out)
@@ -106,15 +109,17 @@ print( 'no cfgs = %d' %len(cfgs_run))
 
 # MIXED STATES
 mixed_states = [#'phi_uu','phi_us','phi_ss',#THESE come from the regular spectrum
-    'phi_ju','phi_jj',#the mixed (ju) and sea (jj) pions
-    'phi_js','phi_ur','phi_jr',#the mixed (js, ur) and sea (jr) kaon
-    'phi_rs','phi_rr'# the mixed (sr) and sea (rr) ssbar
+    'phi_ju',#'phi_jj',#the mixed (ju) and sea (jj) pions
+    'phi_js','phi_ur',#'phi_jr',#the mixed (js, ur) and sea (jr) kaon
+    'phi_rs',#'phi_rr'# the mixed (sr) and sea (rr) ssbar
     ]
 
 ml = ms_l
 ms = ms_s
 mls = 'ml'+ms_l.replace('.','p')
 mss = 'ms'+ms_s.replace('.','p')
+
+vs = 'val_ml'+mv_l.replace('.','p')+'_ms'+mv_s.replace('.','p')+'_sea_'+mls+'_'+mss
 
 
 # MIXED SPECTRUM
@@ -134,14 +139,14 @@ for state in states:
         #print 'getting',state,'ml:',ml,'ms:',ms
         #data = np.array([])
         try:
-            #print(f5dir+'/spectrum/'+mls+'_'+mss+'/'+state)
-            srcs = fin.get_node(f5dir+'/spectrum/'+mls+'_'+mss+'/'+state)
+            #print(f5dir+'/spectrum/'+vs+'/'+state)
+            srcs = fin.get_node(f5dir+'/mixed_spec/'+vs+'/'+state)
             if srcs._v_nchildren > 0:
                 good_cfg = True
                 if srcs._v_nchildren != 1:
                     print('%s: more than 1 source found'%(no))
         except:
-            print('ERROR reading '+f5dir+'/spectrum/'+mls+'_'+mss+'/'+state+' '+no)
+            print('ERROR reading '+f5dir+'/mixed_spec/'+vs+'/'+state+' '+no)
 
 
         if good_cfg:
@@ -170,7 +175,7 @@ for state in states:
     #ns_avg = cfgs_srcs.mean(axis=0)[1]
     if nc > 0:
         print ('concatenated %s ml=%s ms=%s: Ncfg = %d' %(state,ml,ms,nc))
-        group = val+'/'+'spectrum/'+mls+'_'+mss
+        group = val+'/'+'mixed_spec/'+vs
         sdir = ''
         for i,gi in enumerate(group.split('/')):
             if gi not in fout.get_node('/'+sdir):

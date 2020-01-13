@@ -147,20 +147,22 @@ for cfg in cfgs_run:
         print(params['mixed']+'/'+c51.names['mixed_corr']%params+' not found')
 
     if mine_cfg:
-         #print 'locking file', out_path+ ens+'_'+no+'.h5'
-         f5 = h5.open_file(out_path+'/mixed_'+ ens_s+'_'+no+'.h5','a')
-         mls = 'ml'+ms_l.replace('.','p')
-         mss = 'ms'+ms_s.replace('.','p')
-         cdir = '/'
-         group=(val+'/spectrum/'+mls+'_'+mss).split('/')
-         for g_i in range(len(group)):
-            if group[g_i] not in f5.get_node(cdir):
-                f5.create_group(cdir,group[g_i])
-                cdir += '/'+group[g_i]
-         for ftmp in files:
+        #print 'locking file', out_path+ ens+'_'+no+'.h5'
+        f5 = h5.open_file(out_path+'/mixed_'+ ens_s+'_'+no+'.h5','a')
+        mlv = 'ml'+mv_l.replace('.','p')
+        msv = 'ms'+mv_s.replace('.','p')
+        mls = 'ml'+ms_l.replace('.','p')
+        mss = 'ms'+ms_s.replace('.','p')
+        cdir = '/'
+        group=(val+'/mixed_spec/val_'+mlv+'_'+msv+'_sea_'+mls+'_'+mss).split('/')
+        for g_i in range(len(group)):
+           if group[g_i] not in f5.get_node(cdir):
+               f5.create_group(cdir,group[g_i])
+               cdir += '/'+group[g_i]
+        for ftmp in files:
             print ("FTMP:", ftmp)
             src = ftmp.split('src')[1].split('_')[0]
-            print ('reading spectrum')
+            print ('reading mixed_spec')
             print ("cwd:", os.getcwd())
             corr_input = open(ftmp).readlines()
             for i,l in enumerate(corr_input):
@@ -186,7 +188,7 @@ for cfg in cfgs_run:
                         print('  NAN')
                         bad_lst.write('%s %s %s NAN' %(no,state,params['SRC']))
                         bad_lst.flush()
-         f5.close()
+        f5.close()
 bad_lst.close()
 print ("DONE")
 
