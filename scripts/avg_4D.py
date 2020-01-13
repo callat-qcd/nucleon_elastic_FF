@@ -6,7 +6,9 @@ import tables as h5
 import warnings
 warnings.simplefilter('ignore', h5.NaturalNameWarning)
 from glob import glob
+# nucleon_elastic_ff utils
 import nucleon_elastic_ff.data.scripts.average as average
+import nucleon_elastic_ff.data.scripts.tslice as tslice
 
 '''
     NUCLEON_ELASTIC_FF IMPORTS
@@ -115,6 +117,21 @@ def check_ff(params,c51,srcs):
         all_files = False
     return all_files
 
+def tslice_ff(params,c51,srcs):
+    if not os.path.exists(params['formfac_4D_tslice']): os.makedirs(params['formfac_4D_tslice'])
+    for s0 in srcs:
+        params['SRC'] = s0
+        formfac_4D = params['formfac_4D'] +'/'+ (c51.names['formfac_4D'] % params)+'.h5'
+        formfac_4D_tslice = params['formfac_4D_tslice'] +'/'+ (c51.names['formfac_4D_tslice'] % params)+'.h5'
+        tslice.slice_file(
+            formfac_4D,
+            formfac_4D_tslice,
+            overwrite=args.o,
+            #tslice_fact=None - we don't want to tslice for ff files
+            dset_patterns=("local_current",),
+            boundary_sign_flip=False
+            )
+
 def check_spec_4D_tslice(params,c51,srcs):
     all_files = True
     all_sizes = []
@@ -145,6 +162,21 @@ def check_spec_4D(params,c51,srcs):
         all_files = False
     return all_files
 
+def tslice_spec(params,c51,srcs):
+    if not os.path.exists(params['spec_4D_tslice']): os.makedirs(params['spec_4D_tslice'])
+    for s0 in srcs:
+        params['SRC'] = s0
+        spec_file = params['spec_4D'] +'/'+ (c51.names['spec_4D'] % params)+'.h5'
+        spec_file_tslice = params['spec_4D_tslice'] +'/'+ (c51.names['spec_4D_tslice'] % params)+'.h5'
+        tslice.slice_file(
+            spec_file,
+            spec_file_tslice,
+            overwrite=args.o,
+            tslice_fact=params['spec_4D_tslice_fact'],
+            dset_patterns=["4D_correlator/x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+"],
+            boundary_sign_flip=True
+            )        
+
 missing_srcs = []
 
 curr_dir = os.getcwd()
@@ -168,7 +200,8 @@ for c in cfgs_run:
                 have_spec = check_spec_4D(params,c51,srcs[c])
                 if have_spec:
                     print('  have all spec_4D files cfg=%d, trying to tslice' %(c))
-                    os.system(c51.python+' %s/tslice_4D.py spec --cfgs %d' %(c51.script_dir, c))
+                    tslice_spec(params,c51,srcs[c])
+                    #os.system(c51.python+' %s/tslice_4D.py spec --cfgs %d' %(c51.script_dir, c))
                     run_avg = check_spec_4D_tslice(params,c51,srcs[c])
             if run_avg:
                 d_dir = params['spec_4D_tslice']
@@ -221,7 +254,8 @@ for c in cfgs_run:
                     have_ff = check_ff(params,c51,srcs[c])
                     if have_ff:
                         print('  have all formfac_4D files - trying to tslice')
-                        os.system(c51.python+' %s/tslice_4D.py formfac --cfgs %s' %(c51.script_dir, no))
+                        tslice_ff(params,c51,srcs[c])
+                        #os.system(c51.python+' %s/tslice_4D.py formfac --cfgs %s' %(c51.script_dir, no))
                         run_avg = check_ff_tslice(params,c51,srcs[c])
                 if run_avg:
                     #d_dir = params['prod']+'/'+args.data+'_4D_tslice/'+no

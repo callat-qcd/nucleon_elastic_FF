@@ -195,7 +195,7 @@ for cfg in cfgs:
                 db_update_disk, db_new_disk, db_update_tape, db_new_tape, db_new_entry, save_to_tape, data_collect)
 
 # bulk create all completely new entries
-print(db_new_entry)
+#print(db_new_entry)
 try:
     print('pushing %d new entries' %len(db_new_entry))
     all_f = []

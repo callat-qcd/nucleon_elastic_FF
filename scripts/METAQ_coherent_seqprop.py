@@ -277,7 +277,7 @@ for c in cfgs_run:
                                     params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                                     params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                                     params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '+params['CFG']
-                                    params['CLEANUP']  += +' '+src_args+' -t '+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                                    params['CLEANUP']  += ' '+src_args+' -t '+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
                                     params['CLEANUP']  += '    sleep 5\n'
                                     params['CLEANUP']  += 'else\n'
                                     params['CLEANUP']  += '    echo "mpirun failed"\n'
