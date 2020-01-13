@@ -51,7 +51,7 @@ parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
 parser.add_argument('--update',default=False,action='store_const',const=True,help='update disk and tape entries? [%(default)s]')
 parser.add_argument('--disk_update',default=False,action='store_const',const=True,help='update disk=exists entries? [%(default)s]')
 parser.add_argument('--tape_update',default=True,action='store_const',const=False,help='update tape=exists entries? [%(default)s]')
-parser.add_argument('--save_tape',default=True,action='store_const',const=False,help='save files to tape? [%{default)s]')
+parser.add_argument('--save_tape',default=True,action='store_const',const=False,help='save files to tape? [%(default)s]')
 parser.add_argument('--debug',default=False,action='store_const',const=True,help='debug? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
@@ -60,12 +60,26 @@ print('')
 
 tape_lst = ['formfac_4D_tslice_src_avg','spec_4D_tslice','spec_4D_tslice_avg']
 
+# LATTEDB imports
 f_type = args.f_type
-if f_type == 'formfac_4D_tslice_src_avg':
-    from lattedb.project.formfac.models import TSlicedSAveragedFormFactor4DFile     as latte_file
-    from lattedb.project.formfac.models import DiskTSlicedSAveragedFormFactor4DFile as latte_disk
-    from lattedb.project.formfac.models import TapeTSlicedSAveragedFormFactor4DFile as latte_tape
-elif f_type in ['prop','seqprop','spec','spec_4D','spec_4D_tslice','spec_4D_tslice_avg','formfac_4D','formfac_4D_tslice']:
+import lattedb.project.formfac.models as models
+import lattedb_ff_disk_tape_functions as lattedb_ff
+latte_file = dict()
+latte_disk = dict()
+latte_tape = dict()
+
+if 'formfac_4D' in f_type:
+    latte_file['formfac_4D_tslice_src_avg'] = models.TSlicedSAveragedFormFactor4DFile
+    latte_disk['formfac_4D_tslice_src_avg'] = models.DiskTSlicedSAveragedFormFactor4DFile
+    latte_tape['formfac_4D_tslice_src_avg'] = models.TapeTSlicedSAveragedFormFactor4DFile
+
+    latte_file['formfac_4D_tslice'] = models.TSlicedFormFactor4DFile
+    latte_disk['formfac_4D_tslice'] = models.DiskTSlicedFormFactor4DFile
+
+    latte_file['formfac_4D'] = models.FormFactor4DFile
+    latte_disk['formfac_4D'] = models.DiskFormFactor4DFile
+
+elif f_type in ['prop','seqprop','spec','spec_4D','spec_4D_tslice','spec_4D_tslice_avg']:
     sys.exit('not yet supported file type: '+str(f_type))
 else:
     sys.exit('unrecognized file type: '+str(f_type))
@@ -90,6 +104,7 @@ if args.src_set:# override src index in sources and area51 files for collection
     params['sf'] = args.src_set[1]
     params['ds'] = args.src_set[2]
 src_set = "%d-%d" %(params['si'],params['sf'])
+params['SRC_SET'] = src_set
 
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
@@ -127,54 +142,16 @@ params['MOM'] = 'px%spy%spz%s' %(m0,m1,m2)
 print('STATUS CHECK: %s    cfgs=%s    srcs=%s    %s\n' %(ens_s, cfgs_set, src_set, f_type))
 
 # QUERRY DB
-db_entries = latte_file.objects.filter(
-    ensemble = ens,
-    stream   = stream,
-    source_set = src_set,
-    configuration__in=cfgs
-    ).prefetch_related('disk').prefetch_related('tape')
+if f_type == 'formfac_4D_tslice_src_avg':
+    db_entries = latte_file[f_type].objects.filter(
+        ensemble      = ens,
+        stream        = stream,
+        source_set    = src_set,
+        configuration__in = cfgs
+        ).prefetch_related('disk').prefetch_related('tape')
 
 if args.debug:
     print(db_entries.to_dataframe(fieldnames=['ensemble','stream','configuration','source_set','t_separation','name','last_modified']))
-
-# search tape
-def check_tape(t_path,t_file):
-    t_dict = dict()
-    t_dict['machine'] = c51.machine
-    check = os.popen('hsi -P ls -l -D %s' %(t_path+'/'+t_file)).read().split('\n')
-    #On Summit, the first line from hsi returns the directory one is looking at
-    # the "-D" option in ls gives the full date/time information
-    if check[0] == t_path+':':
-        t_dict['path']          = t_path
-        t_dict['exists']        = True
-        t_dict['size']          = int(check[1].split()[4])
-        local_time = datetime.strptime(" ".join(check[1].split()[5:10]),"%a %b %d %H:%M:%S %Y")
-        if c51.machine == 'summit':
-            timezone = pytz.timezone("US/Eastern")
-        elif c51.machine == 'lassen':
-            timezone = pytz.timezone("US/Pacific")
-        else:
-            sys.exit('ADD TIME ZONE FOR YOUR MACHINE!')
-        t_dict['date_modified'] = timezone.localize(local_time)
-    else:
-        t_dict['exists'] = False
-    return t_dict
-
-def check_disk(d_path,d_file):
-    d_dict = dict()
-    d_dict['path'] = d_path
-    d_dict['machine'] =  c51.machine
-    if os.path.exists(d_path+'/'+d_file):
-        d_dict['exists'] = True
-        d_dict['size']   = os.path.getsize(d_path+'/'+d_file)
-        utc = datetime.utcfromtimestamp(os.path.getmtime(d_path+'/'+d_file))
-        local_time = utc.replace(tzinfo=pytz.utc).astimezone(local_tz)
-        d_dict['date_modified'] = local_time
-    else:
-        d_dict['exists']        = False
-        d_dict['size']          = None
-        d_dict['date_modified'] = None
-    return d_dict
 
 # LOOP OVER FILES to check
 print('checking database entries')
@@ -202,8 +179,10 @@ for cfg in cfgs:
     params['CFG'] = no
     params = c51.ensemble(params)
     params['RUN_DIR'] = params['prod']
-    tape_dir = c51.tape+'/'+ens_s+'/'+f_type+'/'+no
-    disk_dir = params[f_type]
+    params['TAPE_DIR'] = c51.tape+'/'+ens_s+'/'+f_type+'/'+no
+    params['UPDATE'] = args.update
+    params['DISK_UPDATE'] = args.disk_update
+    params['TAPE_UPDATE'] = args.tape_update
     # if the type of file we are checking has srcs (not src_averaged), then add this info
     if src_type:
         for s0 in srcs[cfg]:
@@ -211,125 +190,53 @@ for cfg in cfgs:
             # complete this logic chain
     else:# src averaged file types
         params['SRC'] = 'src_avg'+src_set
-        if args.debug:
-            print('\nDEBUG:',disk_dir)
-        if 'formfac' in f_type:
-            for tsep in params['t_seps']:
-                dt = str(tsep)
-                params['T_SEP'] = dt
-                # make file entry
-                f_dict = dict()
-                f_dict['ensemble']      = ens
-                f_dict['stream']        = stream
-                f_dict['configuration'] = cfg
-                f_dict['source_set']    = src_set
-                f_name = (c51.names['formfac'] % params).replace('formfac_','formfac_4D_tslice_src_avg_')+'.h5'
-                f_dict['t_separation'] = tsep
-                f_dict['name']         = f_name
-                # filter db for unique entry
-                entry = db_entries.filter(**f_dict).first()
-                ''' LOGIC of DISK/TAPE check
-                if entry in db:
-                    if entry has tape attribute:
-                        if update or update_tape:
-                            check_tape
-                            if entry_tape_exists != tape_exists::
-                                add to update_tape list
-                    else:
-                        get tape status and append to list
-                    if disk in db entry:
-                        if update or update_disk:
-                            check disk
-                            if db.exists != disk.exists:
-                                append to upate_disk list
-                    else:
-                        get disk status and append to list
-                    if disk_exists and not tape_exists:
-                        add to put to tape list
-                    if tape_exists and not disk_exists and pull_tape:
-                        add to pull from tape list
-                else:
-                    create disk/tape status and append to list
-                '''
-                if entry:# if it exists, then check if it exists on tape
-                    # check tape
-                    if hasattr(entry, 'tape'):
-                        t_dict = dict()
-                        t_dict['exists'] = entry.tape.exists
-                    if hasattr(entry, 'tape') and (args.update or args.tape_update):
-                        t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
-                        if entry.tape.exists != t_dict['exists']:
-                            t_dict['file'] = entry
-                            db_update_tape.append((f_dict,t_dict))
-                    elif not hasattr(entry, 'tape'):
-                        t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
-                        t_dict['file'] = entry
-                        db_new_tape.append(t_dict)
-                    # check disk
-                    if hasattr(entry, 'disk'):
-                        d_dict = dict()
-                        d_dict['exists'] = entry.disk.exists
-                    if hasattr(entry, 'disk') and (args.update or args.disk_update):
-                        d_dict = check_disk(disk_dir, f_name)
-                        if entry.disk.exists != d_dict['exists']:
-                            d_dict['file'] = entry
-                            db_update_disk.append((f_dict,d_dict))
-                    elif not hasattr(entry, 'disk'):
-                        d_dict = check_disk(disk_dir, f_name)
-                        d_dict['file'] = entry
-                        db_new_disk.append(d_dict)
-                else:
-                    t_dict = check_tape(c51.tape+'/'+ens_s+'/'+f_type+'/'+no, f_name)
-                    d_dict = check_disk(disk_dir, f_name)
-                    db_new_entry.append((f_dict,d_dict,t_dict))
-                # find files that exist on disk and not tape
-                if d_dict['exists'] and not t_dict['exists']:
-                    save_to_tape.append([f_name, disk_dir, tape_dir])
-                if not d_dict['exists'] and not t_dict['exists']:
-                    data_collect.append(f_name)
+        if f_type == 'formfac_4D_tslice_src_avg':
+            lattedb_ff.check_ff_4D_tslice_src_avg(params, db_entries, 
+                db_update_disk, db_new_disk, db_update_tape, db_new_tape, db_new_entry, save_to_tape, data_collect)
 
 # bulk create all completely new entries
+print(db_new_entry)
 try:
     print('pushing %d new entries' %len(db_new_entry))
     all_f = []
     all_d = []
     all_t = []
     for ff,dd,tt in db_new_entry:
-        f = latte_file(**ff)
+        f = latte_file[f_type](**ff)
         all_f.append(f)
     print('  pushing file entries')
-    latte_file.objects.bulk_create(all_f)
+    latte_file[f_type].objects.bulk_create(all_f)
     for i,f in enumerate(all_f):
-        d = latte_disk(file=f,**db_new_entry[i][1])
+        d = latte_disk[f_type](file=f,**db_new_entry[i][1])
         all_d.append(d)
-        t = latte_tape(file=f,**db_new_entry[i][2])
+        t = latte_tape[f_type](file=f,**db_new_entry[i][2])
         all_t.append(t)
     print('  pushing disk entries')
-    latte_disk.objects.bulk_create(all_d)
+    latte_disk[f_type].objects.bulk_create(all_d)
     print('  pushing tape entries')
-    latte_tape.objects.bulk_create(all_t)
+    latte_tape[f_type].objects.bulk_create(all_t)
 except Exception as e:
-    print(e)
     print('you messed up')
+    print(e)
 
-# bulk tape entries for pre-existing file entries
+# bulk create tape entries for pre-existing file entries
 try:
     print('pushing %d new TAPE entries for existing file entries' %len(db_new_tape))
     tape_push = []
     for tt in db_new_tape:
-        tape_push.append(latte_tape(**tt))
-    latte_tape.objects.bulk_create(tape_push)
+        tape_push.append(latte_tape[f_type](**tt))
+    latte_tape[f_type].objects.bulk_create(tape_push)
 except Exception as e:
     print(e)
     print('you messed up bulk TAPE create')
 
-# bulk tape entries for pre-existing file entries
+# bulk create tape entries for pre-existing file entries
 try:
     print('pushing %d new DISK entries for existing file entries' %len(db_new_disk))
     disk_push = []
     for dd in db_new_disk:
-        disk_push.append(latte_disk(**dd))
-    latte_disk.objects.bulk_create(disk_push)
+        disk_push.append(latte_disk[f_type](**dd))
+    latte_disk[f_type].objects.bulk_create(disk_push)
 except Exception as e:
     print(e)
     print('you messed up bulk DISK create')
@@ -345,7 +252,7 @@ if len(db_update_disk) > 0:
         for k,v in dd.items():
             setattr(d,k,v)
         disk_push.append(d)
-    latte_disk.objects.bulk_update(disk_push,fields=list(dd.keys()))
+    latte_disk[f_type].objects.bulk_update(disk_push,fields=list(dd.keys()))
 
 # bulk update tape
 print('updating %d TAPE entries for existing file entries' %len(db_update_tape))
@@ -358,7 +265,7 @@ if len(db_update_tape) > 0:
         for k,v in tt.items():
             setattr(t,k,v)
         tape_push.append(t)
-    latte_tape.objects.bulk_update(tape_push,fields=list(tt.keys()))
+    latte_tape[f_type].objects.bulk_update(tape_push,fields=list(tt.keys()))
 
 # save to tape
 if args.save_tape:
@@ -374,6 +281,34 @@ else:
 
 # collect data
 print('data collect')
-for f in data_collect:
-    print(f)
-
+if f_type == 'formfac_4D_tslice_src_avg':
+    # change f_type for dependency
+    f_type = 'formfac_4D_tslice'
+    # make new lists
+    db_update_disk = []
+    db_new_disk    = []
+    db_new_entry   = []
+    
+    # querry db
+    db_depend = latte_file[f_type].objects.filter(
+        ensemble = ens,
+        stream   = stream,
+        source_set = src_set,
+        configuration__in = cfgs
+        ).prefetch_related('disk')
+    if args.debug:
+        print(db_depend.to_dataframe(fieldnames=['ensemble','stream','configuration','source_set','t_separation','name','last_modified']))
+    for f in data_collect:
+        cfg = int(f.split('_')[7])
+        no  = str(cfg)
+        params['CFG']   = no
+        params['T_SEP'] = f.split('_dt')[1].split('_')[0]
+        params['t_seps'] = [params['T_SEP']]
+        # check if all srcs exist
+        all_srcs = True
+        for s0 in srcs[cfg]:
+            params['SRC']   = s0
+            lattedb_ff.check_ff_4D_tslice(params, db_depend, db_update_disk, db_new_disk, db_new_entry)
+            #if not 
+            print(params['T_SEP'],s0,db_new_entry[-1][1]['exists'])
+            

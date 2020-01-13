@@ -43,6 +43,7 @@ parser.add_argument('-d','--debug',default=False,action='store_const',const=True
 parser.add_argument('-p','--priority',default=False,action='store_const',const=True,help='put task in priority? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
+parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -62,6 +63,15 @@ if 'si' in params and 'sf' in params and 'ds' in params:
     params['ds'] = tmp_params['ds']
 else:
     params = sources.src_start_stop(params,ens,stream)
+if args.src_set:# override src index in sources and area51 files for collection
+    params['si'] = args.src_set[0]
+    params['sf'] = args.src_set[1]
+    params['ds'] = args.src_set[2]
+    src_args = '--src_set %d %d %d ' %(args.src_set[0],args.src_set[1],args.src_set[2])
+else:
+    src_args = ''
+src_ext = "%d-%d" %(params['si'],params['sf'])
+
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 if args.src:
     params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
@@ -79,6 +89,8 @@ nt = int(params['NT'])
 nl = int(params['NL'])
 
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
+print('srcs:',src_ext)
+#time.sleep(1)
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -130,7 +142,6 @@ n_flav = len(params['flavs'])
 n_spin = len(params['spins'])
 n_par  = len(params['particles'])
 coherent_ff_size_4d = n_curr * n_flav * n_spin * n_par *int(nt)*int(nl)**3 * 2*8
-src_ext = "%d-%d" %(params['si'],params['sf'])
 params['SRC_LST'] = src_ext
 
 for c in cfgs_run:
@@ -265,8 +276,8 @@ for c in cfgs_run:
                                     params['T_SEP']     = dt
                                     params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                                     params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
-                                    params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '
-                                    params['CLEANUP']  += params['CFG']+' -t '+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
+                                    params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '+params['CFG']
+                                    params['CLEANUP']  += +' '+src_args+' -t '+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
                                     params['CLEANUP']  += '    sleep 5\n'
                                     params['CLEANUP']  += 'else\n'
                                     params['CLEANUP']  += '    echo "mpirun failed"\n'
@@ -288,8 +299,8 @@ for c in cfgs_run:
                 if args.verbose:
                     print('    3pt corr exists:')
         if not have_seqsrc and not have_all_3pts:
-            print('python METAQ_seqsource.py %s -v' %(c))
-            os.system(c51.python+' %s/METAQ_seqsource.py %s %s -v' %(params['SCRIPT_DIR'],c,params['PRIORITY']))
+            print('python METAQ_seqsource.py %s %s -v' %(c, src_args))
+            os.system(c51.python+' %s/METAQ_seqsource.py %s %s %s -v' %(params['SCRIPT_DIR'], c, src_args, params['PRIORITY']))
 
     else:
         if not os.path.exists(cfg_file):

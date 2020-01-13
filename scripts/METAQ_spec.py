@@ -42,6 +42,7 @@ parser.add_argument('-v','--verbose',default=True,action='store_const',const=Fal
     help='run with verbose output? [%(default)s]')
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
     help='print DEBUG statements? [%(default)s]')
+parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -61,6 +62,15 @@ if 'si' in params and 'sf' in params and 'ds' in params:
     params['ds'] = tmp_params['ds']
 else:
     params = sources.src_start_stop(params,ens,stream)
+if args.src_set:# override src index in sources and area51 files for collection
+    params['si'] = args.src_set[0]
+    params['sf'] = args.src_set[1]
+    params['ds'] = args.src_set[2]
+    src_args = '--src_set %d %d %d ' %(args.src_set[0],args.src_set[1],args.src_set[2])
+else:
+    src_args = ''
+src_ext = "%d-%d" %(params['si'],params['sf'])
+
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 
 if args.p:
@@ -74,6 +84,8 @@ nt = int(params['NT'])
 nl = int(params['NL'])
 
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
+print('srcs:',src_ext)
+#time.sleep(1)
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
@@ -233,9 +245,9 @@ for c in cfgs_run:
                 else:
                     if args.verbose:
                         print('missing prop',prop_file)
-                    print('python METAQ_prop.py %s -s %s' %(c,s0))
-                    os.system(c51.python+' %s/METAQ_prop.py %s -s %s %s' \
-                        %(params['SCRIPT_DIR'],c,s0,params['PRIORITY']))
+                    print('python METAQ_prop.py %s -s %s %s' %(c, s0, src_args))
+                    os.system(c51.python+' %s/METAQ_prop.py %s -s %s %s %s' \
+                        %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY']))
             else:
                 if args.verbose:
                     print('spec exists',spec_file)

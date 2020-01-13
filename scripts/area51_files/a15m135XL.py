@@ -24,7 +24,7 @@ params['MS_S'] = '0.06730'
 params['MS_C'] = '0.8447'
 params['NAIK'] = '-0.358920'
 params['cfg_i'] = 500
-params['cfg_f'] = 1745
+params['cfg_f'] = 2995
 params['cfg_d'] = 5
 params['save_hisq_prop'] = False
 
@@ -48,6 +48,7 @@ params['MV_S'] = '0.0945'
 params['spec_size'] = 43000
 params['hyperspec_size'] = 383680
 params['ff_size']   = 429000
+params['spec_4D_tslice_fact'] = 0.5
 
 params['MAX_ITER']   = '17000'
 params['RSD_TARGET'] = '1.e-7'
