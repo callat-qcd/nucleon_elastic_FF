@@ -132,7 +132,7 @@ def check_ff_4D_tslice_src_avg(
         # find files that exist on disk and not tape
         if d_dict['exists'] and not t_dict['exists']:
             save_to_tape.append([f_name, disk_dir, params['TAPE_DIR']])
-        if not d_dict['exists'] and not t_dict['exists']:
+        if not d_dict['exists'] and (not t_dict['exists'] or params['DISK_UPDATE'] or params['UPDATE']):
             data_collect.append(f_name)
 
 def check_ff_4D_tslice(

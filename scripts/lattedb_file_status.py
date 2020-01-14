@@ -16,6 +16,7 @@ from tqdm import tqdm
 # tape utils from Evan's hpss module
 import hpss.hsi as hsi
 
+script = sys.argv[0].split('/')[-1]
 
 '''
     NUCLEON_ELASTIC_FF IMPORTS
@@ -53,6 +54,8 @@ parser.add_argument('--disk_update',default=False,action='store_const',const=Tru
 parser.add_argument('--tape_update',default=True,action='store_const',const=False,help='update tape=exists entries? [%(default)s]')
 parser.add_argument('--save_tape',default=True,action='store_const',const=False,help='save files to tape? [%(default)s]')
 parser.add_argument('--debug',default=False,action='store_const',const=True,help='debug? [%(default)s]')
+parser.add_argument('--data',default=True,action='store_const',const=False,help='collect missing data? [%(default)s]')
+parser.add_argument('-r','--rerun_lattedb',default=True,action='store_const',const=False,help='rerun lattedb after data collection? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -163,11 +166,11 @@ db_new_entry   = []
 save_to_tape   = []
 data_collect   = []
 
-if args.disk_update:
+if args.disk_update or args.update:
     disk_entries = db_entries.all()
 else:
     disk_entries = db_entries.filter(Q(disk__exists=False) | Q(disk__isnull=True))
-if args.tape_update:
+if args.tape_update or args.update:
     tape_entries = db_entries.all()
 else:
     tape_entries = db_entries.filter(Q(tape__exists=False) | Q(tape__isnull=True))
@@ -280,35 +283,66 @@ else:
     print('skipping %d files to save to tape' %(len(save_to_tape)))
 
 # collect data
-print('data collect')
-if f_type == 'formfac_4D_tslice_src_avg':
-    # change f_type for dependency
-    f_type = 'formfac_4D_tslice'
-    # make new lists
-    db_update_disk = []
-    db_new_disk    = []
-    db_new_entry   = []
-    
-    # querry db
-    db_depend = latte_file[f_type].objects.filter(
-        ensemble = ens,
-        stream   = stream,
-        source_set = src_set,
-        configuration__in = cfgs
-        ).prefetch_related('disk')
-    if args.debug:
-        print(db_depend.to_dataframe(fieldnames=['ensemble','stream','configuration','source_set','t_separation','name','last_modified']))
-    for f in data_collect:
-        cfg = int(f.split('_')[7])
-        no  = str(cfg)
-        params['CFG']   = no
-        params['T_SEP'] = f.split('_dt')[1].split('_')[0]
-        params['t_seps'] = [params['T_SEP']]
-        # check if all srcs exist
-        all_srcs = True
-        for s0 in srcs[cfg]:
-            params['SRC']   = s0
-            lattedb_ff.check_ff_4D_tslice(params, db_depend, db_update_disk, db_new_disk, db_new_entry)
-            #if not 
-            print(params['T_SEP'],s0,db_new_entry[-1][1]['exists'])
-            
+if args.data:
+    print('data collect')
+    if f_type == 'formfac_4D_tslice_src_avg':
+        # try to run avg_4D which will also run tslice if all formfac_4D files are present
+        # first, make a list of cfgs and tseps
+        cfg_tsep_lst = dict()
+        for f in data_collect:
+            cfg = int(f.split('_')[7])
+            tsep = int(f.split('_dt')[1].split('_')[0])
+            if cfg not in cfg_tsep_lst:
+                cfg_tsep_lst[cfg] = []
+            if tsep not in cfg_tsep_lst[cfg]:
+                cfg_tsep_lst[cfg].append(tsep)
+        # loop over cfg and tsep values and try and avg
+        for cfg in cfg_tsep_lst:
+            params['CFG'] = str(cfg)
+            rerun_lattedb=False
+            for dt in cfg_tsep_lst[cfg]:
+                params['T_SEP'] = dt
+                os.system(c51.python+' %s/avg_4D.py formfac --cfgs %d -t %d --src_set %s %s %s' \
+                    %(c51.script_dir, cfg, dt, params['si'],params['sf'],params['ds']))
+                ff_file = params[f_type]+'/'+ (c51.names[f_type] % params)+'.h5'
+                if os.path.exists(ff_file):
+                    rerun_lattedb=True
+            if args.rerun_lattedb and rerun_lattedb:
+                os.system(c51.python+' %s/%s %s --cfgs %d --src_set %s %s %s -r --update' \
+                          %(c51.script_dir, script, f_type, cfg, params['si'],params['sf'],params['ds']))
+
+        '''
+        this was written with the idea of more db integration
+        for now, we just modified avg_4D to do all the dependent data collection
+
+        # change f_type for dependency
+        f_type = 'formfac_4D_tslice'
+        # make new lists
+        db_update_disk = []
+        db_new_disk    = []
+        db_new_entry   = []
+
+        # querry db
+        db_depend = latte_file[f_type].objects.filter(
+            ensemble = ens,
+            stream   = stream,
+            source_set = src_set,
+            configuration__in = cfgs
+            ).prefetch_related('disk')
+        if args.debug:
+            print(db_depend.to_dataframe(fieldnames=['ensemble','stream','configuration','source_set','t_separation','name','last_modified']))
+        for f in data_collect:
+            cfg = int(f.split('_')[7])
+            no  = str(cfg)
+            params['CFG']   = no
+            params['T_SEP'] = f.split('_dt')[1].split('_')[0]
+            params['t_seps'] = [params['T_SEP']]
+            # check if all srcs exist
+            all_srcs = True
+            for s0 in srcs[cfg]:
+                params['SRC']   = s0
+                lattedb_ff.check_ff_4D_tslice(params, db_depend, db_update_disk, db_new_disk, db_new_entry)
+                #if not 
+                print(params['T_SEP'],s0,db_new_entry[-1][1]['exists'])
+
+        '''
