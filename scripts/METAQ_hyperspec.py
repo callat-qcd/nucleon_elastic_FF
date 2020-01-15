@@ -143,12 +143,21 @@ for c in cfgs_run:
                 light_prop_name = c51.names['prop'] % params
                 light_prop_file = params['prop'] + '/' + light_prop_name+'.'+params['SP_EXTENSION']
                 ''' make sure prop is correct size '''
-                file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                try:
+                    file_size = params['prop_size']
+                except:
+                    print('PROP_SIZE not defined in area51 file: using crude default')
+                    file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                 utils.check_file(light_prop_file,file_size,params['file_time_delete'],params['corrupt'])
                 light_prop_exists = os.path.exists(light_prop_file)
                 # a12m130 used h5 props
                 if ens in ['a15m135XL','a12m130'] and not light_prop_exists:
                     light_prop_file = params['prop'] + '/' + light_prop_name+'.h5'
+                    try:
+                        file_size = params['prop_size_h5']
+                    except:
+                        print('PROP_SIZE not defined in area51 file: using crude default')
+                        file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                     utils.check_file(light_prop_file,file_size,params['file_time_delete'],params['corrupt'])
                     light_prop_exists = os.path.exists(light_prop_file)
                 if args.debug:
@@ -157,6 +166,12 @@ for c in cfgs_run:
                 params['MQ'] = params['MV_S']
                 strange_prop_name = c51.names['prop'] % params
                 strange_prop_file = params['prop_strange'] + '/' + strange_prop_name+'.'+params['SP_EXTENSION']
+                try:
+                    file_size = params['prop_size']
+                except:
+                    print('PROP_SIZE not defined in area51 file: using crude default')
+                    file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                utils.check_file(strange_prop_file, file_size,params['file_time_delete'],params['corrupt'])
                 strange_prop_exists = os.path.exists(strange_prop_file)
                 if light_prop_exists and strange_prop_exists:
                     print('  making ',hyperspec_name)

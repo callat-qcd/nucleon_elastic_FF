@@ -179,7 +179,11 @@ for c in cfgs_run:
                         params['T_SEP'] = dt
                     seqprop_name = c51.names['seqprop'] %params
                     seqprop_file = params['seqprop']+'/'+seqprop_name+'.'+params['SP_EXTENSION']
-                    seqprop_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                    try:
+                        seqprop_size = params['seqprop_size']
+                    except:
+                        print('SEQPROP_SIZE not defined in area51 file: using crude default')
+                        seqprop_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                     utils.check_file(seqprop_file,seqprop_size,params['file_time_delete'],params['corrupt'],debug=args.debug)
                     if not os.path.exists(seqprop_file):
                         print('    missing:',seqprop_file)

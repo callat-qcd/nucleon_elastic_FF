@@ -45,6 +45,10 @@ params['MV_S'] = '0.0491'
 params['spec_size'] = 51312
 params['ff_size']   = 435560
 params['spec_4D_tslice_fact'] = 0.33333333
+params['src_size']     = 28991031000
+params['prop_size']    = 28991032000
+params['seqsrc_size']  = 28991036000
+params['seqprop_size'] = 28991036000
 
 params['MAX_ITER']   = '18000'
 params['RSD_TARGET'] = '1.e-7'

@@ -200,7 +200,11 @@ for c in cfgs_run:
                         ''' check SEQPROP file size
                             delete if small and older than time_delete
                         '''
-                        seqprop_size      = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                        try:
+                            seqprop_size = params['seqprop_size']
+                        except:
+                            print('SEQPROP_SIZE not defined in area51 file: using crude default')
+                            seqprop_size      = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                         utils.check_file(seqprop_file,seqprop_size,params['file_time_delete'],params['corrupt'])
                         if not os.path.exists(seqprop_file):
                             ''' make sure all seqsource files exists '''

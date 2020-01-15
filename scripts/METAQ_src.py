@@ -137,12 +137,21 @@ for c in cfgs_run:
             prop_name = c51.names['prop'] % params
             prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
             ''' make sure prop is correct size '''
-            file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+            try:
+                file_size = params['prop_size']
+            except:
+                print('PROP_SIZE not defined in area51 file: using crude default')
+                file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
             utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
             prop_exists = os.path.exists(prop_file)
             # if a12m130, then check for h5 files
             if ens in ['a12m130', 'a15m135XL'] and not prop_exists:
                 prop_file = params['prop'] + '/' + prop_name+'.h5'
+                try:
+                    file_size = params['prop_size_h5']
+                except:
+                    print('PROP_SIZE not defined in area51 file: using crude default')
+                    file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                 utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
                 prop_exists = os.path.exists(prop_file)
 
@@ -160,6 +169,11 @@ for c in cfgs_run:
             if make_src:
                 src_name = c51.names['src'] % params
                 src_file = params['src']+'/'+src_name+'.'+params['SP_EXTENSION']
+                try:
+                    file_size = params['src_size']
+                except:
+                    print('SRC_SIZE not defined in area51 file: using crude default')
+                    file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                 utils.check_file(src_file,file_size,params['file_time_delete'],params['corrupt'])
                 print('making src',src_name)
                 if not os.path.exists(src_file):
