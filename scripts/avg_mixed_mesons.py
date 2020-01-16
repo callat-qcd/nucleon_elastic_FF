@@ -108,10 +108,12 @@ fin_files = [fn for fn in glob(fin_dir+'mixed_'+ens_s+'_*.h5')]
 print( 'no cfgs = %d' %len(cfgs_run))
 
 # MIXED STATES
-mixed_states = [#'phi_uu','phi_us','phi_ss',#THESE come from the regular spectrum
-    'phi_ju','phi_jj_5',#the mixed (ju) and sea (jj) pions
-    'phi_js','phi_ur','phi_jr_5',#the mixed (js, ur) and sea (jr) kaon
-    'phi_rs','phi_rr_5'# the mixed (sr) and sea (rr) ssbar
+mixed_states = [
+    'phi_jj_5','phi_jr_5','phi_rr_5',
+    'phi_ju','phi_uj',
+    'phi_js','phi_sj',
+    'phi_ru','phi_ur',
+    'phi_rs','phi_sr',
     ]
 
 ml = ms_l

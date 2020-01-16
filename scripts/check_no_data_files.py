@@ -31,7 +31,7 @@ params['METAQ_PROJECT'] = 'formfac_'+ens_s
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('data',type=str,help='what data type to check? [spec spec_4D spec_4D_tslice formfac formfac_4D formfac_4D_tslice hyperspec]')
+parser.add_argument('data',type=str,help='what data type to check? [spec spec_4D spec_4D_tslice formfac formfac_4D formfac_4D_tslice hyperspec mixed]')
 parser.add_argument('--cfgs',nargs='+',type=int,help='start [stop] run number')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
@@ -84,6 +84,8 @@ if args.data in ['spec','spec_4D','spec_4D_tslice']:
     dtype = 'spec'
 elif args.data in ['hyperspec']:
     dtype = 'hyperspec'
+elif args.data in ['mixed']:
+    dtype = 'mixed'
 elif args.data in ['formfac','formfac_4D','formfac_4D_tslice']:
     dtype = 'formfac'
 else:
@@ -113,6 +115,15 @@ for c in cfgs_run:
                 missing.write(s_file+'\n')            
         elif dtype == 'hyperspec':
             s_file = (params['hyperspec'] +'/' + (c51.names['hyperspec'] %params) +'.h5')
+            if not os.path.exists(s_file):
+                if args.verbose: print('missing:',s_file)
+                all_srcs = False
+                missing.write(s_file+'\n')
+        elif dtype == 'mixed' and s0 == srcs[c][0]:
+            params['MQ_L'] = params['MV_L']
+            params['MQ_S'] = params['MV_S']
+            params['SMR']  = 'wv_w'+params['WF_S']+'_n'+params['WF_N']
+            s_file = (params['mixed'] +'/'+ c51.names['mixed_corr'] % params)
             if not os.path.exists(s_file):
                 if args.verbose: print('missing:',s_file)
                 all_srcs = False
