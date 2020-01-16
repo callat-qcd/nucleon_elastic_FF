@@ -44,6 +44,10 @@ params['MV_S'] = '0.0309'
 params['spec_size'] = 51312
 params['ff_size']   = 1
 params['hyperspec_size'] = 486080
+params['src_size']     = 41278244000
+params['prop_size']    = 41278245000
+#params['seqsrc_size']  = 28991036000
+#params['seqprop_size'] = 28991036000
 
 params['MAX_ITER']   = '8000'
 params['RSD_TARGET'] = '1.e-7'
