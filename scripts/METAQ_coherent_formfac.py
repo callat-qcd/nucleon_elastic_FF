@@ -156,73 +156,102 @@ for c in cfgs_run:
         params['CFG_FILE'] = cfg_file
         print("Checking coherent formfactor for cfg: ",c)
 
-        have_all_seqprops=True
+        # check if formfac files exist
+        have_ff_data=True
+        have_ff_src_avg=True
         for dt_int in t_seps:
             dt = str(dt_int)
-            ''' Do all seqprops exist? '''
-            all_seqprops=True
-            for fs in flav_spin:
-                flav,snk_spin,src_spin=fs.split('_')
-                params['FLAV']=flav
-                params['SOURCE_SPIN']=snk_spin
-                params['SINK_SPIN']=src_spin
-                spin = snk_spin+'_'+src_spin
-                params['FLAV_SPIN']=fs
-                if args.debug:
-                    print('DEBUG: len(srcs[c])',len(srcs[c]))
-                    print(srcs[c])
-                for particle in params['particles']:
-                    params['PARTICLE'] = particle
-                    if '_np' in particle:
-                        params['T_SEP'] = '-'+dt
-                    else:
+            for s0 in srcs[c]:
+                params['SRC'] = s0
+                ''' Does the 3pt file exist? '''
+                params['T_SEP'] = dt #dt and -dt in same file, labled by dt
+                ff_name = c51.names['formfac'] % params
+                ff_file = params['formfac'] +'/'+ff_name + '.h5'
+                ff_4D_name = c51.names['formfac_4D'] % params
+                ff_4D_file = params['formfac_4D'] +'/'+ ff_4D_name +'.h5'
+                ff_4D_tslice = params['formfac_4D_tslice'] +'/'+ (c51.names['formfac_4D_tslice'] % params)+'.h5'
+                ff_4D_tslice_avg = ff_4D_tslice.replace('formfac_4D_tslice','formfac_4D_tslice_src_avg').replace(s0,'src_avg'+src_ext)
+                # check if tsliced and tslice_src_avg files exist
+                if not (os.path.exists(ff_4D_tslice) or os.path.exists(ff_4D_tslice_avg)):
+                    have_ff_src_avg=False
+                # check if ff and ff_4D exists and are right size
+                utils.check_file(ff_4D_file,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'],debug=args.debug)
+                utils.check_file(ff_file,params['ff_size'],params['file_time_delete'],params['corrupt'],debug=args.debug)
+                if not os.path.exists(ff_file) or not os.path.exists(ff_4D_file):
+                    have_ff_data=False
+        if have_ff_src_avg:
+            if not have_ff_data and args.verbose:
+                print('tslice or tslice_src_avg exists')
+                print(ff_4D_tslice.split('/')[-1])
+                print(ff_4D_tslice_avg.split('/')[-1])
+
+        if not have_ff_data and not have_ff_src_avg:
+            # if missing formfac files, check if seqrop files exist
+            have_all_seqprops=True
+            for dt_int in t_seps:
+                dt = str(dt_int)
+                ''' Do all seqprops exist? '''
+                all_seqprops=True
+                for fs in flav_spin:
+                    flav,snk_spin,src_spin=fs.split('_')
+                    params['FLAV']=flav
+                    params['SOURCE_SPIN']=snk_spin
+                    params['SINK_SPIN']=src_spin
+                    spin = snk_spin+'_'+src_spin
+                    params['FLAV_SPIN']=fs
+                    if args.debug:
+                        print('DEBUG: len(srcs[c])',len(srcs[c]))
+                        print(srcs[c])
+                    for particle in params['particles']:
+                        params['PARTICLE'] = particle
+                        if '_np' in particle:
+                            params['T_SEP'] = '-'+dt
+                        else:
+                            params['T_SEP'] = dt
+                        seqprop_name = c51.names['seqprop'] %params
+                        seqprop_file = params['seqprop']+'/'+seqprop_name+'.'+params['SP_EXTENSION']
+                        try:
+                            seqprop_size = params['seqprop_size']
+                        except:
+                            print('SEQPROP_SIZE not defined in area51 file: using crude default')
+                            seqprop_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                        utils.check_file(seqprop_file,seqprop_size,params['file_time_delete'],params['corrupt'],debug=args.debug)
+                        if not os.path.exists(seqprop_file):
+                            print('    missing:',seqprop_file)
+                            all_seqprops=False
+                            have_all_seqprops=False
+                if all_seqprops:
+                    ''' loop over srcs '''
+                    for s0 in srcs[c]:
+                        params['SRC'] = s0
+                        ''' Does the 3pt file exist? '''
+                        ''' dt and -dt in same file, labled by dt '''
                         params['T_SEP'] = dt
-                    seqprop_name = c51.names['seqprop'] %params
-                    seqprop_file = params['seqprop']+'/'+seqprop_name+'.'+params['SP_EXTENSION']
-                    try:
-                        seqprop_size = params['seqprop_size']
-                    except:
-                        print('SEQPROP_SIZE not defined in area51 file: using crude default')
-                        seqprop_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
-                    utils.check_file(seqprop_file,seqprop_size,params['file_time_delete'],params['corrupt'],debug=args.debug)
-                    if not os.path.exists(seqprop_file):
-                        print('    missing:',seqprop_file)
-                        all_seqprops=False
-                        have_all_seqprops=False
-            if all_seqprops:
-                ''' loop over srcs '''
-                for s0 in srcs[c]:
-                    params['SRC'] = s0
-                    ''' Does the 3pt file exist? '''
-                    ''' dt and -dt in same file, labled by dt '''
-                    params['T_SEP'] = dt
-                    coherent_formfac_name  = c51.names['formfac'] % params
-                    coherent_formfac_file  = params['formfac'] +'/'+coherent_formfac_name + '.h5'
-                    coherent_formfac_file_4D = coherent_formfac_file.replace('formfac','formfac_4D')
-                    coherent_ff_4D_tslice = coherent_formfac_file_4D.replace('formfac_4D','formfac_4D_tslice')
-                    coherent_ff_4D_tslice_avg = coherent_ff_4D_tslice.replace('formfac_4D_tslice','formfac_4D_tslice_src_avg').replace(s0,'src_avg'+src_ext)
-                    if not (os.path.exists(coherent_ff_4D_tslice) or os.path.exists(coherent_ff_4D_tslice_avg)):
-                        params['THREE_PT_FILE'] = coherent_formfac_file
-                        params['THREE_PT_FILE_4D'] = coherent_formfac_file_4D
+                        ff_name = c51.names['formfac'] % params
+                        ff_file = params['formfac'] +'/'+ff_name + '.h5'
+                        ff_4D_name = c51.names['formfac_4D'] % params
+                        ff_4D_file = params['formfac_4D'] +'/'+ ff_4D_name+'.h5'
+                        params['THREE_PT_FILE'] = ff_file
+                        params['THREE_PT_FILE_4D'] = ff_4D_file
                         if args.debug:
                             print('coherent_ff_size_4d',coherent_ff_size_4d)
-                        utils.check_file(coherent_formfac_file_4D,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'],debug=args.debug)
-                        utils.check_file(coherent_formfac_file,params['ff_size'],params['file_time_delete'],params['corrupt'],debug=args.debug)
-                        if os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                        utils.check_file(ff_4D_file,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'],debug=args.debug)
+                        utils.check_file(ff_file,params['ff_size'],params['file_time_delete'],params['corrupt'],debug=args.debug)
+                        if os.path.exists(ff_file) and not os.path.exists(ff_4D_file):
                             now = time.time()
-                            file_time = os.stat(coherent_formfac_file).st_mtime
+                            file_time = os.stat(ff_file).st_mtime
                             if (now-file_time)/60 > params['file_time_delete']:
-                                print('MOVING TO CORRUPT:',coherent_formfac_file)
-                                shutil.move(coherent_formfac_file,params['corrupt']+'/'+coherent_formfac_file.split('/')[-1])
-                        if os.path.exists(coherent_formfac_file_4D) and not os.path.exists(coherent_formfac_file):
+                                print('MOVING TO CORRUPT:',ff_file)
+                                shutil.move(ff_file,params['corrupt']+'/'+ff_file.split('/')[-1])
+                        if os.path.exists(ff_4D_file) and not os.path.exists(ff_file):
                             now = time.time()
-                            file_time = os.stat(coherent_formfac_file_4D).st_mtime
+                            file_time = os.stat(ff_4D_file).st_mtime
                             if (now-file_time)/60 > params['file_time_delete']:
-                                print('MOVING TO CORRUPT:',coherent_formfac_file_4D)
-                                shutil.move(coherent_formfac_file_4D,params['corrupt']+'/'+coherent_formfac_file_4D.split('/')[-1])
-                        if not os.path.exists(coherent_formfac_file) and not os.path.exists(coherent_formfac_file_4D):
+                                print('MOVING TO CORRUPT:',ff_4D_file)
+                                shutil.move(ff_4D_file,params['corrupt']+'/'+ff_4D_file.split('/')[-1])
+                        if not os.path.exists(ff_file) and not os.path.exists(ff_4D_file):
                             # loop over FLAV and SPIN as all in 1 file
-                            metaq  = coherent_formfac_name+'.sh'
+                            metaq  = ff_name+'.sh'
                             t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
                             try:
                                 if params['metaq_split']:
@@ -242,7 +271,7 @@ for c in cfgs_run:
                                         prop_h5 = True
                                         prop_exists = True
                                 if prop_exists:
-                                    xmlini = coherent_formfac_file.replace('/formfac/','/xml/').replace('.h5','.ini.xml')
+                                    xmlini = ff_file.replace('/formfac/','/xml/').replace('.h5','.ini.xml')
                                     fin = open(xmlini,'w')
                                     fin.write(xml_input.head)
                                     ''' read all props '''
@@ -335,33 +364,28 @@ for c in cfgs_run:
                             else:
                                 if args.verbose:
                                     print('  task exists:',metaq)
-                        elif not (os.path.exists(coherent_formfac_file) and os.path.exists(coherent_formfac_file_4D)):
+                        elif not (os.path.exists(ff_file) and os.path.exists(ff_4D_file)):
                             if args.verbose:
-                                print('check logic: either coherent_formfac_file OR coherent_formfac_file_4D exists')
-                                print(coherent_formfac_file,os.path.exists(coherent_formfac_file))
-                                print(coherent_formfac_file_4D,os.path.exists(coherent_formfac_file_4D))
+                                print('check logic: either ff_file OR ff_4D_file exists')
+                                print(ff_file,os.path.exists(ff_file))
+                                print(ff_4D_file,os.path.exists(ff_4D_file))
                         else:
                             if args.verbose:
-                                print('exists:',coherent_formfac_name)
-                    else:
-                        if args.verbose:
-                            print('tslice or tslice_src_avg exists')
-                            print(coherent_ff_4D_tslice.split('/')[-1])
-                            print(coherent_ff_4D_tslice_avg.split('/')[-1])
+                                print('exists:',ff_name)
 
-            else:
-                print('    missing FLAV or SPIN seqprops, dt=',dt)
-        if not have_all_seqprops:
-            print('    missing FLAV or SPIN seqprops')
-            if args.t_sep:
-                tsep = "".join("%d " %t for t in args.t_sep)
-                tsep = "-t "+tsep
-            else:
-                tsep = ""
-            os.system(c51.python+' %s/METAQ_coherent_seqprop.py %s %s %s %s -v' \
-                %(params['SCRIPT_DIR'], c, src_args, params['PRIORITY'],tsep))
-        #else:
-        #    print('    missing props')
+                else:
+                    print('    missing FLAV or SPIN seqprops, dt=',dt)
+            if not have_all_seqprops:
+                print('    missing FLAV or SPIN seqprops')
+                if args.t_sep:
+                    tsep = "".join("%d " %t for t in args.t_sep)
+                    tsep = "-t "+tsep
+                else:
+                    tsep = ""
+                os.system(c51.python+' %s/METAQ_coherent_seqprop.py %s %s %s %s -v' \
+                    %(params['SCRIPT_DIR'], c, src_args, params['PRIORITY'],tsep))
+            #else:
+            #    print('    missing props')
     else:
         if not os.path.exists(cfg_file):
             print('  flowed cfg missing',cfg_file)
