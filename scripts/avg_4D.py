@@ -66,7 +66,7 @@ if args.src_set:# override src index in sources and area51 files for collection
     params['sf'] = args.src_set[1]
     params['ds'] = args.src_set[2]
 src_ext = "%d-%d" %(params['si'],params['sf'])
-params['SRC_LST'] = src_ext
+params['SRC_SET'] = src_ext
 
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
 

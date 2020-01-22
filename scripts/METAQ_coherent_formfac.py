@@ -76,7 +76,7 @@ if args.src:
     params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
 else:
     params['N_SEQ'] = len(srcs[cfgs_run[0]])
-params['SRC_LST'] = src_ext
+params['SRC_SET'] = src_ext
 
 if args.priority:
     q = 'priority'

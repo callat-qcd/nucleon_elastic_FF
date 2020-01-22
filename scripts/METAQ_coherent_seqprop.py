@@ -142,7 +142,7 @@ n_flav = len(params['flavs'])
 n_spin = len(params['spins'])
 n_par  = len(params['particles'])
 coherent_ff_size_4d = n_curr * n_flav * n_spin * n_par *int(nt)*int(nl)**3 * 2*8
-params['SRC_LST'] = src_ext
+params['SRC_SET'] = src_ext
 
 for c in cfgs_run:
     no = str(c)
