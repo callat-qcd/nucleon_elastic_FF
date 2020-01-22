@@ -170,7 +170,7 @@ for c in cfgs_run:
                 ff_4D_name = c51.names['formfac_4D'] % params
                 ff_4D_file = params['formfac_4D'] +'/'+ ff_4D_name +'.h5'
                 ff_4D_tslice = params['formfac_4D_tslice'] +'/'+ (c51.names['formfac_4D_tslice'] % params)+'.h5'
-                ff_4D_tslice_avg = ff_4D_tslice.replace('formfac_4D_tslice','formfac_4D_tslice_src_avg').replace(s0,'src_avg'+src_ext)
+                ff_4D_tslice_avg = ff_4D_tslice.replace('formfac_4D_tslice','formfac_4D_tslice_src_avg').replace(s0,'src_avg')
                 # check if tsliced and tslice_src_avg files exist
                 if not (os.path.exists(ff_4D_tslice) or os.path.exists(ff_4D_tslice_avg)):
                     have_ff_src_avg=False

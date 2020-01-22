@@ -66,6 +66,7 @@ if args.src_set:# override src index in sources and area51 files for collection
     params['sf'] = args.src_set[1]
     params['ds'] = args.src_set[2]
 src_ext = "%d-%d" %(params['si'],params['sf'])
+params['SRC_LST'] = src_ext
 
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
 
@@ -241,11 +242,13 @@ for c in cfgs_run:
             # does avg file exist?
             print("printing t:", t)
             params['T_SEP'] = str(t)
-            params['SRC'] = 'src_avg'+src_ext
+            params['SRC'] = 'src_avg'
             formfac_name = c51.names['formfac'] % params
             formfac_file = params['formfac'] +'/'+ formfac_name+'.h5'
             formfac_file_4D_avg = params['formfac_4D_tslice_src_avg'] +'/'+ (c51.names['formfac_4D_tslice_src_avg'] % params)+'.h5'
             do_avg = True
+            print(formfac_file_4D_avg,os.path.exists(formfac_file_4D_avg))
+            sys.exit()
             if os.path.exists(formfac_file_4D_avg) and not args.o:
                 do_avg = False
             if do_avg:
@@ -260,7 +263,8 @@ for c in cfgs_run:
                 if run_avg:
                     #d_dir = params['prod']+'/'+args.data+'_4D_tslice/'+no
                     d_dir = params['formfac_4D_tslice']
-                    average.source_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext, additional_file_patterns='dt'+str(t)+'_')
+                    #average.source_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext, additional_file_patterns='dt'+str(t)+'_')
+                    average.source_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], additional_file_patterns='dt'+str(t)+'_')
                 else:
                     print('missing srcs for cfg %d t_sep %d' %(c,t))
                     if c not in missing_srcs: missing_srcs.append(c)

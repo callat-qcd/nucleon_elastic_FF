@@ -74,7 +74,7 @@ def parse_file_info(
         r"(?:_mq(?P<mq>[0-9\.]+))?"
         r"(?:_px(?P<px>[0-9]+)py(?P<py>[0-9]+)pz(?P<pz>[0-9]+))?"
         r"(?:_dt(?P<dt>[0-9]+))?"
-        r"(?:_Nsnk(?P<Nsnk>[0-9]+))?"
+        r"(?:_Srcs(?P<Srcs>[0-9]+\-[0-9]+))?"
         r"_"
         r"(?:x(?P<x>[0-9]+)+y(?P<y>[0-9]+)z(?P<z>[0-9]+)t(?P<t>[0-9]+))|(?P<avg>src_avg)"
         r"(?:_(?P<stype>[a-zA-Z]+))?"
@@ -98,7 +98,7 @@ def parse_file_info(
             "py",
             "pz",
             "dt",
-            "Nsnk",
+            "Srcs",
             "x",
             "y",
             "z",

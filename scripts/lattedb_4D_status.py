@@ -43,19 +43,19 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
-parser.add_argument('f_type',type=str,help='what data type to average [formfac_4D_tslice_src_avg formfac_4D_tslice ...]?')
-parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
+parser.add_argument('f_type',        type=str,help='what data type to average [formfac (soon to come spec)]?')
+parser.add_argument('--cfgs',        nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-t','--t_sep',  nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific current or currents? [A3 V4 ...]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
-parser.add_argument('--update',default=False,action='store_const',const=True,help='update disk and tape entries? [%(default)s]')
-parser.add_argument('--disk_update',default=False,action='store_const',const=True,help='update disk=exists entries? [%(default)s]')
-parser.add_argument('--tape_update',default=True,action='store_const',const=False,help='update tape=exists entries? [%(default)s]')
-parser.add_argument('--save_tape',default=True,action='store_const',const=False,help='save files to tape? [%(default)s]')
-parser.add_argument('--debug',default=False,action='store_const',const=True,help='debug? [%(default)s]')
-parser.add_argument('--data',default=True,action='store_const',const=False,help='collect missing data? [%(default)s]')
-parser.add_argument('-r','--rerun_lattedb',default=True,action='store_const',const=False,help='rerun lattedb after data collection? [%(default)s]')
+parser.add_argument('--src_set',     nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('-v',            default=True ,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--update',      default=False,action='store_const',const=True ,help='update disk and tape entries? [%(default)s]')
+parser.add_argument('--disk_update', default=False,action='store_const',const=True ,help='update disk=exists entries? [%(default)s]')
+parser.add_argument('--tape_update', default=True ,action='store_const',const=False,help='update tape=exists entries? [%(default)s]')
+parser.add_argument('--save_tape',   default=True ,action='store_const',const=False,help='save files to tape? [%(default)s]')
+parser.add_argument('--debug',       default=False,action='store_const',const=True ,help='debug? [%(default)s]')
+parser.add_argument('--data',        default=True ,action='store_const',const=False,help='collect missing data? [%(default)s]')
+parser.add_argument('-r','--rerun',  default=True ,action='store_const',const=False,help='rerun lattedb after data collection? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -64,14 +64,17 @@ print('')
 tape_lst = ['formfac_4D_tslice_src_avg','spec_4D_tslice','spec_4D_tslice_avg']
 
 # LATTEDB imports
-f_type = args.f_type
+if args.f_type == 'formfac':
+    f_type = 'formfac_4D_tslice_src_avg'
+else:
+    f_type = None
 import lattedb.project.formfac.models as models
 import lattedb_ff_disk_tape_functions as lattedb_ff
 latte_file = dict()
 latte_disk = dict()
 latte_tape = dict()
 
-if 'formfac_4D' in f_type:
+if f_type == 'formfac_4D_tslice_src_avg':
     latte_file['formfac_4D_tslice_src_avg'] = models.TSlicedSAveragedFormFactor4DFile
     latte_disk['formfac_4D_tslice_src_avg'] = models.DiskTSlicedSAveragedFormFactor4DFile
     latte_tape['formfac_4D_tslice_src_avg'] = models.TapeTSlicedSAveragedFormFactor4DFile
@@ -87,7 +90,7 @@ elif f_type in ['prop','seqprop','spec','spec_4D','spec_4D_tslice','spec_4D_tsli
 else:
     sys.exit('unrecognized file type: '+str(f_type))
 
-src_type = f_type in ['prop','spec','spec_4D','spec_4D_tslice','formfac_4D','formfac_4D_tslice']
+src_type = f_type in ['prop','spec','spec_4D','spec_4D_tslice','formfac','formfac_4D','formfac_4D_tslice']
 
 
 # CREATE CONFIG AND SRC LISTS
@@ -299,15 +302,15 @@ if args.data:
         # loop over cfg and tsep values and try and avg
         for cfg in cfg_tsep_lst:
             params['CFG'] = str(cfg)
-            rerun_lattedb=False
+            rerun=False
             for dt in cfg_tsep_lst[cfg]:
                 params['T_SEP'] = dt
                 os.system(c51.python+' %s/avg_4D.py formfac --cfgs %d -t %d --src_set %s %s %s' \
                     %(c51.script_dir, cfg, dt, params['si'],params['sf'],params['ds']))
                 ff_file = params[f_type]+'/'+ (c51.names[f_type] % params)+'.h5'
                 if os.path.exists(ff_file):
-                    rerun_lattedb=True
-            if args.rerun_lattedb and rerun_lattedb:
+                    rerun=True
+            if args.rerun and rerun:
                 os.system(c51.python+' %s/%s %s --cfgs %d --src_set %s %s %s -r --update' \
                           %(c51.script_dir, script, f_type, cfg, params['si'],params['sf'],params['ds']))
 

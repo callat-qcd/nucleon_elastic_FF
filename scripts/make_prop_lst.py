@@ -61,6 +61,7 @@ if args.src_index:# override src index in sources and area51 files for collectio
     params['si'] = args.src_index[0]
     params['sf'] = args.src_index[1]
     params['ds'] = args.src_index[2]
+src_ext = "%d-%d" %(params['si'],params['sf'])
 
 print('RUNNING SRCS si=%d, sf=%d, ds=%d' %(params['si'],params['sf'],params['ds']))
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
@@ -94,7 +95,7 @@ params['G_RS']        = params['gpu_g_rs']
 params['C_RS']        = params['gpu_c_rs']
 params['L_GPU_CPU']   = params['gpu_latency']
 
-prop_lst = open('prop_lst_'+ens_s+'.lst','w')
+prop_lst = open('prop_lst_'+ens_s+'_Srcs'+src_ext+'.lst','w')
 for c in cfgs_run:
     no = str(c)
     params['CFG'] = no
