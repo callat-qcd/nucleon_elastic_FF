@@ -101,12 +101,13 @@ def check_ff_tslice(params,c51,srcs):
             all_files = False
         else:
             all_sizes.append(os.path.getsize(file_4D))
-    all_sizes_ratio = np.array(all_sizes) / all_sizes[0]
-    if not all(abs(r - 1) < 1.e-5 for r in all_sizes_ratio):
-        print('BAD FORMFAC_4D_TSLICE FILE SIZE(s)')
-        all_files = False
-        if params['exit_for_bad_size']:
-            sys.exit()
+    if all_files:
+        all_sizes_ratio = np.array(all_sizes) / all_sizes[0]
+        if not all(abs(r - 1) < 1.e-5 for r in all_sizes_ratio):
+            print('BAD FORMFAC_4D_TSLICE FILE SIZE(s)')
+            all_files = False
+            if params['exit_for_bad_size']:
+                sys.exit()
     return all_files
 
 def check_ff(params,c51,srcs):
@@ -119,12 +120,13 @@ def check_ff(params,c51,srcs):
             all_files = False
         else:
             all_sizes.append(os.path.getsize(formfac_4D))
-    all_sizes_ratio = np.array(all_sizes) / all_sizes[0]
-    if not all(abs(r - 1) < 1.e-5 for r in all_sizes_ratio):
-        print('BAD FORMFAC_4D FILE SIZE(s)')
-        all_files = False
-        if params['exit_for_bad_size']:
-            sys.exit()
+    if all_files:
+        all_sizes_ratio = np.array(all_sizes) / all_sizes[0]
+        if not all(abs(r - 1) < 1.e-5 for r in all_sizes_ratio):
+            print('BAD FORMFAC_4D FILE SIZE(s)')
+            all_files = False
+            if params['exit_for_bad_size']:
+                sys.exit()
     return all_files
 
 def tslice_ff(params,c51,srcs):
@@ -153,9 +155,10 @@ def check_spec_4D_tslice(params,c51,srcs):
             all_files = False
         else:
             all_sizes.append(os.path.getsize(file_4D))
-    if not all(size == all_sizes[0] for size in all_sizes):
-        print('BAD SPEC_4D_TSLICE FILE SIZE(s)')
-        all_files = False
+    if all_files:
+        if not all(size == all_sizes[0] for size in all_sizes):
+            print('BAD SPEC_4D_TSLICE FILE SIZE(s)')
+            all_files = False
     return all_files
 
 def check_spec_4D(params,c51,srcs):
@@ -168,9 +171,10 @@ def check_spec_4D(params,c51,srcs):
             all_files = False
         else:
             all_sizes.append(os.path.getsize(spec_file))
-    if not all(size == all_sizes[0] for size in all_sizes):
-        print('BAD SPEC_4D FILE SIZE(s)')
-        all_files = False
+    if all_files:
+        if not all(size == all_sizes[0] for size in all_sizes):
+            print('BAD SPEC_4D FILE SIZE(s)')
+            all_files = False
     return all_files
 
 def tslice_spec(params,c51,srcs):
