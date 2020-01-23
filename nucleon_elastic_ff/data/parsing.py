@@ -88,7 +88,7 @@ def parse_file_info(
     LOGGER.debug("Parsing info of `%s`", filename)
     for key, val in match.groupdict().items():
         LOGGER.debug("%s == %s", key, val)
-        if key in ["stype", "type", "stream", "avg", "ensemble"]:
+        if key in ["stype", "type", "stream", "avg", "ensemble", "Srcs"]:
             info[key] = val
         elif key in [
             "cfg",
@@ -98,7 +98,6 @@ def parse_file_info(
             "py",
             "pz",
             "dt",
-            "Srcs",
             "x",
             "y",
             "z",

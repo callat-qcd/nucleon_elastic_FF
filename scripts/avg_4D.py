@@ -34,14 +34,16 @@ print('ENSEMBLE:',ens_s)
 '''
     COMMAND LINE ARG PARSER
 '''
-parser = argparse.ArgumentParser(description='average phi_qq')
-parser.add_argument('data',type=str,help='what data type to average [spec formfac]?')
-parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+parser = argparse.ArgumentParser(description='average 4D spec and formfac tsliced files')
+parser.add_argument('data',        type=str,help='what data type to average [spec formfac]?')
+parser.add_argument('--cfgs',      nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-o',          default=False,action='store_const',const=True, help='overwrite? [%(default)s]')
+parser.add_argument('-v',          default=True, action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--bad_size',  default=False,action='store_const',const=True, help='exit if bad file size encountered? [%(default)s]')
+parser.add_argument('--src_set',   nargs=3,type=int,help='specify si sf ds')
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
 args = parser.parse_args()
+print('\nRunning {}'.format(argparse.ArgumentParser().prog))
 print('Arguments passed')
 print(args)
 print('')
@@ -67,6 +69,7 @@ if args.src_set:# override src index in sources and area51 files for collection
     params['ds'] = args.src_set[2]
 src_ext = "%d-%d" %(params['si'],params['sf'])
 params['SRC_SET'] = src_ext
+params['exit_for_bad_size'] = args.bad_size
 
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
 
@@ -98,9 +101,12 @@ def check_ff_tslice(params,c51,srcs):
             all_files = False
         else:
             all_sizes.append(os.path.getsize(file_4D))
-    if not all(size == all_sizes[0] for size in all_sizes):
+    all_sizes_ratio = np.array(all_sizes) / all_sizes[0]
+    if not all(abs(r - 1) < 1.e-5 for r in all_sizes_ratio):
         print('BAD FORMFAC_4D_TSLICE FILE SIZE(s)')
         all_files = False
+        if params['exit_for_bad_size']:
+            sys.exit()
     return all_files
 
 def check_ff(params,c51,srcs):
@@ -113,9 +119,12 @@ def check_ff(params,c51,srcs):
             all_files = False
         else:
             all_sizes.append(os.path.getsize(formfac_4D))
-    if not all(size == all_sizes[0] for size in all_sizes):
+    all_sizes_ratio = np.array(all_sizes) / all_sizes[0]
+    if not all(abs(r - 1) < 1.e-5 for r in all_sizes_ratio):
         print('BAD FORMFAC_4D FILE SIZE(s)')
         all_files = False
+        if params['exit_for_bad_size']:
+            sys.exit()
     return all_files
 
 def tslice_ff(params,c51,srcs):
@@ -124,14 +133,15 @@ def tslice_ff(params,c51,srcs):
         params['SRC'] = s0
         formfac_4D = params['formfac_4D'] +'/'+ (c51.names['formfac_4D'] % params)+'.h5'
         formfac_4D_tslice = params['formfac_4D_tslice'] +'/'+ (c51.names['formfac_4D_tslice'] % params)+'.h5'
-        tslice.slice_file(
-            formfac_4D,
-            formfac_4D_tslice,
-            overwrite=args.o,
-            #tslice_fact=None - we don't want to tslice for ff files
-            dset_patterns=("local_current",),
-            boundary_sign_flip=False
-            )
+        if not os.path.exists(formfac_4D_tslice):
+            tslice.slice_file(
+                formfac_4D,
+                formfac_4D_tslice,
+                overwrite=args.o,
+                #tslice_fact=None - we don't want to tslice for ff files
+                dset_patterns=("local_current",),
+                boundary_sign_flip=False
+                )
 
 def check_spec_4D_tslice(params,c51,srcs):
     all_files = True
@@ -248,7 +258,6 @@ for c in cfgs_run:
             formfac_file_4D_avg = params['formfac_4D_tslice_src_avg'] +'/'+ (c51.names['formfac_4D_tslice_src_avg'] % params)+'.h5'
             do_avg = True
             print(formfac_file_4D_avg,os.path.exists(formfac_file_4D_avg))
-            sys.exit()
             if os.path.exists(formfac_file_4D_avg) and not args.o:
                 do_avg = False
             if do_avg:

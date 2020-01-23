@@ -50,12 +50,13 @@ parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific cu
 parser.add_argument('--src_set',     nargs=3,type=int,help='specify si sf ds')
 parser.add_argument('-v',            default=True ,action='store_const',const=False,help='verbose? [%(default)s]')
 parser.add_argument('--update',      default=False,action='store_const',const=True ,help='update disk and tape entries? [%(default)s]')
-parser.add_argument('--disk_update', default=False,action='store_const',const=True ,help='update disk=exists entries? [%(default)s]')
+parser.add_argument('--disk_update', default=True ,action='store_const',const=False,help='update disk=exists entries? [%(default)s]')
 parser.add_argument('--tape_update', default=True ,action='store_const',const=False,help='update tape=exists entries? [%(default)s]')
 parser.add_argument('--save_tape',   default=True ,action='store_const',const=False,help='save files to tape? [%(default)s]')
 parser.add_argument('--debug',       default=False,action='store_const',const=True ,help='debug? [%(default)s]')
 parser.add_argument('--data',        default=True ,action='store_const',const=False,help='collect missing data? [%(default)s]')
 parser.add_argument('-r','--rerun',  default=True ,action='store_const',const=False,help='rerun lattedb after data collection? [%(default)s]')
+parser.add_argument('--bad_size',    default=False,action='store_const',const=True, help='exit if bad file size encountered? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -195,7 +196,7 @@ for cfg in cfgs:
             src = s0
             # complete this logic chain
     else:# src averaged file types
-        params['SRC'] = 'src_avg'+src_set
+        params['SRC'] = 'src_avg'
         if f_type == 'formfac_4D_tslice_src_avg':
             lattedb_ff.check_ff_4D_tslice_src_avg(params, db_entries, 
                 db_update_disk, db_new_disk, db_update_tape, db_new_tape, db_new_entry, save_to_tape, data_collect)
@@ -305,13 +306,17 @@ if args.data:
             rerun=False
             for dt in cfg_tsep_lst[cfg]:
                 params['T_SEP'] = dt
-                os.system(c51.python+' %s/avg_4D.py formfac --cfgs %d -t %d --src_set %s %s %s' \
-                    %(c51.script_dir, cfg, dt, params['si'],params['sf'],params['ds']))
+                if args.bad_size:
+                    bad_size = '--bad_size'
+                else:
+                    bad_size = ''
+                os.system(c51.python+' %s/avg_4D.py formfac --cfgs %d -t %d --src_set %s %s %s %s' \
+                          %(c51.script_dir, cfg, dt, params['si'],params['sf'],params['ds'], bad_size))
                 ff_file = params[f_type]+'/'+ (c51.names[f_type] % params)+'.h5'
                 if os.path.exists(ff_file):
                     rerun=True
             if args.rerun and rerun:
-                os.system(c51.python+' %s/%s %s --cfgs %d --src_set %s %s %s -r --update' \
+                os.system(c51.python+' %s/%s %s --cfgs %d --src_set %s %s %s -r ' \
                           %(c51.script_dir, script, f_type, cfg, params['si'],params['sf'],params['ds']))
 
         '''
