@@ -317,40 +317,60 @@ if args.data:
                     rerun=True
             if args.rerun and rerun:
                 os.system(c51.python+' %s/%s %s --cfgs %d --src_set %s %s %s -r ' \
-                          %(c51.script_dir, script, f_type, cfg, params['si'],params['sf'],params['ds']))
+                          %(c51.script_dir, script, 'formfac', cfg, params['si'],params['sf'],params['ds']))
 
-        '''
-        this was written with the idea of more db integration
-        for now, we just modified avg_4D to do all the dependent data collection
-
-        # change f_type for dependency
-        f_type = 'formfac_4D_tslice'
-        # make new lists
-        db_update_disk = []
-        db_new_disk    = []
-        db_new_entry   = []
-
-        # querry db
-        db_depend = latte_file[f_type].objects.filter(
-            ensemble = ens,
-            stream   = stream,
-            source_set = src_set,
-            configuration__in = cfgs
-            ).prefetch_related('disk')
-        if args.debug:
-            print(db_depend.to_dataframe(fieldnames=['ensemble','stream','configuration','source_set','t_separation','name','last_modified']))
+        tape_update = []
+        tape_new    = []
+        disk_update = []
+        disk_new    = []
+        tmp_new     = []
+        tmp_save    = []
+        tmp_collect = []
         for f in data_collect:
+            collected_entry = latte_file[f_type].objects.filter(name = f).prefetch_related('disk').prefetch_related('tape')
             cfg = int(f.split('_')[7])
             no  = str(cfg)
-            params['CFG']   = no
-            params['T_SEP'] = f.split('_dt')[1].split('_')[0]
-            params['t_seps'] = [params['T_SEP']]
-            # check if all srcs exist
-            all_srcs = True
-            for s0 in srcs[cfg]:
-                params['SRC']   = s0
-                lattedb_ff.check_ff_4D_tslice(params, db_depend, db_update_disk, db_new_disk, db_new_entry)
-                #if not 
-                print(params['T_SEP'],s0,db_new_entry[-1][1]['exists'])
+            params['CFG'] = no
+            params['SRC'] = 'src_avg'
+            params['t_seps'] = [dt]
+            lattedb_ff.check_ff_4D_tslice_src_avg(params, collected_entry, 
+                disk_update, disk_new, tape_update, tape_new, tmp_new, tmp_save, tmp_collect)
+        if len(tape_new) > 0:
+            try:
+                tape_push = []
+                for tt in db_new_tape:
+                    tape_push.append(latte_tape[f_type](**tt))
+                latte_tape[f_type].objects.bulk_create(tape_push)
+            except Exception as e:
+                print(e)
+                print('you messed up bulk TAPE create')
+        if len(disk_new) > 0:
+            try:
+                disk_push = []
+                for dd in db_new_disk:
+                    disk_push.append(latte_disk[f_type](**dd))
+                latte_disk[f_type].objects.bulk_create(disk_push)
+            except Exception as e:
+                print(e)
+                print('you messed up bulk DISK create')
+        if len(disk_update) > 0:
+            disk_push = []
+            for ff,dd in tqdm(db_update_disk):
+                # this is slow cause we querry the DB for each entry
+                f = db_entries.filter(**ff).first()
+                d = f.disk
+                for k,v in dd.items():
+                    setattr(d,k,v)
+                disk_push.append(d)
+            latte_disk[f_type].objects.bulk_update(disk_push,fields=list(dd.keys()))
+        if len(tape_update) > 0:
+            tape_push = []
+            for ff,tt in tqdm(db_update_tape):
+            # this is slow cause we querry the DB for each entry
+                f = db_entries.filter(**ff).first()
+                t = f.tape
+                for k,v in tt.items():
+                    setattr(t,k,v)
+                tape_push.append(t)
+            latte_tape[f_type].objects.bulk_update(tape_push,fields=list(tt.keys()))
 
-        '''

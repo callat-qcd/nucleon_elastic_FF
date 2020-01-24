@@ -261,20 +261,20 @@ for c in cfgs_run:
             formfac_file = params['formfac'] +'/'+ formfac_name+'.h5'
             formfac_file_4D_avg = params['formfac_4D_tslice_src_avg'] +'/'+ (c51.names['formfac_4D_tslice_src_avg'] % params)+'.h5'
             do_avg = True
-            print(formfac_file_4D_avg,os.path.exists(formfac_file_4D_avg))
+            print(os.path.exists(formfac_file_4D_avg), formfac_file_4D_avg)
             if os.path.exists(formfac_file_4D_avg) and not args.o:
                 do_avg = False
             if do_avg:
+                # check if all tslice files exist
                 run_avg = check_ff_tslice(params,c51,srcs[c])
                 if not run_avg:
                     have_ff = check_ff(params,c51,srcs[c])
                     if have_ff:
                         print('  have all formfac_4D files - trying to tslice')
                         tslice_ff(params,c51,srcs[c])
-                        #os.system(c51.python+' %s/tslice_4D.py formfac --cfgs %s' %(c51.script_dir, no))
+                        # check if all tslice files exist after running tslice
                         run_avg = check_ff_tslice(params,c51,srcs[c])
                 if run_avg:
-                    #d_dir = params['prod']+'/'+args.data+'_4D_tslice/'+no
                     d_dir = params['formfac_4D_tslice']
                     #average.source_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext, additional_file_patterns='dt'+str(t)+'_')
                     average.source_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], additional_file_patterns='dt'+str(t)+'_')
@@ -301,6 +301,7 @@ for c in cfgs_run:
                 '''
             else:
                 print('overwrite =',args.o,' and exists:',args.o,formfac_file_4D_avg.split('/')[-1])
+            print(os.path.exists(formfac_file_4D_avg), formfac_file_4D_avg)
     if args.data == 'spec_full':
         # does avg file exist already?
         params['SRC'] = 'src_avg'+src_ext
