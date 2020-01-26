@@ -93,75 +93,49 @@ else:
 print('getting t_sep values')
 print(params['t_seps'])
 
+missing_ff_files = []
 for cfg in cfgs_run:
     no = str(cfg)
     print(no)
+    try:
+        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','r')
+        have_data_cfg = True
+    except:
+        have_data_cfg = False
     params['CFG'] = no
     params = c51.ensemble(params)
     for tsep in params['t_seps']:
-        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
         params['T_SEP'] = tsep
-        files = []
         params['N_SEQ'] = len(srcs[cfg])
         if ens_s == 'a15m310Lindvdl_a':
             params['N_SEQ'] = 1
         for src in srcs[cfg]:
             params['SRC'] = src
-            ff_name = c51.names['formfac'] % params
-            ff_file = params['formfac'] +'/'+ ff_name+'.h5'
-            utils.check_file(ff_file,params['ff_size'],params['file_time_delete'],params['corrupt'])
-            if os.path.exists(ff_file):
-                files.append(ff_file)
-        for ftmp in files:
-            print(ftmp)
-            f_in = h5.open_file(ftmp,'r')
-            src = ftmp.split('_')[-2].split('.')[0]
             src_split = sources.src_split(src)
             t_src = src.split('t')[1]
-            mq = params['MQ'].replace('.','p')
-            ff_dir = '/'+val_p+'/formfac/ml'+mq
-            for corr in params['particles']:
-                dt = str(tsep)
-                if '_np' in corr:
-                    dt = '-'+dt
-                for fs in flav_spin:
-                    ff_in  = corr+'_'+fs+'_t0_'+t_src+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
-                    ff_out = corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
-                    for curr in params['curr_0p']:
-                        p_lst = ['px0_py0_pz0']
-                        get_data = True
-                        for mom in p_lst:
-                            try:
-                                f5.create_group(ff_dir+'/'+ff_out+'/'+curr,mom,createparents=True)
-                                f5.flush()
-                            except:
-                                pass
-                            mom_dir = ff_dir+'/'+ff_out+'/'+curr+'/'+mom
-                            if src in f5.get_node(mom_dir) and not args.o:
-                                get_data = False
-                        if get_data:
+            ff_name = c51.names['formfac'] % params
+            ff_file = params['formfac'] +'/'+ ff_name+'.h5'
+            if not have_data_cfg:
+                missing_ff_files.append(no+'/'+ff_name)
+            else:
+                mq = params['MQ'].replace('.','p')
+                ff_dir = '/'+val_p+'/formfac/ml'+mq
+                for corr in params['particles']:
+                    dt = str(tsep)
+                    if '_np' in corr:
+                        dt = '-'+dt
+                    for fs in flav_spin:
+                        ff_out = corr+'_'+fs+'_tsep_'+dt+'_sink_mom_px0_py0_pz0'
+                        for curr in params['curr_0p']:
+                            p_lst = ['px0_py0_pz0']
                             for mom in p_lst:
-                                d_path = '/'+ff_in+'/'+curr+'/'+src_split+'/'+mom+'/local_current'
-                                mom_dir = ff_dir+'/'+ff_out+'/'+curr+'/'+mom
-                                if args.v: print(no,ff_in,'%10s' %curr,mom,src)
-                                '''
-                                data = f_in.get_node(d_path).read()
-                                if not np.any(np.isnan(data)):
-                                    if src not in f5.get_node(mom_dir):
-                                        f5.create_array(mom_dir,src,data)
-                                        print('  fresh    ',ff,no,curr,mom,src)
-                                    elif src in f5.get_node(mom_dir) and args.o:
-                                        f5.get_node(mom_dir+'/'+src)[:] = data
-                                        print('  replace  ',ff,no,curr,mom,src)
-                                    elif src in f5.get_node(mom_dir) and not args.o:
-                                        print('  skipping ',ff,': overwrite = False',no,curr,mom,src)
-                                '''
-                                utils.get_write_h5_ff_data(f_in,f5,d_path,mom_dir,src,overwrite=args.o)
-                                f5.flush()
-                        else:
-                            print(ff_in,curr)
-                            print('    data exists and overwrite=False')
-            f_in.close()
-            #print('I/O break: 1 second')
-            #time.sleep(1)
-        f5.close()
+                                h5_data = ff_dir+'/'+ff_out+'/'+curr+'/'+mom+'/'+src
+                                if h5_data not in f5.get_node('/'):
+                                    if ff_file not in missing_ff_files:
+                                        missing_ff_files.append(ff_file)
+    if have_data_cfg: f5.close()
+tmp = open('missing_check_formfac.lst','w')
+for f in missing_ff_files:
+    print(f)
+    tmp.write(f+'\n')
+tmp.close()
