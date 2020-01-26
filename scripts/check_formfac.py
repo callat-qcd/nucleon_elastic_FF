@@ -39,7 +39,7 @@ parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [def
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('--move',default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
 parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -60,10 +60,10 @@ if 'si' in params and 'sf' in params and 'ds' in params:
     params['ds'] = tmp_params['ds']
 else:
     params = sources.src_start_stop(params,ens,stream)
-if args.src_index:# override src index in sources and area51 files for collection
-    params['si'] = args.src_index[0]
-    params['sf'] = args.src_index[1]
-    params['ds'] = args.src_index[2]
+if args.src_set:# override src index in sources and area51 files for collection
+    params['si'] = args.src_set[0]
+    params['sf'] = args.src_set[1]
+    params['ds'] = args.src_set[2]
 src_ext = "%d-%d" %(params['si'],params['sf'])
 params['SRC_SET'] = src_ext
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
@@ -131,11 +131,16 @@ for cfg in cfgs_run:
                             for mom in p_lst:
                                 h5_data = ff_dir+'/'+ff_out+'/'+curr+'/'+mom+'/'+src
                                 if h5_data not in f5.get_node('/'):
-                                    if ff_file not in missing_ff_files:
-                                        missing_ff_files.append(ff_file)
-    if have_data_cfg: f5.close()
-tmp = open('missing_check_formfac.lst','w')
-for f in missing_ff_files:
-    print(f)
-    tmp.write(f+'\n')
-tmp.close()
+                                    if no+'/'+ff_name not in missing_ff_files:
+                                        missing_ff_files.append(no+'/'+ff_name)
+    if have_data_cfg: 
+        f5.close()
+    else:
+        print('missing ',data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5')
+
+if len(missing_ff_files) > 0:
+    print('missing some files')
+    tmp = open('missing_check_formfac_Srcs'+src_ext+'.lst','w')
+    for f in missing_ff_files:
+        tmp.write(f+'\n')
+    tmp.close()
