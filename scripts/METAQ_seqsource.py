@@ -31,19 +31,21 @@ params['METAQ_PROJECT'] = 'seqsource_'+ens_s
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] run cfg number')
-parser.add_argument('-s','--src',type=str)
-parser.add_argument('-o',default=False,action='store_const',const=True,\
-    help='overwrite xml and metaq files? [%(default)s]')
-parser.add_argument('--mtype',default='cpu',help='specify metaq dir [%(default)s]')
+parser.add_argument('cfgs',        nargs='+',type=int,help='start [stop] run cfg number')
+parser.add_argument('-s','--src',  type=str)
+parser.add_argument('--mtype',     default='cpu',help='specify metaq dir [%(default)s]')
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
-parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
+parser.add_argument('--src_set',   nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('-o',             default=False,action='store_const',const=True,\
+    help='overwrite xml and metaq files? [%(default)s]')
+parser.add_argument('--redo',         default=False,action='store_const',const=True, \
+    help='remake even if 4D_tslice or 4D_tslice_src_avg exists? [%(default)s]')
+parser.add_argument('-d','--debug',   default=False,action='store_const',const=True,\
     help='run DEBUG? [%(default)s]')
 parser.add_argument('-p','--priority',default=False,action='store_const',const=True,\
     help='put task in priority? [%(default)s]')
-parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
+parser.add_argument('-v','--verbose', default=True, action='store_const',const=False,\
     help='run with verbose output? [%(default)s]')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -71,13 +73,13 @@ if args.src_set:# override src index in sources and area51 files for collection
 else:
     src_args = ''
 src_ext = "%d-%d" %(params['si'],params['sf'])
+params['SRC_SET'] = src_ext
 
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 if args.src:
     params['N_SEQ'] = len(range(params['si'],params['sf']+params['ds'],params['ds']))
 else:
     params['N_SEQ'] = len(srcs[cfgs_run[0]])
-params['SRC_SET'] = src_ext
 
 if args.priority:
     q = 'priority'
@@ -85,6 +87,11 @@ if args.priority:
 else:
     q = 'todo'
     params['PRIORITY'] = ''
+
+if args.redo:
+    redo = '--redo'
+else:
+    redo = ''
 
 nt = int(params['NT'])
 nl = int(params['NL'])
@@ -280,7 +287,7 @@ for c in cfgs_run:
                                 params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                                 params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                                 params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_seqprop.py '
-                                params['CLEANUP']  += params['CFG']+' '+src_args+' '+params['PRIORITY']+'\n'
+                                params['CLEANUP']  += params['CFG']+' '+src_args+' '+redo+' '+params['PRIORITY']+'\n'
                                 params['CLEANUP']  += '    sleep 5\n'
                                 params['CLEANUP']  += 'else\n'
                                 params['CLEANUP']  += '    echo "mpirun failed"\n'
