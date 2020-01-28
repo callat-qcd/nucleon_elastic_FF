@@ -49,6 +49,12 @@ params['spec_size'] = 43000
 params['hyperspec_size'] = 383680
 params['ff_size']   = 429000
 params['spec_4D_tslice_fact'] = 0.5
+params['src_size']     = 8153728000
+params['prop_size']    = 8153729000
+params['prop_size_h5'] = 8153729000
+params['seqsrc_size']  = 8153734000
+params['seqprop_size'] = 8153736000
+
 
 params['MAX_ITER']   = '17000'
 params['RSD_TARGET'] = '1.e-7'
