@@ -152,8 +152,11 @@ for cfg in cfgs_run:
                                         missing_ff_files.append(ff_file)
                                     elif not os.path.exists(ff_file) and ff_file in missing_ff_files:
                                         pass
+                                    elif os.path.exists(ff_file) and ff_file in collect_files:
+                                        pass
                                     else:
-                                        print('CONFUSED',ff_file)
+                                        print('CONFUSED')
+                                        print(os.path.exists(ff_file),ff_file.split('/')[-1])
     if have_data_cfg: 
         f5.close()
     else:
@@ -168,12 +171,12 @@ if len(missing_ff_files) > 0:
     tmp.close()
 
 if len(collect_files) > 0:
-    print('collect these data sets')
+    print('collect %d data sets' %(len(collect_files)))
     time.sleep(2)
     tmp = open('collect_formfac_Srcs'+src_ext+'.lst','w')
     for f in collect_files:
         no,ff = f.split('/')[-2],f.split('/')[-1]
-        print(no,ff)
+        #print(no,ff)
         tmp.write(no+'/'+ff+'\n')
     tmp.close()
 

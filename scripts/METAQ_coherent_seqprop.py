@@ -221,7 +221,8 @@ for c in cfgs_run:
                                 params['SRC'] = s0
                                 seqsrc_name = c51.names['seqsrc'] %params
                                 seqsrc_file = params['seqsrc']+'/'+seqsrc_name+'.'+params['SP_EXTENSION']
-                                utils.check_file(seqsrc_file,seqprop_size,params['file_time_delete'],params['corrupt'])
+                                seqsrc_size = params['seqsrc_size']
+                                utils.check_file(seqsrc_file,seqsrc_size,params['file_time_delete'],params['corrupt'])
                                 if not os.path.exists(seqsrc_file):
                                     if args.verbose:
                                         print('    missing sink',seqsrc_file)
