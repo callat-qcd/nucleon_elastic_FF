@@ -1,0 +1,63 @@
+prompt 0
+nx %(NL)s
+ny %(NL)s
+nz %(NL)s
+nt %(NT)s
+iseed %(SEED)s
+job_id %(JOBID)s
+
+######################################################################
+# source time 0
+######################################################################
+
+# Gauge field description
+
+reload_serial %(milc_cfg)s
+u0 %(U0)s
+forget
+staple_weight 0
+ape_iter 0
+coordinate_origin 0 0 0 0
+time_bc antiperiodic
+
+max_number_of_eigenpairs 0
+
+# Chiral condensate and related measurements
+
+number_of_sets 2
+
+# Parameters common to all members of set 0
+
+npbp_reps %(NPBP_REPS_S)s
+max_cg_iterations 3000
+max_cg_restarts 5
+prec_pbp 2
+
+number_of_pbp_masses 1
+
+mass %(MS)s
+naik_term_epsilon 0
+error_for_propagator 1e-9
+rel_error_for_propagator 0
+
+# Parameters common to all members of set 1
+
+npbp_reps %(NPBP_REPS_C)s
+max_cg_iterations 3000
+max_cg_restarts 5
+prec_pbp 2
+
+# Number of masses in this set
+
+number_of_pbp_masses 2
+
+mass %(MC)s
+naik_term_epsilon %(NAIK_C)s
+error_for_propagator 0
+rel_error_for_propagator 1e-8
+mass %(MC)s
+naik_term_epsilon %(NAIK_C_PHYS)s
+error_for_propagator 0
+rel_error_for_propagator 1e-8
+
+
