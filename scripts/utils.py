@@ -187,3 +187,78 @@ def mom_avg(h5_data,state,mom_lst,weights=False):
     else:
         d_avg = np.mean(d_lst,axis=0)
     return d_avg
+
+'''
+Function to obtained tslice values from the stdout output file for quark loops computed with the milc code
+The lines format is
+  PBP: mass 6.730000e-02     tslice 14 1.754393e-03  1.786215e-03  -2.306500e-05  -1.151786e-04 ( 6 of 200 )
+'''
+def getLineInfo(l):
+    line=l.split()
+    tsum=None
+    if 'PBP:' and 'tslice' in line:
+        mass,tslice,valEven,valOdd,valEvenIm,valOddIm,npbp=float(line[2]),int(line[4]),\
+                                          float(line[5]),float(line[6]),float(line[7]),float(line[8]),int(line[-4])
+    else:
+        mass,tslice,valEven,valOdd,valEvenIm,valOddIm,npbp=None,None,None,None,None,None,None
+        if 'PBP:' in line:
+            mass,tsum,npbp=float(line[2]),[float(line[3]),float(line[4])],int(line[-4])
+    return mass,tslice,valEven,valOdd,valEvenIm,valOddIm,tsum,npbp
+
+
+'''
+
+Function get the quark loop data sets from the stdout output file for quark loops computed with the milc code
+The lines format is
+  PBP: mass 6.730000e-02     tslice 14 1.754393e-03  1.786215e-03  -2.306500e-05  -1.151786e-04 ( 6 of 200 )
+'''
+def getLoopDataTextFromFile(fname):
+    text=open(fname).read()
+
+    newSetLine='Turning ON boundary phases 0 0 0 0 to FN links r0 0 0 0 0'
+    npbpEndLine='new npbp or new mass'
+    
+    #Split the text in measurement sets for each quark mass
+    setSplitText=text.split(newSetLine)[1::]
+    dataSets,set_npbp=[],[]
+    for i,iset in enumerate(setSplitText):
+        tempText=''
+        for x in iset.split('\n'):
+            if 'PBP: mass ' in x:
+                tempText+=x+'\n'
+            if 'FACTION: mass =' in x:
+                tempText+=npbpEndLine+'\n'
+        tempSet=tempText.split(npbpEndLine)[0:-1]
+        set_npbp.append(int(tempSet[0].split()[-2]))
+
+        '''
+         If there are more than one set for a given quark mass with different naik values,
+         the sets must be split in the following if block.
+        ''' 
+        if len(tempSet) != set_npbp[i]:
+            inds=[]
+            for j in range(int(len(tempSet)/set_npbp[i])):
+                inds.append(np.arange(0+j,int(len(tempSet)),int(len(tempSet)/set_npbp[i])))
+                dataSets.append(np.array(tempSet)[inds[j]])
+        else:
+            dataSets.append(np.array(tempSet))
+
+    return dataSets,set_npbp
+
+'''
+Construct arrays with quark loops data sets
+'''
+def getLoopData(dataSets,NT):
+    data,dataSum=[],[]
+    for i in range(len(dataSets)):
+        data.append(np.zeros(shape=(dataSets[i].shape[0],NT,4)))
+        dataSum.append(np.zeros(shape=(dataSets[i].shape[0],2)))
+        for nTex in dataSets[i]:
+            for k,l in enumerate(nTex.split('\n')):
+               lmass,tsl,valEven,valOdd,valEvenIm,valOddIm,ltsum,npbp=getLineInfo(l)
+               if tsl is not None:
+                   data[i][npbp-1][tsl]=np.array([valEven,valOdd,valEvenIm,valOddIm])
+               else:
+                   if l!='':
+                       dataSum[i][npbp-1]=np.array(ltsum)
+    return data,dataSum

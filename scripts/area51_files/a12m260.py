@@ -17,11 +17,14 @@ params['U0']   = '0.86372'
 params['MS_L'] = '0.00717'
 params['MS_S'] = '0.0507'
 params['MS_C'] = '0.628'
-params['NAIK'] = ''
+#params['NAIK'] = ''
 params['save_hisq_prop'] = False
 params['cfg_i'] = 100    #*
 params['cfg_f'] = 5295   #*
 params['cfg_d'] = 5
+params['NPBP_REPS_S']='64'
+params['NPBP_REPS_C']='256'
+
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'

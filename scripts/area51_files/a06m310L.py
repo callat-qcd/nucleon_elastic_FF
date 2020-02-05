@@ -15,6 +15,9 @@ params['run_strange'] = True
 params['cfg_i'] = 103
 params['cfg_f'] = 3103
 params['cfg_d'] = 6
+params['NPBP_REPS_S']='64'
+params['NPBP_REPS_C']='256'
+
 
 params['ENS_ABBR'] = 'a06m310L'
 params['ENS_LONG'] = 'l7296f211b630m0048m024m286'

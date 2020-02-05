@@ -17,6 +17,9 @@ params['MS_C'] = '0.635'
 params['cfg_i'] = 300
 params['cfg_f'] = 5560
 params['cfg_d'] = 5
+params['NPBP_REPS_S']='64'
+params['NPBP_REPS_C']='256'
+params['NAIK']='-0.2290070'
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'

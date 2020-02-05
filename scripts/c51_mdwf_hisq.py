@@ -72,7 +72,7 @@ ens_long = {
     'a12m220XL':'l4864f211b600m00507m0507m628',
     'a12m180L' :'l4864f211b600m00339m0507m628',
     'a12m130'  :'l4864f211b600m00184m0507m628',
-    'a12m135XL':'',
+    'a12m135XL':'l7296f211b600m001907m05252m6382',
     'a09m400'  :'l3264f211b630m0124m037m440',
     'a09m350'  :'l3264f211b630m00945m037m440',
     'a09m310'  :'l3296f211b630m0074m037m440',
@@ -80,6 +80,7 @@ ens_long = {
     'a09m220'  :'l4896f211b630m00363m0363m430',
     'a09m130'  :'l6496f211b630m0012m0363m432',
     'a09m135'  :'l6496f211b630m001326m03636m4313',
+    'a09m135XL':'l96128f211b630m001326m03636m4313',
     'a06m310L' :'l7296f211b672m0048m024m286',
     }
 
@@ -151,3 +152,5 @@ names['formfac_4D_tslice_src_avg'] = names['formfac'].replace('formfac','formfac
 
 names['mixed_corr']       = 'dwf_hisq_spec_%(ENS_S)s_wflow%(FLOW_TIME)s_M5%(M5)s_L5%(L5)s'
 names['mixed_corr']      += '_a%(alpha5)s_cfg_%(CFG)s_src%(SRC)s_%(SMR)s_ml%(MQ_L)s_ms%(MQ_S)s.corr'
+names['strange_charm_loops']='strange_charm_loops_hisq_%(ENS_S)s_ms%(MS)s_n%(NPBP_REPS_S)s_mc%(MC)s_n%(NPBP_REPS_C)s_%(CFG)s'
+

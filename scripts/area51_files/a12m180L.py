@@ -26,6 +26,9 @@ params['save_hisq_prop'] = False
 params['cfg_i'] = 800    # could possibly go lower
 params['cfg_f'] = 1795   #*
 params['cfg_d'] = 5
+params['NPBP_REPS_S']='64'
+params['NPBP_REPS_C']='256'
+
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
