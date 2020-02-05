@@ -18,11 +18,14 @@ params['U0']   = '0.85535'
 params['MS_L'] = '0.00894'
 params['MS_S'] = '0.064'
 params['MS_C'] = '0.828'
-params['NAIK'] = ''
+params['NAIK'] = '-0.3483783'
 params['save_hisq_prop'] = False
 params['cfg_i'] = 300    #* should start at 300 to have a total of 1000 cfgs
 params['cfg_f'] = 5295   #*
 params['cfg_d'] = 5
+params['NPBP_REPS_S']='64'
+params['NPBP_REPS_C']='256'
+
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'

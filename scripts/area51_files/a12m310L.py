@@ -17,6 +17,7 @@ params['MS_C'] = '0.635'
 params['cfg_i'] = 300
 params['cfg_f'] = 5295
 params['cfg_d'] = 5
+params['NAIK'] = '-0.2290070'
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'

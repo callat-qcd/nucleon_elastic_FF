@@ -10,6 +10,9 @@ params['run_ff'] = True
 params['cfg_i'] = 300
 params['cfg_f'] = 4998
 params['cfg_d'] = 6
+params['NPBP_REPS_S']='64'
+params['NPBP_REPS_C']='256'
+
 
 params['ENS_ABBR'] = 'a09m310'
 params['ENS_LONG'] = 'l3296f211b630m0074m037m440'
@@ -19,6 +22,7 @@ params['U0']   = '0.874164'
 params['MS_L'] = '0.0074'
 params['MS_S'] = '0.037'
 params['MS_C'] = '0.440'
+params['NAIK']='-0.1201845'
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'

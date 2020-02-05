@@ -19,11 +19,14 @@ params['U0']   = '0.874164'
 params['MS_L'] = '0.0052'
 params['MS_S'] = '0.0363'
 params['MS_C'] = '0.430'
-params['NAIK'] = ''
+params['NAIK'] = '-0.1152147'
 params['save_hisq_prop'] = False
 params['cfg_i'] = 1904    #* started hisq spectrum on this
 params['cfg_f'] = 3902   #*
 params['cfg_d'] = 6
+params['NPBP_REPS_S']='64'
+params['NPBP_REPS_C']='256'
+
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
