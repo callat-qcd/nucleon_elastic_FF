@@ -179,7 +179,21 @@ for c in cfgs_run:
                     have_ff_src_avg=False
                 # check if ff and ff_4D exists and are right size
                 utils.check_file(ff_4D_file,coherent_ff_size_4d,params['file_time_delete'],params['corrupt'],debug=args.debug)
-                utils.check_file(ff_file,params['ff_size'],params['file_time_delete'],params['corrupt'],debug=args.debug)
+                utils.check_file(ff_file,   params['ff_size'],  params['file_time_delete'],params['corrupt'],debug=args.debug)
+                # if ff exists and not ff_4D and vice versa, remove the other
+                if os.path.exists(ff_file) and not os.path.exists(ff_4D_file):
+                    now = time.time()
+                    file_time = os.stat(ff_file).st_mtime
+                    if (now-file_time)/60 > params['file_time_delete']:
+                        print('MOVING TO CORRUPT:',ff_file)
+                        shutil.move(ff_file,params['corrupt']+'/'+ff_file.split('/')[-1])
+                if os.path.exists(ff_4D_file) and not os.path.exists(ff_file):
+                    now = time.time()
+                    file_time = os.stat(ff_4D_file).st_mtime
+                    if (now-file_time)/60 > params['file_time_delete']:
+                        print('MOVING TO CORRUPT:',ff_4D_file)
+                        shutil.move(ff_4D_file,params['corrupt']+'/'+ff_4D_file.split('/')[-1])
+                #
                 if not os.path.exists(ff_file) or not os.path.exists(ff_4D_file):
                     have_ff_data=False
         if have_ff_src_avg:
@@ -188,6 +202,11 @@ for c in cfgs_run:
                 print(ff_4D_tslice.split('/')[-1])
                 print(ff_4D_tslice_avg.split('/')[-1])
 
+        if args.debug:
+            print('have_ff_data',have_ff_data)
+            print('have_ff_src_avg',have_ff_src_avg)
+            print('args.redo',args.redo)
+            sys.exit()
         if not have_ff_data and (not have_ff_src_avg or args.redo):
             # if missing formfac files, check if seqrop files exist
             have_all_seqprops=True

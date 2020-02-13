@@ -59,6 +59,9 @@ if args.src_index:# override src index in sources and area51 files for collectio
     params['si'] = args.src_index[0]
     params['sf'] = args.src_index[1]
     params['ds'] = args.src_index[2]
+src_ext = "%d-%d" %(params['si'],params['sf'])
+params['SRC_SET'] = src_ext
+
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
 
 nt = int(params['NT'])
