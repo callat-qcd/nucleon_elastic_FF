@@ -35,6 +35,7 @@ setup(
             "h5fft=nucleon_elastic_ff.data.scripts.fft:main",
             "h5concat=nucleon_elastic_ff.data.scripts.concat:main",
             "h5avg=nucleon_elastic_ff.data.scripts.average:main",
+            "h5migrate=nucleon_elastic_ff.data.scripts.h5migrate:main",
         ]
     },
     setup_requires=["pytest-runner"],
