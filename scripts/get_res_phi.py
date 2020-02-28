@@ -84,6 +84,7 @@ else:
 print('MINING MRES and PHI_QQ')
 print('ens_stream = ',ens_s)
 print('srcs:',src_ext)
+print('data dir',data_dir)
 
 for cfg in cfgs_run:
     no = str(cfg)
