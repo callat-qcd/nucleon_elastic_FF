@@ -41,11 +41,12 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.00617'
 params['MV_S'] = '0.0309'
 
-params['spec_size'] = 51312
-params['ff_size']   = 1
+params['spec_size']      = 51312
+params['ff_size']        = 1
 params['hyperspec_size'] = 486080
-params['src_size']     = 41278244000
-params['prop_size']    = 41278245000
+params['mixed_size']     = 48000
+params['src_size']       = 41278244800
+params['prop_size']      = 41278245000
 #params['seqsrc_size']  = 28991036000
 #params['seqprop_size'] = 28991036000
 
@@ -88,23 +89,23 @@ params['OMP_NUM_THREADS'] = '4'
 
 def mpirun_params(machine):
     if machine == 'lassen':
-        params['cpu_nodes']   = 8
+        params['cpu_nodes']   = 4
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 25
         params['src_time']    = 5
         params['spec_time']   = 10
 
-        params['cpu_nrs']     = '--nrs 16'
+        params['cpu_nrs']     = '--nrs 8'
         params['cpu_rs_node'] = '-r2'
-        params['cpu_a_rs']    = '-a18'
+        params['cpu_a_rs']    = '-a16'
         params['cpu_g_rs']    = ''
-        params['cpu_c_rs']    = '-c18'
+        params['cpu_c_rs']    = '-c16'
         params['cpu_latency'] = '-l cpu-cpu'
-        params['cpu_bind']    = 'lassen_bind_cpu.N36.sh'
+        params['cpu_bind']    = 'lassen_bind_cpu.N32.sh'
 
         params['gpu_nodes']   = 8
-        params['gpu_metaq_nodes'] = 0
+        params['gpu_metaq_nodes'] = 8
         params['gpu_gpus']    = 32
         params['gpu_maxcus']  = 1
         params['prop_time']   = 33

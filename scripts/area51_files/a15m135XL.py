@@ -45,9 +45,10 @@ params['MV_L'] = '0.00237'
 #params['MV_S'] = '0.0946'
 params['MV_S'] = '0.0945'
 
-params['spec_size'] = 43000
+params['spec_size']      = 43000
 params['hyperspec_size'] = 383680
-params['ff_size']   = 429000
+params['ff_size']        = 429000
+params['mixed_size']     = 37700
 params['spec_4D_tslice_fact'] = 0.5
 
 params['MAX_ITER']   = '17000'
@@ -97,13 +98,14 @@ params['queue'] = 'metaq'
 params['OMP_NUM_THREADS'] = '4'
 
 def mpirun_params(machine):
-    if machine == 'lassen':
-        params['cpu_nodes']   = 3
+    if machine == 'lassen':# 4 nodes
+        params['cpu_nodes']   = 4
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 25
         params['src_time']    = 5
         params['spec_time']   = 10
+        params['mixed_mesons_time']   = 30
 
         params['cpu_nrs']     = '--nrs 8'
         params['cpu_rs_node'] = '-r2'
@@ -113,9 +115,9 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = 'lassen_bind_cpu.N36.sh'
 
-        params['gpu_nodes']   = 3
+        params['gpu_nodes']   = 4
         params['gpu_metaq_nodes'] = 0
-        params['gpu_gpus']    = 12
+        params['gpu_gpus']    = 16
         params['gpu_maxcus']  = 1
         params['prop_time']   = 150
         params['seqprop_time']    = 80
@@ -131,9 +133,9 @@ def mpirun_params(machine):
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
 
-        params['hisq_nodes']  = 3
+        params['hisq_nodes']  = 4
         params['hisq_metaq_nodes'] = 0
-        params['hisq_gpus']   = 12
+        params['hisq_gpus']   = 16
         params['hisq_coul_spec'] = 16
         params['hisq_spec']   = 4
         params['hisq_maxcus'] = 1
@@ -144,7 +146,7 @@ def mpirun_params(machine):
         params['hisq_g_rs']    = '-g4'
         params['hisq_c_rs']    = '-c4'
         params['hisq_latency'] = '-l gpu-cpu'
-        params['hisq_geom']    = ' -geom 1 1 1 16 -qmp-geom 1 1 1 16 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
+        params['hisq_geom']    = '-qmp-geom 1 1 2 8 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
     if machine == 'lassen_3node':

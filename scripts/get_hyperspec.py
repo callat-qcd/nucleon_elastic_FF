@@ -162,7 +162,7 @@ for cfg in cfgs_run:
             for s in spin_dict[corr]:
                 if src not in f5.get_node(spec_dir+'/'+corr+'/'+s):
                     get_data = True
-                if args.o and src in f5.get_node(spec_dir+'/'+sorr+'/'+s):
+                if args.o and src in f5.get_node(spec_dir+'/'+corr+'/'+s):
                     get_data = True
             if get_data:
                 fin = h5.open_file(ftmp,'r')

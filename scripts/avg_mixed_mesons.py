@@ -41,8 +41,9 @@ parser.add_argument('-o',default=False,action='store_const',const=True,help='ove
 parser.add_argument('--fin',type=str,help='directory to input (which is get script output), need to end with /, leave empty for production')
 parser.add_argument('--fout',type=str,help='directory to output, need to end with /, leave empty for production')
 parser.add_argument('--complete',default='avg_meson_complete.txt',type=str,help='avg_meson ml, ms, cfg complete text file')
-parser.add_argument('--mfix',default=False,action='store_const',const=True,help='mixed-fix? [%(default)s]')
-parser.add_argument('--abs',default=False,action='store_const',const=True,help='mixed-abs? [%(default)s]')
+parser.add_argument('--mfix',    default=False,action='store_const',const=True,help='mixed-fix? [%(default)s]')
+parser.add_argument('--abs',     default=False,action='store_const',const=True,help='mixed-abs? [%(default)s]')
+parser.add_argument('--sign',    default=False,action='store_const',const=True,help='add sign based on even/oddness of src? [%(default)s]')
 
 args = parser.parse_args()
 print('Arguments passed')
@@ -86,6 +87,7 @@ print ('ms:', mv_s)
 fin_dir = data_dir
 # output dir
 if not args.fout:
+    if not os.path.exists( data_dir+'/avg'): os.makedirs( data_dir+'/avg')
     f_out = data_dir+'/avg/mixed_'+ens_s+'_avg.h5'
 else:
     f_out = args.fout
@@ -109,7 +111,7 @@ print( 'no cfgs = %d' %len(cfgs_run))
 
 # MIXED STATES
 mixed_states = [
-    'phi_jj_5','phi_jr_5','phi_rr_5',
+    #'phi_jj_5','phi_jr_5','phi_rr_5',
     'phi_ju','phi_uj',
     'phi_js','phi_sj',
     'phi_ru','phi_ur',
@@ -142,6 +144,7 @@ for state in states:
                     print('%s: more than 1 source found'%(no))
             fin.close()
         except Exception as e:
+            print('checking cfg %s' %no)
             print(e)
             all_cfgs = False
             
@@ -156,7 +159,15 @@ for state in states:
             ns = 0
             tmp = []
             for src in srcs:
-                tmp.append(src.read())
+                if args.sign:
+                    src_loc = src._v_name
+                    x0 = int(src_loc.split('x')[1].split('y')[0])
+                    y0 = int(src_loc.split('y')[1].split('z')[0])
+                    z0 = int(src_loc.split('z')[1].split('t')[0])
+                    t0 = int(src_loc.split('t')[1])
+                    tmp.append( (-1)**(x0+y0+z0+t0) * src.read())
+                else:
+                    tmp.append(src.read())
                 ns += 1
             if ns != 1:
                 print('cfg %d: Ns = %d: %s %s' %(cfg,ns,val,state))

@@ -120,6 +120,9 @@ for c in cfgs_run:
     scidac_cfg = params['scidac_cfg']
     cfg_flow   = params['ENS_LONG']+stream+'.'+no+'_wflow'+params['FLOW_TIME']
     cfg_file   = params['flowed_cfg']
+    if args.debug:
+        print(cfg_file)
+        sys.exit()
 
     if os.path.exists(cfg_file):
         params['CFG_FILE'] = cfg_file
