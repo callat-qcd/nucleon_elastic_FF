@@ -1,5 +1,5 @@
 from __future__ import print_function
-import os, sys, argparse, shutil, datetime, time
+import os, sys, argparse, shutil, datetime, time, subprocess
 import numpy as np
 np.set_printoptions(linewidth=180)
 import tables as h5
@@ -63,97 +63,43 @@ for cfg in cfgs_run:
     params = c51.ensemble(params)
     wflow_file = params['prod']+'/gauge/'+params['ENS_LONG']+params['STREAM']+'.gflow.'+no
     q_file     = params['prod']+'/gauge/'+params['ENS_LONG']+params['STREAM']+'.stout.rho'+args.rho+'.step'+args.steps+'.'+no
-    print(os.path.exists(q_file),q_file)
-    sys.exit()
-
-
-
-    for src in srcs[cfg]:
-        params['SRC'] = src
-        t_src = int(src.split('t')[1])
-        for mq_v in mq_lst:
-            params['MQ'] = mq_v
-            prop_name = c51.names['prop'] % params
-            prop_xml = params['xml'] + '/' + prop_name+'.out.xml'
-            mq = params['MQ'].replace('.','p')
-            f_good = False
-            if os.path.exists(prop_xml):
-                if os.path.getsize(prop_xml) > 0:
-                    with open(prop_xml) as f:
-                        data = f.readlines()
-                        if data[-1] == '</propagator>':
-                            f_good = True
-                        else:
-                            shutil.move(prop_xml,params['corrupt']+'/'+prop_xml.split('/')[-1])
-            else:
-                f_good = False
-            if os.path.exists(prop_xml) and not f_good:
-                print('    corrupt:',prop_xml)
-            if f_good:
-                f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
-                mpdir   = '/'+val_p+'/dwf_jmu/mq'+mq+'/midpoint_pseudo'
-                ppdir   = '/'+val_p+'/dwf_jmu/mq'+mq+'/pseudo_pseudo'
-                phi_dir = '/'+val_p+'/phi_qq/mq'+mq
-                try:
-                    f5.create_group('/'+val_p+'/dwf_jmu/mq'+mq,'midpoint_pseudo',createparents=True)
-                    f5.create_group('/'+val_p+'/dwf_jmu/mq'+mq,'pseudo_pseudo',createparents=True)
-                    f5.flush()
-                except:
-                    pass
-                try:
-                    f5.create_group('/'+val_p+'/phi_qq','mq'+mq,createparents=True)
-                    f5.flush()
-                except:
-                    pass
-                get_data = False
-                if src not in f5.get_node(mpdir) or src not in f5.get_node(ppdir) or src not in f5.get_node(phi_dir):
-                    get_data = True
-                if args.o and (src in f5.get_node(mpdir) or src in f5.get_node(ppdir) or src in f5.get_node(phi_dir)):
-                    get_data = True
-                if get_data:
-                    with open(prop_xml) as file:
-                        f = file.readlines()
-                    have_data = False; l = 0
-                    while not have_data:
-                        if f[l].find('<DWF_MidPoint_Pseudo>') > 0 and f[l+3].find('<DWF_Psuedo_Pseudo>') > 0:
-                            corr_mp = f[l+1].split('<mesprop>')[1].split('</mesprop>')[0].split()
-                            corr_pp = f[l+4].split('<mesprop>')[1].split('</mesprop>')[0].split()
-                            nt = len(corr_mp)
-                            mp = np.array([float(d) for d in corr_mp],dtype=dtype)
-                            pp = np.array([float(d) for d in corr_pp],dtype=dtype)
-                            if not np.any(np.isnan(pp)) and not np.any(np.isnan(mp)):
-                                if args.v:
-                                    print(no,'mq'+mq,src,'mres collected')
-                                if src not in f5.get_node(mpdir):
-                                    f5.create_array(mpdir,src,mp)
-                                elif src in f5.get_node(mpdir) and args.o:
-                                    f5.get_node(mpdir+'/'+src)[:] = mp
-                                elif src in f5.get_node(mpdir) and not args.o:
-                                    print('  skipping midpoint_pseudo: overwrite = False')
-                                if src not in f5.get_node(ppdir):
-                                    f5.create_array(ppdir,src,pp)
-                                elif src in f5.get_node(ppdir) and args.o:
-                                    f5.get_node(ppdir+'/'+src)[:] = pp
-                                elif src in f5.get_node(ppdir) and not args.o:
-                                    print('  skipping pseudo_pseudo: overwrite = False')
-                            else:
-                                print('  NAN')
-                        # phi_qq
-                        if f[l].find('<prop_corr>') > 0:
-                            corr = f[l].split('<prop_corr>')[1].split('</prop_corr>')[0].split()
-                            phi_qq = np.array([float(d) for d in corr],dtype=dtype)
-                            phi_qq = np.roll(phi_qq,-t_src)
-                            if not np.any(np.isnan(phi_qq)):
-                                print(no,'mq'+mq,src,'phi_qq collected')
-                                if src not in f5.get_node(phi_dir):
-                                    f5.create_array(phi_dir,src,phi_qq)
-                                elif src in f5.get_node(phi_dir) and args.o:
-                                    f5.get_node(phi_dir+'/'+src)[:] = phi_qq
-                                elif src in f5.get_node(phi_dir) and not args.o:
-                                    print('  skipping forward_prop: overwrite = False')
-                            else:
-                                print('  NAN')
-                            have_data = True
-                        else:
-                            l += 1
-                f5.close()
+    # get flow data
+    if os.path.exists(wflow_file):
+        t_gf = []
+        plaq = []
+        E    = []
+        Q    = []
+        wflow_grep = subprocess.check_output('grep performWFlownStep %s' %wflow_file, shell=True).decode('ascii')
+        for l in wflow_grep.split('\n'):
+            try:
+                float(l.split()[1])
+                t_gf.append(float(l.split()[1]))
+                plaq.append(float(l.split()[2]))
+                E_tmp = [float(l.split()[i]) for i in [3,4,5]]
+                E.append(np.array(E_tmp))
+                Q.append(float(l.split()[6]))
+            except:
+                pass
+        t_gf = np.array(t_gf)
+        plaq = np.array(plaq)
+        E    = np.array(E)
+        Q    = np.array(Q)
+        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_gauge_params'+'.h5','w')
+        f5.create_array('/','t_gf',t_gf)
+        f5.create_array('/','plaq',plaq)
+        f5.create_array('/','E',E)
+        f5.create_array('/','Q_wflow',Q)
+        f5.close()
+    if os.path.exists(q_file):
+        Q_stout = []
+        stout_grep = subprocess.check_output('grep "Q charge at step" %s' %q_file, shell=True).decode('ascii')
+        for l in stout_grep.split('\n'):
+            try:
+                Q_stout.append(float(l.split()[6]))
+            except:
+                pass
+        Q_stout = np.array(Q_stout)
+        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_gauge_params'+'.h5','a')
+        f5.create_array('/','Q_stout',Q_stout)
+        f5.close()
+        
