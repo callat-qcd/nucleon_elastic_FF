@@ -66,7 +66,7 @@ params['SP_EXTENSION'] = 'lime'
 params['seed'] = dict()
 if any(host in hn for host in ['lassen']):
     random_run = '1'
-elif any(host in hn for host in ['login','batch']):
+elif any(host in hn for host in ['login','batch','rhea']):
     random_run = '1'
 for stream in ['b','c','d','e']:
     params['seed'][stream] = random_run + stream
