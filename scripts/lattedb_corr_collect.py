@@ -22,6 +22,8 @@ import c51_mdwf_hisq as c51
 import utils
 import sources
 import collect_corr_utils as collect_utils
+from nucleon_elastic_ff.data.scripts.h5migrate import dset_migrate as h5migrate
+
 ens,stream = c51.ens_base()
 ens_s = ens+'_'+stream
 
@@ -107,115 +109,41 @@ for cfg in cfgs_run:
     params['mres_path']   = val_p+'/dwf_jmu'
     params['phi_qq_path'] = val_p+'/phi_qq'
     params = c51.ensemble(params)
-    if os.path.exists(full_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'):
-        with h5py.File(full_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','r') as f5_full:
+    h5_full=full_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
+    if os.path.exists(h5_full):
+        with h5py.File(h5_full,'r') as f5_full:
             dsets_full = get_dsets(f5_full, load_dsets=False)
     else:
         print('DOES NOT EXIST: %s' %(full_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'))
         dsets_full = dict()
-    tmp_exists = os.path.exists(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5')
+    h5_tmp = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
+    tmp_exists = os.path.exists(h5_tmp)
     if tmp_exists:
-        with h5py.File(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','r') as f5_tmp:
+        with h5py.File(h5_tmp,'r') as f5_tmp:
             dsets_tmp  = get_dsets(f5_tmp, load_dsets=False)
     else:
         dsets_tmp = dict()
-    have_full = collect_utils.get_res_phi(params,dsets_full)
 
-    have_tmp  = collect_utils.get_res_phi(params,dsets_tmp,h5_file=data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5',collect=True)
+    # check res phi
+    have_mres_full = collect_utils.get_res_phi(params,dsets_full)
+    have_mres_tmp  = collect_utils.get_res_phi(params,dsets_tmp,h5_file=h5_tmp,collect=True)
 
-    print('have_full',have_full)
-    print('have_tmp',have_tmp)
+    if have_mres_tmp and not have_mres_full:
+        print('h5migrate')
+        if not os.path.exists(h5_full):
+            os.system('touch '+h5_full)
+        h5migrate(h5_tmp, h5_full, atol=0.0, rtol=1e-10)
 
+    # check spec
+    params['MQ']   = 'ml'+params['MV_L']
+    params['spec'] = val_p+'/spec'
+
+    have_spec_full = collect_utils.get_spec(params,dsets_full)
+    have_spec_tmp  = collect_utils.get_spec(params,dsets_tmp,h5_file=h5_tmp,collect=True)
 
     '''
-    files = []
-    for src in srcs[cfg]:
-        params['SRC'] = src
-        t_src = int(src.split('t')[1])
-        for mq_v in mq_lst:
-            params['MQ'] = mq_v
-            prop_name = c51.names['prop'] % params
-            prop_xml = params['xml'] + '/' + prop_name+'.out.xml'
-            mq = params['MQ'].replace('.','p')
-            f_good = False
-            if os.path.exists(prop_xml):
-                if os.path.getsize(prop_xml) > 0:
-                    with open(prop_xml) as f:
-                        data = f.readlines()
-                        if data[-1] == '</propagator>':
-                            f_good = True
-                        else:
-                            shutil.move(prop_xml,params['corrupt']+'/'+prop_xml.split('/')[-1])
-            else:
-                f_good = False
-            if os.path.exists(prop_xml) and not f_good:
-                print('    corrupt:',prop_xml)
-            if f_good:
-                f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
-                mpdir   = '/'+val_p+'/dwf_jmu/mq'+mq+'/midpoint_pseudo'
-                ppdir   = '/'+val_p+'/dwf_jmu/mq'+mq+'/pseudo_pseudo'
-                phi_dir = '/'+val_p+'/phi_qq/mq'+mq
-                try:
-                    f5.create_group('/'+val_p+'/dwf_jmu/mq'+mq,'midpoint_pseudo',createparents=True)
-                    f5.create_group('/'+val_p+'/dwf_jmu/mq'+mq,'pseudo_pseudo',createparents=True)
-                    f5.flush()
-                except:
-                    pass
-                try:
-                    f5.create_group('/'+val_p+'/phi_qq','mq'+mq,createparents=True)
-                    f5.flush()
-                except:
-                    pass
-                get_data = False
-                if src not in f5.get_node(mpdir) or src not in f5.get_node(ppdir) or src not in f5.get_node(phi_dir):
-                    get_data = True
-                if args.o and (src in f5.get_node(mpdir) or src in f5.get_node(ppdir) or src in f5.get_node(phi_dir)):
-                    get_data = True
-                if get_data:
-                    with open(prop_xml) as file:
-                        f = file.readlines()
-                    have_data = False; l = 0
-                    while not have_data:
-                        if f[l].find('<DWF_MidPoint_Pseudo>') > 0 and f[l+3].find('<DWF_Psuedo_Pseudo>') > 0:
-                            corr_mp = f[l+1].split('<mesprop>')[1].split('</mesprop>')[0].split()
-                            corr_pp = f[l+4].split('<mesprop>')[1].split('</mesprop>')[0].split()
-                            nt = len(corr_mp)
-                            mp = np.array([float(d) for d in corr_mp],dtype=dtype)
-                            pp = np.array([float(d) for d in corr_pp],dtype=dtype)
-                            if not np.any(np.isnan(pp)) and not np.any(np.isnan(mp)):
-                                if args.v:
-                                    print(no,'mq'+mq,src,'mres collected')
-                                if src not in f5.get_node(mpdir):
-                                    f5.create_array(mpdir,src,mp)
-                                elif src in f5.get_node(mpdir) and args.o:
-                                    f5.get_node(mpdir+'/'+src)[:] = mp
-                                elif src in f5.get_node(mpdir) and not args.o:
-                                    print('  skipping midpoint_pseudo: overwrite = False')
-                                if src not in f5.get_node(ppdir):
-                                    f5.create_array(ppdir,src,pp)
-                                elif src in f5.get_node(ppdir) and args.o:
-                                    f5.get_node(ppdir+'/'+src)[:] = pp
-                                elif src in f5.get_node(ppdir) and not args.o:
-                                    print('  skipping pseudo_pseudo: overwrite = False')
-                            else:
-                                print('  NAN')
-                        # phi_qq
-                        if f[l].find('<prop_corr>') > 0:
-                            corr = f[l].split('<prop_corr>')[1].split('</prop_corr>')[0].split()
-                            phi_qq = np.array([float(d) for d in corr],dtype=dtype)
-                            phi_qq = np.roll(phi_qq,-t_src)
-                            if not np.any(np.isnan(phi_qq)):
-                                print(no,'mq'+mq,src,'phi_qq collected')
-                                if src not in f5.get_node(phi_dir):
-                                    f5.create_array(phi_dir,src,phi_qq)
-                                elif src in f5.get_node(phi_dir) and args.o:
-                                    f5.get_node(phi_dir+'/'+src)[:] = phi_qq
-                                elif src in f5.get_node(phi_dir) and not args.o:
-                                    print('  skipping forward_prop: overwrite = False')
-                            else:
-                                print('  NAN')
-                            have_data = True
-                        else:
-                            l += 1
-                f5.close()
+    todo: put in logic of checking with lattedb first
+          want overwrite feature for migrate
+          only check tmp if full empty
+
     '''

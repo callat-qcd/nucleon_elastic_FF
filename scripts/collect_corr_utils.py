@@ -10,7 +10,7 @@ def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
     no        = params['CFG']
     sub_corrs = ['midpoint_pseudo', 'pseudo_pseudo','phi_qq']
     path_key = {'midpoint_pseudo':'mres_path','pseudo_pseudo':'mres_path','phi_qq':'phi_qq_path'}
-    # first check if corrs are in tmp_data
+    # first check if corrs are in the h5_dsets
     have_corrs = True
     for src in params['srcs']:
         for mq_v in params['MQ_LST']:
@@ -23,7 +23,7 @@ def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
                 if h5_path not in h5_dsets:
                     have_corrs = False
                     if params['debug']:
-                        print(corr,h5_path)
+                        print("%7s %s" %(corr,h5_path))
     if params['debug']:
         print('verbose',verbose)
         print('have_corrs',have_corrs)
@@ -120,3 +120,50 @@ def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
         f5.close()            
 
     return have_corrs
+
+def get_spec(params,h5_dsets,h5_file=None,collect=False,spec='spec'):
+    overwrite = params['overwrite']
+    verbose   = params['verbose']
+    no        = params['CFG']
+    if spec == 'spec':
+        mesons    = ['piplus']
+        octet     = ['proton','proton_np']
+        decuplet  = []
+    elif spec == 'hyperspec':
+        mesons    = ['piplus','kminus','kplus']
+        octet     = ['proton','proton_np','lambda_z','lambda_z_np','sigma_p','sigma_p_np','xi_z','xi_z_np']
+        decuplet  = ['delta_pp','delta_pp_np','omega_m','omega_m_np','sigma_star_p','sigma_star_p_np','xi_star_z','xi_star_z_np']
+    spin_dict = {
+        'proton'      :['spin_up','spin_dn'],
+        'lambda_z'    :['spin_up','spin_dn'],
+        'sigma_p'     :['spin_up','spin_dn'],
+        'xi_z'        :['spin_up','spin_dn'],
+        'delta_pp'    :['spin_upup','spin_up','spin_dn','spin_dndn'],
+        'sigma_star_p':['spin_upup','spin_up','spin_dn','spin_dndn'],
+        'xi_star_z'   :['spin_upup','spin_up','spin_dn','spin_dndn'],
+        'omega_m'     :['spin_upup','spin_up','spin_dn','spin_dndn'],
+    }
+    for corr in octet + decuplet:
+        spin_dict[corr+'_np'] = spin_dict[corr]
+    # params['MQ'] is assigned as ml or ml_ms depending on spec or hyperspec
+    mq = params['MQ'].replace('.','p')
+    # first check if corrs are in the h5_dsets
+    have_corrs = True
+    for src in params['srcs']:
+        for corr in mesons:
+            h5_path = params['spec']+'/'+mq+'/'+corr+'/px0_py0_pz0/'+src
+            if h5_path not in h5_dsets:
+                have_corrs = False
+                if params['debug']:
+                    print("%15s %s" %(corr,h5_path))
+        for corr in octet + decuplet:
+            for spin in spin_dict[corr]:
+                h5_path = params['spec']+'/'+mq+'/'+corr+'/'+spin+'/px0_py0_pz0/'+src
+                if h5_path not in h5_dsets:
+                    have_corrs = False
+                    if params['debug']:
+                        print("%15s %s" %(corr,h5_path))
+    if params['debug']:
+        print('have_corrs',have_corrs)
+    if have_corrs and verbose and not overwrite:
+        print('%s %s: all collected' %(spec,no))
