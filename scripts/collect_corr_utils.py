@@ -3,10 +3,21 @@ import tables as h5
 import os, shutil, sys, time
 
 import c51_mdwf_hisq as c51
+import sources
+import utils
+
+def create_group(f5,h5_path):
+    tmp_path,tmp_group = h5_path.rsplit('/',1)
+    try:
+        f5.create_group(tmp_path,tmp_group,createparents=True)
+        f5.flush()
+    except:
+        pass
 
 def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
     overwrite = params['overwrite']
     verbose   = params['verbose']
+    debug     = params['debug']
     no        = params['CFG']
     sub_corrs = ['midpoint_pseudo', 'pseudo_pseudo','phi_qq']
     path_key = {'midpoint_pseudo':'mres_path','pseudo_pseudo':'mres_path','phi_qq':'phi_qq_path'}
@@ -22,9 +33,9 @@ def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
                     h5_path = params[path_key[corr]]+'/mq'+mq+'/'+corr+'/'+src
                 if h5_path not in h5_dsets:
                     have_corrs = False
-                    if params['debug']:
+                    if debug:
                         print("%7s %s" %(corr,h5_path))
-    if params['debug']:
+    if debug:
         print('verbose',verbose)
         print('have_corrs',have_corrs)
     if have_corrs and verbose and not overwrite:
@@ -49,12 +60,7 @@ def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
                         h5_paths[corr] = '/'+params[path_key[corr]]+'/mq'+mq
                     else:
                         h5_paths[corr] = '/'+params[path_key[corr]]+'/mq'+mq+'/'+corr
-                    try:
-                        tmp_path,tmp_group = h5_paths[corr].rsplit('/',1)
-                        f5.create_group(tmp_path,tmp_group,createparents=True)
-                        f5.flush()
-                    except:
-                        pass
+                    create_group(f5,h5_paths[corr])
                     if (src not in f5.get_node(h5_paths[corr])) or (src in f5.get_node(h5_paths[corr]) and overwrite):
                         get_data = True
                 if get_data:
@@ -124,7 +130,9 @@ def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
 def get_spec(params,h5_dsets,h5_file=None,collect=False,spec='spec'):
     overwrite = params['overwrite']
     verbose   = params['verbose']
+    debug     = params['debug']
     no        = params['CFG']
+    dtype     = np.complex64
     if spec == 'spec':
         mesons    = ['piplus']
         octet     = ['proton','proton_np']
@@ -151,19 +159,96 @@ def get_spec(params,h5_dsets,h5_file=None,collect=False,spec='spec'):
     have_corrs = True
     for src in params['srcs']:
         for corr in mesons:
-            h5_path = params['spec']+'/'+mq+'/'+corr+'/px0_py0_pz0/'+src
-            if h5_path not in h5_dsets:
-                have_corrs = False
-                if params['debug']:
-                    print("%15s %s" %(corr,h5_path))
-        for corr in octet + decuplet:
-            for spin in spin_dict[corr]:
-                h5_path = params['spec']+'/'+mq+'/'+corr+'/'+spin+'/px0_py0_pz0/'+src
+            for mom in utils.p_lst(params['MESONS_PSQ_MAX']):
+                h5_path = params['h5_spec_path']+'/'+mq+'/'+corr+'/'+mom+'/'+src
                 if h5_path not in h5_dsets:
                     have_corrs = False
-                    if params['debug']:
+                    if debug:
                         print("%15s %s" %(corr,h5_path))
-    if params['debug']:
+        for corr in octet + decuplet:
+            for spin in spin_dict[corr]:
+                for mom in utils.p_lst(params['BARYONS_PSQ_MAX']):
+                    h5_path = params['h5_spec_path']+'/'+mq+'/'+corr+'/'+spin+'/'+mom+'/'+src
+                    if h5_path not in h5_dsets:
+                        have_corrs = False
+                        if debug:
+                            print("%15s %s" %(corr,h5_path))
+    if debug:
         print('have_corrs',have_corrs)
     if have_corrs and verbose and not overwrite:
         print('%s %s: all collected' %(spec,no))
+    # if collect=True, try to collect data
+    if (not have_corrs and collect) or (overwrite and collect):
+        f5 = h5.open_file(h5_file,'a')
+        for src in params['srcs']:
+            params['SRC'] = src
+            src_split = sources.src_split(src)
+            # first check if src is already collected
+            get_data = False
+            for corr in mesons:
+                for mom in utils.p_lst(params['MESONS_PSQ_MAX']):
+                    h5_path = '/'+params['h5_spec_path']+'/'+mq+'/'+corr+'/'+mom
+                    create_group(f5,h5_path)
+                    if (src not in f5.get_node(h5_path)) or (src in f5.get_node(h5_path) and overwrite):
+                        get_data = True
+            for corr in octet + decuplet:
+                for spin in spin_dict[corr]:
+                    for mom in utils.p_lst(params['BARYONS_PSQ_MAX']):
+                        h5_path = '/'+params['h5_spec_path']+'/'+mq+'/'+corr+'/'+spin+'/'+mom
+                        create_group(f5,h5_path)
+                        if (src not in f5.get_node(h5_path)) or (src in f5.get_node(h5_path) and overwrite):
+                            get_data = True
+            if debug:
+                print('get_spec: get_data',get_data)
+            if get_data:
+                spec_name = c51.names[spec] % params
+                spec_file = params[spec] +'/'+ spec_name+'.h5'
+                # make sure file exists and is the correct size
+                if debug:
+                    print(params['spec_size'], os.path.getsize(spec_file), spec_file)
+                if os.path.exists(spec_file) and os.path.getsize(spec_file) > params['spec_size']:
+                    fin = h5.open_file(spec_file,'r')
+                    src_split = sources.src_split(src)
+                    t_src = int(src.split('t')[1])
+                    for corr in mesons:
+                        for mom in utils.p_lst(params['MESONS_PSQ_MAX']):
+                            h5_path = '/'+params['h5_spec_path']+'/'+mq+'/'+corr+'/'+mom
+                            nt = int(params['NT'])
+                            data = np.zeros([nt,2,1],dtype=dtype)
+                            data[:,0,0] = fin.get_node('/sh/'+corr+'/'+src_split+'/'+mom).read()
+                            data[:,1,0] = fin.get_node('/pt/'+corr+'/'+src_split+'/'+mom).read()
+                            if not np.any(np.isnan(data)):
+                                print('debug: %4s %15s %13s %s' %(no,corr,src,mom))
+                                if verbose:
+                                    print("%4s %15s %13s %s" %(no,corr,src,mom))
+                                if src not in f5.get_node(h5_path):
+                                    f5.create_array(h5_path,src,data)
+                                elif src in f5.get_node(h5_path) and overwrite:
+                                    f5.get_node(h5_path+'/'+src)[:] = data
+                                elif src in f5.get_node(h5_path) and not overwrite:
+                                    print('  skipping %s: overwrite = False, %s, %s' %(corr,no,src))
+                                f5.flush()
+                            else:
+                                print('  NAN: %s %s %s' %(corr,no,src))
+                    for corr in octet+decuplet:
+                        for spin in spin_dict[corr]:
+                            for mom in utils.p_lst(params['BARYONS_PSQ_MAX']):
+                                h5_path = '/'+params['h5_spec_path']+'/'+mq+'/'+corr+'/'+spin+'/'+mom
+                                nt = int(params['NT'])
+                                data = np.zeros([nt,2,1],dtype=dtype)
+                                data[:,0,0] = fin.get_node('/sh/'+corr+'/'+spin+'/'+src_split+'/'+mom).read()
+                                data[:,1,0] = fin.get_node('/pt/'+corr+'/'+spin+'/'+src_split+'/'+mom).read()
+                                if not np.any(np.isnan(data)):
+                                    if verbose:
+                                        print("%4s %15s %6s %13s %s" %(no,corr,spin,src,mom))
+                                    if src not in f5.get_node(h5_path):
+                                        f5.create_array(h5_path,src,data)
+                                    elif src in f5.get_node(h5_path) and overwrite:
+                                        f5.get_node(h5_path+'/'+src)[:] = data
+                                    elif src in f5.get_node(h5_path) and not overwrite:
+                                        print('  skipping %s: overwrite = False, %s %s %s' %(corr,spin,no,src))
+                                    f5.flush()
+                                else:
+                                    print('  NAN: %s %s %s %s' %(corr,spin,no,src))
+                    fin.close()
+        f5.close()

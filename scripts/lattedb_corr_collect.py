@@ -127,19 +127,40 @@ for cfg in cfgs_run:
     # check res phi
     have_mres_full = collect_utils.get_res_phi(params,dsets_full)
     have_mres_tmp  = collect_utils.get_res_phi(params,dsets_tmp,h5_file=h5_tmp,collect=True)
+    
+    have_tmp  = have_mres_tmp
+    have_full = have_mres_full
 
-    if have_mres_tmp and not have_mres_full:
+    # check spec
+    params['MQ']   = 'ml'+params['MV_L']
+    params['h5_spec_path'] = val_p+'/spec'
+
+    have_spec_full = collect_utils.get_spec(params,dsets_full)
+    have_spec_tmp  = collect_utils.get_spec(params,dsets_tmp,h5_file=h5_tmp,collect=True)
+
+    if not have_spec_full:
+        have_full = False
+    if have_spec_tmp:
+        have_tmp  = True
+
+    # check hyperspec
+    if params['run_strange']:
+        params['MQ'] = 'ml'+params['MV_L']+'_ms'+params['MV_S']
+        params['h5_spec_path'] = val_p+'/spec'
+
+        have_hspec_full = collect_utils.get_spec(params,dsets_full,spec='hyperspec')
+        have_hspec_tmp  = collect_utils.get_spec(params,dsets_tmp,h5_file=h5_tmp,collect=True,spec='hyperspec')
+
+        if not have_hspec_full:
+            have_full = False
+        if have_hspec_tmp:
+            have_tmpe = True
+
+    if have_tmp and not have_full:
         print('h5migrate')
         if not os.path.exists(h5_full):
             os.system('touch '+h5_full)
         h5migrate(h5_tmp, h5_full, atol=0.0, rtol=1e-10)
-
-    # check spec
-    params['MQ']   = 'ml'+params['MV_L']
-    params['spec'] = val_p+'/spec'
-
-    have_spec_full = collect_utils.get_spec(params,dsets_full)
-    have_spec_tmp  = collect_utils.get_spec(params,dsets_tmp,h5_file=h5_tmp,collect=True)
 
     '''
     todo: put in logic of checking with lattedb first
