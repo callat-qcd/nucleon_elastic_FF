@@ -46,8 +46,8 @@ print(args)
 print('')
 
 dtype = np.float64
-data_dir = c51.data_dir % params
-utils.ensure_dirExists(data_dir)
+tmp_data_dir = c51.tmp_data_dir % params
+utils.ensure_dirExists(tmp_data_dir)
 
 if 'si' in params and 'sf' in params and 'ds' in params:
     tmp_params = dict()
@@ -84,7 +84,7 @@ else:
 print('MINING MRES and PHI_QQ')
 print('ens_stream = ',ens_s)
 print('srcs:',src_ext)
-print('data dir',data_dir)
+print('data dir',tmp_data_dir)
 
 for cfg in cfgs_run:
     no = str(cfg)
@@ -114,7 +114,7 @@ for cfg in cfgs_run:
             if os.path.exists(prop_xml) and not f_good:
                 print('    corrupt:',prop_xml)
             if f_good:
-                f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
+                f5 = h5.open_file(tmp_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
                 mpdir   = '/'+val_p+'/dwf_jmu/mq'+mq+'/midpoint_pseudo'
                 ppdir   = '/'+val_p+'/dwf_jmu/mq'+mq+'/pseudo_pseudo'
                 phi_dir = '/'+val_p+'/phi_qq/mq'+mq

@@ -45,8 +45,8 @@ print(args)
 print('')
 
 dtype = np.complex64
-data_dir = c51.data_dir % params
-utils.ensure_dirExists(data_dir)
+tmp_data_dir = c51.tmp_data_dir % params
+utils.ensure_dirExists(tmp_data_dir)
 
 if 'si' in params and 'sf' in params and 'ds' in params:
     tmp_params = dict()
@@ -96,7 +96,7 @@ for cfg in cfgs_run:
         src_split = sources.src_split(src)
         t_src = int(src.split('t')[1])
         mq = params['MQ'].replace('.','p')
-        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
+        f5 = h5.open_file(tmp_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
         spec_dir = '/'+val_p+'/spec/ml'+mq
         try:
             f5.create_group(spec_dir,'piplus',createparents=True)

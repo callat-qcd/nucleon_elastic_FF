@@ -59,8 +59,8 @@ def read_milc(f,i,nt):
 ######################################################################
 
 dtype = np.complex64
-data_dir = c51.data_dir % params
-utils.ensure_dirExists(data_dir)
+tmp_data_dir = c51.tmp_data_dir % params
+utils.ensure_dirExists(tmp_data_dir)
 
 params = sources.src_start_stop(params,ens,stream)
 args.src=None
@@ -76,8 +76,8 @@ mv_s = params['MV_S']
 ##########################################################################
 ##########################################OLD SCRIPT######################
   
-data_dir = c51.data_dir % params
-out_path = data_dir
+tmp_data_dir = c51.tmp_data_dir % params
+out_path = tmp_data_dir
 
 bd_name = 'bad_mes_'+ens_s+'.lst'
 tmp_name = ens_s

@@ -14,15 +14,18 @@ fmt = '%Y-%m-%d %H:%M:%S'
 '''
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
-# h5 utils
+# h5 and lattedb utils
 from nucleon_elastic_ff.data.h5io import get_dsets
+from nucleon_elastic_ff.data.scripts.h5migrate import dset_migrate as h5migrate
+import lattedb_ff_disk_tape_functions as lattedb_ff
+import collect_corr_utils as collect_utils
+# tape utils from Evan's hpss module
+import hpss.hsi as hsi
 # MDWF on HISQ info
 import importlib
 import c51_mdwf_hisq as c51
 import utils
 import sources
-import collect_corr_utils as collect_utils
-from nucleon_elastic_ff.data.scripts.h5migrate import dset_migrate as h5migrate
 
 ens,stream = c51.ens_base()
 ens_s = ens+'_'+stream
@@ -41,6 +44,7 @@ print('ENSEMBLE:',ens_s)
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',      nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('--corr',              type=str,default='all',help='corr type [res_phi, spec, formfac, hspec] [%(default)s]')
 parser.add_argument('-m','--mq',           type=str,help='specify quark mass [default = all]')
 parser.add_argument('-s','--src',          type=str,help='src [xXyYzZtT] None=All')
 parser.add_argument('--src_set', nargs=3,  type=int,help='specify si sf ds')
@@ -60,8 +64,12 @@ params['debug']     = args.debug
 dtype = np.float64
 data_dir = c51.data_dir % params
 utils.ensure_dirExists(data_dir)
-full_data_dir = c51.full_data_dir % params
-utils.ensure_dirExists(data_dir)
+tmp_data_dir = c51.tmp_data_dir % params
+utils.ensure_dirExists(tmp_data_dir)
+bad_date_data_dir = (c51.data_dir % params).replace('/data','/bad_time_stamp_data')
+utils.ensure_dirExists(bad_date_data_dir)
+
+tape_dir = c51.tape+'/'+ens_s+'/data'
 
 if 'si' in params and 'sf' in params and 'ds' in params:
     tmp_params = dict()
@@ -79,7 +87,7 @@ if args.src_set:# override src index in sources and area51 files for collection
     params['sf'] = args.src_set[1]
     params['ds'] = args.src_set[2]
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
-src_ext = "%d-%d" %(params['si'],params['sf'])
+src_set = "%d-%d" %(params['si'],params['sf'])
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
@@ -95,41 +103,129 @@ if args.mq == None:
 else:
     mq_lst = [args.mq]
 
-print('MINING MRES and PHI_QQ')
+if args.corr == 'all':
+    corrs = ['res_phi_ll','spec','ff']
+    if params['run_strange']:
+        corrs += ['res_phi_ss','h_spec']
+else:
+    corrs = [args.corr]
+
+print('MINING',corrs)
 print('ens_stream = ',ens_s)
-print('srcs:',src_ext)
+print('srcs:',src_set)
 print('data dir',data_dir)
+
+#all_res_phi_tape = TapeCorrelatorH5Dset.objects.filter(meta__corr='res_phi',meta__ensemble=,meta__stream=,meta__source_set=)
+
+meta_entries = dict()
+tape_entries = dict()
+disk_entries = dict()
+
+for corr in corrs:
+    meta_entries[corr] = lattedb_ff.get_or_create_meta_entries(corr, cfgs_run, ens, stream, src_set, srcs)
+    tape_entries[corr] = lattedb_ff.get_or_create_tape_entries(meta_entries[corr],\
+        name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=data_dir, machine=c51.machine)
+    disk_entries[corr] = lattedb_ff.get_or_create_disk_entries(meta_entries[corr],\
+        name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=tape_dir, machine=c51.machine)
 
 for cfg in cfgs_run:
     no = str(cfg)
     print(no)
-    params['CFG']    = no
-    params['srcs']   = srcs[cfg]
-    params['MQ_LST'] = mq_lst
+    params['CFG']         = no
+    params['srcs']        = srcs[cfg]
+    params = c51.ensemble(params)
     params['mres_path']   = val_p+'/dwf_jmu'
     params['phi_qq_path'] = val_p+'/phi_qq'
-    params = c51.ensemble(params)
-    h5_full=full_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
-    if os.path.exists(h5_full):
-        with h5py.File(h5_full,'r') as f5_full:
-            dsets_full = get_dsets(f5_full, load_dsets=False)
-    else:
-        print('DOES NOT EXIST: %s' %(full_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'))
-        dsets_full = dict()
-    h5_tmp = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
-    tmp_exists = os.path.exists(h5_tmp)
-    if tmp_exists:
-        with h5py.File(h5_tmp,'r') as f5_tmp:
-            dsets_tmp  = get_dsets(f5_tmp, load_dsets=False)
-    else:
-        dsets_tmp = dict()
 
-    # check res phi
-    have_mres_full = collect_utils.get_res_phi(params,dsets_full)
-    have_mres_tmp  = collect_utils.get_res_phi(params,dsets_tmp,h5_file=h5_tmp,collect=True)
-    
-    have_tmp  = have_mres_tmp
-    have_full = have_mres_full
+    db_filter = {'configuration':cfg, 'source_set':src_set}
+
+    # check if corrs are on tape
+    on_tape = True
+    if 'res_phi_ll' in corrs:
+        corr = 'res_phi_ll'
+        if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
+            on_tape = False
+    if 'res_phi_ss' in corrs:
+        corr = 'res_phi_ss'
+        if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
+            on_tape = False
+    if 'spec' in corrs:
+        corr = 'spec'
+        if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
+            on_tape = False
+    if 'h_spec' in corrs:
+        corr = 'h_spec'
+        if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
+            on_tape = False
+    if 'ff' in corrs:
+        corr = 'ff'
+        if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
+            on_tape = False
+
+    # if data is not saved to tape, or user specifies overwrite - check files and collect
+    if not on_tape or (on_tape and args.o):
+        # first - try and get dset info from h5 files
+        # get dict for tape and disk files
+        tape_dict = lattedb_ff.check_tape(tape_dir, ens_s+'_'+no+'_srcs'+src_set+'.h5')
+        disk_dict = lattedb_ff.check_disk(data_dir, ens_s+'_'+no+'_srcs'+src_set+'.h5')
+        # if tape_file exists, make sure disk_file has same time stamp, or pull from tape
+        tape_file = tape_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
+        h5_full= data_dir    +'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
+        h5_tmp = tmp_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
+        if tape_dict['exists']:
+            if disk_dict['exists']:
+                if tape_dict['date_modified'] != disk_dict['date_modified']:
+                    if args.v:
+                        print('TAPE and DISK times do not match')
+                        print(h5_full)
+                        print('  h5migrate from disk to tmp_disk, then pull from tape\n')
+                    # copy data_file to tmp_data_file
+                    # get file from tape
+                    if not os.path.exists(h5_tmp):
+                        os.system('touch '+h5_tmp)
+                    h5migrate(h5_full, h5_tmp, atol=0.0, rtol=1e-10)
+                    # use get which overwrites disk file with tape file
+                    shutil.move(h5_full, bad_date_data_dir+'/'+h5_full.split('/')[-1])
+                    hsi.cget(data_dir, tape_file)
+            else:# disk not exists -> pull from tape with cget
+                if args.v:
+                    print('FILE EXISTS on tape but not on disk - pulling from tape\n')
+                    print(h5_full+'\n')
+                hsi.cget(data_dir, tape_file)
+        # now check dsets in tmp and full h5 files
+
+    sys.exit()
+    have_tmp  = False
+    have_full = False
+
+    # ask lattedb for dset info
+    if True:#if not in lattedb, check h5 files
+        h5_full=data_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
+
+        ''' Check time stamp of file on disk and tape
+            if they are not the same, pull 
+
+        '''
+        if os.path.exists(h5_full):
+            with h5py.File(h5_full,'r') as f5_full:
+                dsets_full = get_dsets(f5_full, load_dsets=False)
+        else:
+            print('DOES NOT EXIST: %s' %(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'))
+            dsets_full = dict()
+        h5_tmp = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
+        tmp_exists = os.path.exists(h5_tmp)
+        if tmp_exists:
+            with h5py.File(h5_tmp,'r') as f5_tmp:
+                dsets_tmp  = get_dsets(f5_tmp, load_dsets=False)
+        else:
+            dsets_tmp = dict()
+
+        # check res phi
+        have_mres_full = collect_utils.get_res_phi(params,dsets_full)
+        have_mres_tmp  = collect_utils.get_res_phi(params,dsets_tmp,h5_file=h5_tmp,collect=True)
+
+        have_tmp  = have_mres_tmp
+        have_full = have_mres_full
 
     # check spec
     params['MQ']   = 'ml'+params['MV_L']

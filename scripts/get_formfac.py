@@ -46,8 +46,8 @@ print(args)
 print('')
 
 dtype = np.complex64
-data_dir = c51.data_dir % params
-utils.ensure_dirExists(data_dir)
+tmp_data_dir = c51.tmp_data_dir % params
+utils.ensure_dirExists(tmp_data_dir)
 
 if 'si' in params and 'sf' in params and 'ds' in params:
     tmp_params = dict()
@@ -99,7 +99,7 @@ for cfg in cfgs_run:
     params['CFG'] = no
     params = c51.ensemble(params)
     for tsep in params['t_seps']:
-        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
+        f5 = h5.open_file(tmp_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
         params['T_SEP'] = tsep
         files = []
         params['N_SEQ'] = len(srcs[cfg])

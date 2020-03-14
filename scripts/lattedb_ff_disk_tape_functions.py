@@ -8,6 +8,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__)))
 sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 import c51_mdwf_hisq as c51
 
+from typing import Union, List, Dict
+from lattedb.project.formfac.models.data.correlator import (
+    CorrelatorMeta,
+    DiskCorrelatorH5Dset,
+    TapeCorrelatorH5Dset,
+)
+
 ''' LOGIC of DISK/TAPE check
 if entry in db:
     if entry has tape attribute:
@@ -182,3 +189,188 @@ def check_ff_4D_tslice(
 
 def collect_ff4D_tslice_src_avg(ff_list):
     return None
+
+def get_or_create_meta_entries(
+        correlator:          str,
+        configuration_range: List[int],
+        ensemble:            str,
+        stream:              str,
+        source_set:          str,
+        sources:             Dict[int,List[str]],
+    ) -> List[CorrelatorMeta]:
+    """Returns queryset of CorrelatorMeta entries for given input
+    
+    Creates entries in bulk if they do not exist.
+    """
+    # Pull all relevant meta entries to local python script
+    meta_entries = CorrelatorMeta.objects.filter(
+        correlator=correlator,
+        configuration__in=configuration_range,
+        ensemble=ensemble,
+        stream=stream,
+        source_set=source_set,
+    )
+
+    kwargs = {
+        "correlator": correlator,
+        "ensemble":   ensemble,
+        "stream":     stream,
+        "source_set": source_set,
+    }
+
+    # Check if all entries are present
+    entries_to_create = []
+    for cfg in configuration_range:
+        for src in sources[cfg]:
+            meta_data = kwargs.copy()
+            meta_data["source"] = src
+            meta_data["configuration"] = cfg
+
+            if not meta_entries.filter(**meta_data).first():
+                entries_to_create.append(CorrelatorMeta(**meta_data))
+
+    # Create entries if not present
+    if entries_to_create:
+        created_entries = CorrelatorMeta.objects.bulk_create(entries_to_create)
+        print(f"Created {len(created_entries)} entries")
+        meta_entries = CorrelatorMeta.objects.filter(
+            correlator=correlator,
+            configuration__in=configuration_range,
+            ensemble=ensemble,
+            stream=stream,
+            source_set=source_set,
+        )
+
+    # Return all entries
+    return meta_entries
+
+def get_or_create_disk_entries(meta_entries: List[CorrelatorMeta], name: str, path: str, machine: str,
+        )-> List[DiskCorrelatorH5Dset]:
+    """Returns queryset of DiskCorrelatorH5Dset entries for given CorrelatorMeta entries
+    
+    Creates entries in bulk with status does not exist if they do not exist in DB.
+    """
+    file_entries = DiskCorrelatorH5Dset.objects.filter(meta__in=meta_entries)
+    
+    # Create entries if not present
+    kwargs = {
+        "name"    : name,
+        "path"    : path,
+        "machine" : machine,
+        "exists"  : False,
+    }
+    
+    if not file_entries.count() == meta_entries.count():
+        entries_to_create = []
+        for meta in meta_entries:
+            data = kwargs.copy()
+            data["name"] = name %{'CFG':meta.configuration}
+            data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+            data["meta"] = meta
+            if not file_entries.filter(**data).first():
+                entries_to_create.append(DiskCorrelatorH5Dset(**data))
+        
+        created_entries = DiskCorrelatorH5Dset.objects.bulk_create(entries_to_create)
+        print(f"Created {len(created_entries)} entries")
+        file_entries = DiskCorrelatorH5Dset.objects.filter(meta__in=meta_entries)
+    
+    return file_entries
+
+def get_or_create_tape_entries(meta_entries: List[CorrelatorMeta], name: str, path: str, machine: str,
+        ) -> List[TapeCorrelatorH5Dset]:
+    """Returns queryset of TapeCorrelatorH5Dset entries for given CorrelatorMeta entries
+    
+    Creates entries in bulk with status does not exist if they do not exist in DB.
+    """
+    file_entries = TapeCorrelatorH5Dset.objects.filter(meta__in=meta_entries)
+    
+    # Create entries if not present
+    kwargs = {
+        "name": name,
+        "path": path,
+        "machine": machine,
+        "exists": False,
+    }
+    
+    if file_entries.count() != meta_entries.count():
+        entries_to_create = []
+        for meta in meta_entries:
+            data = kwargs.copy()
+            data["name"] = name %{'CFG':meta.configuration}
+            data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+            data["meta"] = meta
+            if not file_entries.filter(**data).first():
+                entries_to_create.append(TapeCorrelatorH5Dset(**data))
+        
+        created_entries = TapeCorrelatorH5Dset.objects.bulk_create(entries_to_create)
+        print(f"Created {len(created_entries)} entries")
+        file_entries = TapeCorrelatorH5Dset.objects.filter(meta__in=meta_entries)
+    
+    return file_entries
+
+def querry_corr_disk_tape(meta_entries,corr,db_filter,dt='tape'):
+    has_dt = True
+    db_filter_copy = dict(db_filter)
+    db_filter_copy.update({'correlator':corr})
+    for entry in meta_entries[corr].filter(**db_filter):
+        if dt == 'tape':
+            if hasattr(entry, 'tape'):
+                if not entry.tape.exists:
+                    has_dt = False
+            else:
+                has_dt = False
+        elif dt == 'disk':
+            if hasattr(entry, 'disk'):
+                if not entry.disk.exists:
+                    has_dt = False
+            else:
+                has_dt = False
+        else:
+            sys.exit('unrecognized disk/tape options: %s' %dt)
+    return has_dt
+
+def del_entries(
+        correlator:          str,
+        configuration_range: List[int],
+        ensemble:            str,
+        stream:              str,
+        source_set:          str,
+        sources:             Dict[int,List[str]],
+    ) -> List[CorrelatorMeta]:
+    """Returns queryset of CorrelatorMeta entries for given input
+
+    Creates entries in bulk if they do not exist.
+    """
+    # Pull all relevant meta entries to local python script
+    meta_entries = CorrelatorMeta.objects.filter(
+        correlator=correlator,
+        configuration__in=configuration_range,
+        ensemble=ensemble,
+        stream=stream,
+        source_set=source_set,
+    )
+    for de in meta_entries:
+        de.delete()
+
+
+'''
+def get_corr_information(
+        corr: str, configuration: int, source: str
+    ) -> Union[CorrelatorMeta, None]:
+    """Looks up if a given correlator can be found on disk or tape.
+    
+    Returns the corresponding object if found, else None.
+    If both disk and tape object exists, return Disk object first.
+    """
+    meta = CorrelatorMeta.objects.filter(
+        corr=corr, configuration=configuration, source=source
+        )
+
+    #if meta is not None:
+    #    if hasattr(meta, "disk") and meta.disk.exists:
+    #        obj = meta.disk
+    #    elif hasattr(meta, "tape") and meta.tape.exists:
+    #        obj = meta.tape
+
+    return meta
+'''
