@@ -193,6 +193,13 @@ for cfg in cfgs_run:
                     print(h5_full+'\n')
                 hsi.cget(data_dir, tape_file)
         # now check dsets in tmp and full h5 files
+        if disk_dict['exists']:
+            with h5py.File(h5_full,'r') as f5_full:
+                dsets_full = get_dsets(f5_full, load_dsets=False)
+        else:
+            if args.v:
+                print('DOES NOT EXIST: %s' %h5_full)
+                dsets_full = dict()
 
     sys.exit()
     have_tmp  = False
