@@ -3,7 +3,7 @@ import sources
 params = dict()
 params['tuning_mq'] = False
 params['tuning_ms'] = False
-params['run_ff'] = True
+params['run_ff'] = False
 params['run_strange'] = False
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
@@ -40,10 +40,12 @@ params['alpha5'] = '2.0'
 
 #params['MV_L'] = '0.00137'
 params['MV_L'] = '0.00152'
-params['MV_S'] = '0.0491'
+#params['MV_S'] = '0.0491' # from a09m220
+params['MV_S'] = '0.0481' # estimated from MILC's phys pion mass a09m130 ensemble
 
 params['spec_size'] = 51312
 params['ff_size']   = 435560
+params['hyperspec_size'] = 1
 params['spec_4D_tslice_fact'] = 0.33333333
 params['src_size']     = 28991031000
 params['prop_size']    = 28991032000
@@ -139,6 +141,7 @@ def mpirun_params(machine):
         params['gpu_maxcus']  = 1
         params['prop_time']   = 145
         params['seqprop_time'] = 75
+        params['strange_prop_time'] = 37
 
         params['gpu_nrs']     = '--nrs 4'
         params['gpu_rs_node'] = '-r1'

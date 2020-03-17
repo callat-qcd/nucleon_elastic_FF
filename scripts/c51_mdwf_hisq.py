@@ -132,6 +132,7 @@ names['spec_4D_tslice']     = names['spec'].replace('spec_','spec_4D_tslice_')
 names['spec_4D_tslice_avg'] = names['spec'].replace('spec_','spec_4D_tslice_avg_')
 names['hyperspec']        = 'hyperspec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['hyperspec']       += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_ml%(MV_L)s_ms%(MV_S)s_%(SRC)s'
+names['h_spec']           = names['hyperspec']
 names['hisq_spec']        = 'hisq_spec_%(ENS_S)s_ml%(ML)s_ms%(MS)s_%(CFG)s_%(SRC)s'
 names['seqsrc']           = 'seqsrc_%(ENS_S)s_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s'
 names['seqsrc']          += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'

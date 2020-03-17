@@ -17,11 +17,24 @@ def create_group(f5,h5_path):
 res_phi_corrs = ['midpoint_pseudo', 'pseudo_pseudo','phi_qq']
 res_phi_path  = {'midpoint_pseudo':'mres_path','pseudo_pseudo':'mres_path','phi_qq':'phi_qq_path'}
 
+def make_corr_dict(params):
+    meta_dict = dict()
+    meta_dict['correlator']    = params['corr']
+    meta_dict['ensemble']      = params['ENS_S'].split('_')[0]
+    meta_dict['stream']        = params['STREAM']
+    meta_dict['configuration'] = int(params['CFG'])
+    meta_dict['source_set']    = params['SRC_SET']
+    meta_dict['source']        = params['SRC']
+
+
 def collect_res_phi(params,h5_file):
     overwrite  = params['overwrite']
     verbose    = params['verbose']
     debug      = params['debug']
     no         = params['CFG']
+    mq         = params['MQ'].replace('.','p')
+    src        = params['SRC']
+    t_src      = int(src.split('t')[1])
     get_data   = False
     h5_paths   = dict()
     have_corrs = False
@@ -85,7 +98,7 @@ def collect_res_phi(params,h5_file):
                     good_data = False
             if good_data:
                 if verbose:
-                    print('    mres %3s %s %s' %(no, mq_v, src))
+                    print('    mres %3s %s %s' %(params['CFG'], params['MQ'], params['SRC']))
                 for corr in res_phi_corrs:
                     if src not in f5.get_node(h5_paths[corr]):
                         f5.create_array(h5_paths[corr],src,data[corr])
@@ -102,11 +115,16 @@ def collect_res_phi(params,h5_file):
     f5.close()
     return have_corrs
 
-def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
+def get_res_phi(params_in,h5_dsets,h5_file=None,collect=False):
+    params    = dict(params_in)
     overwrite = params['overwrite']
     verbose   = params['verbose']
     debug     = params['debug']
     no        = params['CFG']
+    if params['corr'] == 'res_phi_ll':
+        params['MQ'] = params['MV_L']
+    elif params['corr'] == 'res_phi_ss':
+        params['MQ'] = params['MV_S']
     # first check if corrs are in the h5_dsets
     have_corrs = True
     for src in params['srcs']:
@@ -130,14 +148,12 @@ def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
         # loop over srcs and masses
         for src in params['srcs']:
             params['SRC'] = src
-            t_src = int(src.split('t')[1])
             # check lattedb for collection status
             lattedb_have_res_phi = False # this will be replaced by a function call
             if not lattedb_have_res_phi:
                 # make list of dictionary entries for lattedb
                 res_phi_lst = []
                 # update param dict for collecting
-                params['MQ'] = mq_v
                 prop_name = c51.names['prop'] % params
                 prop_xml = params['xml'] + '/' + prop_name+'.out.xml'
                 mq = params['MQ'].replace('.','p')
@@ -148,20 +164,25 @@ def get_res_phi(params,h5_dsets,h5_file=None,collect=False):
 
     return have_corrs
 
-def get_spec(params,h5_dsets,h5_file=None,collect=False,spec='spec'):
+def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
+    params    = dict(params_in)
     overwrite = params['overwrite']
     verbose   = params['verbose']
     debug     = params['debug']
     no        = params['CFG']
     dtype     = np.complex64
+    spec      = params['corr']
     if spec == 'spec':
         mesons    = ['piplus']
         octet     = ['proton','proton_np']
         decuplet  = []
-    elif spec == 'hyperspec':
+        params['MQ'] = 'ml'+params['MV_L']
+    elif spec in ['hyperspec','h_spec']:
+        params['h_spec'] = params['hyperspec']
         mesons    = ['piplus','kminus','kplus']
         octet     = ['proton','proton_np','lambda_z','lambda_z_np','sigma_p','sigma_p_np','xi_z','xi_z_np']
         decuplet  = ['delta_pp','delta_pp_np','omega_m','omega_m_np','sigma_star_p','sigma_star_p_np','xi_star_z','xi_star_z_np']
+        params['MQ'] = 'ml'+params['MV_L']+'_ms'+params['MV_S']
     spin_dict = {
         'proton'      :['spin_up','spin_dn'],
         'lambda_z'    :['spin_up','spin_dn'],
@@ -201,6 +222,7 @@ def get_spec(params,h5_dsets,h5_file=None,collect=False,spec='spec'):
     # if collect=True, try to collect data
     if (not have_corrs and collect) or (overwrite and collect):
         f5 = h5.open_file(h5_file,'a')
+        corr_dicts = []
         for src in params['srcs']:
             params['SRC'] = src
             src_split = sources.src_split(src)
@@ -239,7 +261,6 @@ def get_spec(params,h5_dsets,h5_file=None,collect=False,spec='spec'):
                             data[:,0,0] = fin.get_node('/sh/'+corr+'/'+src_split+'/'+mom).read()
                             data[:,1,0] = fin.get_node('/pt/'+corr+'/'+src_split+'/'+mom).read()
                             if not np.any(np.isnan(data)):
-                                print('debug: %4s %15s %13s %s' %(no,corr,src,mom))
                                 if verbose:
                                     print("%4s %15s %13s %s" %(no,corr,src,mom))
                                 if src not in f5.get_node(h5_path):
@@ -273,3 +294,4 @@ def get_spec(params,h5_dsets,h5_file=None,collect=False,spec='spec'):
                                     print('  NAN: %s %s %s %s' %(corr,spin,no,src))
                     fin.close()
         f5.close()
+    return have_corrs

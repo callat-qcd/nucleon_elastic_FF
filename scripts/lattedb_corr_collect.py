@@ -50,6 +50,7 @@ parser.add_argument('-s','--src',          type=str,help='src [xXyYzZtT] None=Al
 parser.add_argument('--src_set', nargs=3,  type=int,help='specify si sf ds')
 parser.add_argument('-o',          default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('--move',      default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
+parser.add_argument('--update_db', default=False,action='store_const',const=True,help='update db without collection? [%(default)s]')
 parser.add_argument('-v',          default=False,action='store_const',const=True,help='verbose? [%(default)s]')
 parser.add_argument('-d','--debug',default=False,action='store_const',const=True,help='debug? [%(default)s]')
 args = parser.parse_args()
@@ -88,6 +89,7 @@ if args.src_set:# override src index in sources and area51 files for collection
     params['ds'] = args.src_set[2]
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 src_set = "%d-%d" %(params['si'],params['sf'])
+params['SRC_SET'] = src_set
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 val_p = val.replace('.','p')
@@ -141,24 +143,7 @@ for cfg in cfgs_run:
 
     # check if corrs are on tape
     on_tape = True
-    if 'res_phi_ll' in corrs:
-        corr = 'res_phi_ll'
-        if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
-            on_tape = False
-    if 'res_phi_ss' in corrs:
-        corr = 'res_phi_ss'
-        if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
-            on_tape = False
-    if 'spec' in corrs:
-        corr = 'spec'
-        if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
-            on_tape = False
-    if 'h_spec' in corrs:
-        corr = 'h_spec'
-        if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
-            on_tape = False
-    if 'ff' in corrs:
-        corr = 'ff'
+    for corr in corrs:
         if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='tape'):
             on_tape = False
 
@@ -185,89 +170,52 @@ for cfg in cfgs_run:
                         os.system('touch '+h5_tmp)
                     h5migrate(h5_full, h5_tmp, atol=0.0, rtol=1e-10)
                     # use get which overwrites disk file with tape file
-                    shutil.move(h5_full, bad_date_data_dir+'/'+h5_full.split('/')[-1])
-                    hsi.cget(data_dir, tape_file)
+                    # shutil.move(h5_full, bad_date_data_dir+'/'+h5_full.split('/')[-1])
+                    hsi.cget(data_dir, tape_file, preserve_time=True)
             else:# disk not exists -> pull from tape with cget
                 if args.v:
                     print('FILE EXISTS on tape but not on disk - pulling from tape\n')
                     print(h5_full+'\n')
                 hsi.cget(data_dir, tape_file)
-        # now check dsets in tmp and full h5 files
+        # now check dsets in tmp and full and tmp h5 files
         if disk_dict['exists']:
             with h5py.File(h5_full,'r') as f5_full:
                 dsets_full = get_dsets(f5_full, load_dsets=False)
         else:
+            dsets_full = dict()
             if args.v:
                 print('DOES NOT EXIST: %s' %h5_full)
-                dsets_full = dict()
-
-    sys.exit()
-    have_tmp  = False
-    have_full = False
-
-    # ask lattedb for dset info
-    if True:#if not in lattedb, check h5 files
-        h5_full=data_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
-
-        ''' Check time stamp of file on disk and tape
-            if they are not the same, pull 
-
-        '''
-        if os.path.exists(h5_full):
-            with h5py.File(h5_full,'r') as f5_full:
-                dsets_full = get_dsets(f5_full, load_dsets=False)
-        else:
-            print('DOES NOT EXIST: %s' %(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'))
-            dsets_full = dict()
-        h5_tmp = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
-        tmp_exists = os.path.exists(h5_tmp)
-        if tmp_exists:
+        if os.path.exists(h5_tmp):
             with h5py.File(h5_tmp,'r') as f5_tmp:
                 dsets_tmp  = get_dsets(f5_tmp, load_dsets=False)
         else:
             dsets_tmp = dict()
-
-        # check res phi
-        have_mres_full = collect_utils.get_res_phi(params,dsets_full)
-        have_mres_tmp  = collect_utils.get_res_phi(params,dsets_tmp,h5_file=h5_tmp,collect=True)
-
-        have_tmp  = have_mres_tmp
-        have_full = have_mres_full
-
-    # check spec
-    params['MQ']   = 'ml'+params['MV_L']
-    params['h5_spec_path'] = val_p+'/spec'
-
-    have_spec_full = collect_utils.get_spec(params,dsets_full)
-    have_spec_tmp  = collect_utils.get_spec(params,dsets_tmp,h5_file=h5_tmp,collect=True)
-
-    if not have_spec_full:
-        have_full = False
-    if have_spec_tmp:
-        have_tmp  = True
-
-    # check hyperspec
-    if params['run_strange']:
-        params['MQ'] = 'ml'+params['MV_L']+'_ms'+params['MV_S']
+        # if disk entries do not exist - collect data and migrate
+        h5_migrate = False
         params['h5_spec_path'] = val_p+'/spec'
+        for corr in corrs:
+            if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='disk'):
+                params['corr'] = corr
+                if 'res_phi' in corr:
+                    if not collect_utils.get_res_phi(params,dsets_full):
+                        if collect_utils.get_res_phi(params, dsets_tmp, h5_file=h5_tmp, collect=True):
+                            h5_migrate = True
+                elif 'spec' in corr:
+                    if not collect_utils.get_spec(params, dsets_full):
+                        if collect_utils.get_spec(params, dsets_tmp, h5_file=h5_tmp, collect=True):
+                            h5_migrate = True
+                elif 'ff' == corr:
+                    print('skipping formfac - need to add get_formfac function to collect_corr_utils')
+        if h5_migrate:
+            if not os.path.exists(h5_full):
+                os.system('touch '+h5_full)
+            h5migrate(h5_tmp, h5_full, atol=0.0, rtol=1e-10)
+            # load updated dsets on disk
+            with h5py.File(h5_full,'r') as f5_full:
+                dsets_updated = get_dsets(f5_full, load_dsets=False)
+        if h5_migrate or args.update_db:
+            # update disk_db
+            print('add update db function')
+            # push to tape
 
-        have_hspec_full = collect_utils.get_spec(params,dsets_full,spec='hyperspec')
-        have_hspec_tmp  = collect_utils.get_spec(params,dsets_tmp,h5_file=h5_tmp,collect=True,spec='hyperspec')
-
-        if not have_hspec_full:
-            have_full = False
-        if have_hspec_tmp:
-            have_tmpe = True
-
-    if have_tmp and not have_full:
-        print('h5migrate')
-        if not os.path.exists(h5_full):
-            os.system('touch '+h5_full)
-        h5migrate(h5_tmp, h5_full, atol=0.0, rtol=1e-10)
-
-    '''
-    todo: put in logic of checking with lattedb first
-          want overwrite feature for migrate
-          only check tmp if full empty
-
-    '''
+            # if successful, updated tape_db
