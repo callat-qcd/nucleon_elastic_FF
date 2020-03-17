@@ -14,8 +14,29 @@ def create_group(f5,h5_path):
     except:
         pass
 
-res_phi_corrs = ['midpoint_pseudo', 'pseudo_pseudo','phi_qq']
-res_phi_path  = {'midpoint_pseudo':'mres_path','pseudo_pseudo':'mres_path','phi_qq':'phi_qq_path'}
+mres_corrs = ['midpoint_pseudo', 'pseudo_pseudo']
+phi_qq_corrs = ['phi_qq']
+res_phi_corrs = {
+    'mres_ll':['midpoint_pseudo', 'pseudo_pseudo'],
+    'mres_ss':['midpoint_pseudo', 'pseudo_pseudo'],
+    'phi_ll' :['phi_ll'],
+    'phi_ss' :['phi_ss'],
+}
+res_phi_path  = {
+    'mres_ll':'mres_path', 'mres_ss':'mres_path',
+    'midpoint_pseudo':'mres_path','pseudo_pseudo':'mres_path',
+    'phi_ll':'phi_qq_path', 'phi_ss':'phi_qq_path',
+}
+def res_phi_dset(params):
+    mq   = params['MQ'].replace('.','p')
+    src  = params['SRC']
+    corr = params['corr']
+    if 'phi' in params['corr']:
+        h5_path = params[res_phi_path[corr]]+'/mq'+mq
+    else:
+        h5_path = params[res_phi_path[corr]]+'/mq'+mq+'/%(CORR)s'
+    return h5_path
+
 
 def make_corr_dict(params):
     meta_dict = dict()
@@ -26,6 +47,9 @@ def make_corr_dict(params):
     meta_dict['source_set']    = params['SRC_SET']
     meta_dict['source']        = params['SRC']
 
+def make_corr_td_dict(params):
+    td_dict = dict()
+    
 
 def collect_res_phi(params,h5_file):
     overwrite  = params['overwrite']
@@ -37,14 +61,12 @@ def collect_res_phi(params,h5_file):
     t_src      = int(src.split('t')[1])
     get_data   = False
     h5_paths   = dict()
+    corrs = res_phi_corrs[params['corr']]
     have_corrs = False
     # check if data is collected in h5 already
     f5 = h5.open_file(h5_file,'a')
-    for corr in res_phi_corrs:
-        if corr == 'phi_qq':
-            h5_paths[corr] = '/'+params[res_phi_path[corr]]+'/mq'+mq
-        else:
-            h5_paths[corr] = '/'+params[res_phi_path[corr]]+'/mq'+mq+'/'+corr
+    for corr in corrs:
+        h5_paths[corr] = '/'+res_phi_dset(params) %{'CORR':corr}
         create_group(f5,h5_paths[corr])
         if (src not in f5.get_node(h5_paths[corr])) or (src in f5.get_node(h5_paths[corr]) and overwrite):
             get_data = True
@@ -78,28 +100,30 @@ def collect_res_phi(params,h5_file):
             have_phiqq = False
             l = 0
             while not have_data:
-                if f[l].find('<DWF_MidPoint_Pseudo>') > 0 and f[l+3].find('<DWF_Psuedo_Pseudo>') > 0:
-                    mp = f[l+1].split('<mesprop>')[1].split('</mesprop>')[0].split()
-                    pp = f[l+4].split('<mesprop>')[1].split('</mesprop>')[0].split()
-                    data['midpoint_pseudo'] = np.array([float(d) for d in mp],dtype=dtype)
-                    data['pseudo_pseudo']   = np.array([float(d) for d in pp],dtype=dtype)
-                    have_mres = True
-                elif f[l].find('<prop_corr>') > 0:
-                    corr = f[l].split('<prop_corr>')[1].split('</prop_corr>')[0].split()
-                    phi_qq = np.array([float(d) for d in corr],dtype=dtype)
-                    data['phi_qq'] = np.roll(phi_qq,-t_src)
-                    have_phiqq = True
-                if have_mres and have_phiqq:
-                    have_data = True
+                if 'mres' in params['corr']:
+                    if f[l].find('<DWF_MidPoint_Pseudo>') > 0 and f[l+3].find('<DWF_Psuedo_Pseudo>') > 0:
+                        mp = f[l+1].split('<mesprop>')[1].split('</mesprop>')[0].split()
+                        pp = f[l+4].split('<mesprop>')[1].split('</mesprop>')[0].split()
+                        data['midpoint_pseudo'] = np.array([float(d) for d in mp],dtype=dtype)
+                        data['pseudo_pseudo']   = np.array([float(d) for d in pp],dtype=dtype)
+                        have_data = True
+                else:
+                    if f[l].find('<prop_corr>') > 0:
+                        corr = f[l].split('<prop_corr>')[1].split('</prop_corr>')[0].split()
+                        phi_qq = np.array([float(d) for d in corr],dtype=dtype)
+                        data[params['corr']] = np.roll(phi_qq,-t_src)
+                        have_data = True
+                #if have_mres and have_phiqq:
+                #    have_data = True
                 l += 1
             good_data = True
-            for corr in res_phi_corrs:
+            for corr in corrs:
                 if np.any(np.isnan(data[corr])):
                     good_data = False
             if good_data:
                 if verbose:
-                    print('    mres %3s %s %s' %(params['CFG'], params['MQ'], params['SRC']))
-                for corr in res_phi_corrs:
+                    print('    %s %3s %s %s' %(params['corr'],params['CFG'], params['MQ'], params['SRC']))
+                for corr in corrs:
                     if src not in f5.get_node(h5_paths[corr]):
                         f5.create_array(h5_paths[corr],src,data[corr])
                     elif src in f5.get_node(h5_paths[corr]) and overwrite:
@@ -121,19 +145,18 @@ def get_res_phi(params_in,h5_dsets,h5_file=None,collect=False):
     verbose   = params['verbose']
     debug     = params['debug']
     no        = params['CFG']
-    if params['corr'] == 'res_phi_ll':
+    if '_ll' in params['corr']:
         params['MQ'] = params['MV_L']
-    elif params['corr'] == 'res_phi_ss':
+    elif '_ss' in params['corr']:
         params['MQ'] = params['MV_S']
     # first check if corrs are in the h5_dsets
+    corrs = res_phi_corrs[params['corr']]
     have_corrs = True
     for src in params['srcs']:
         mq = params['MQ'].replace('.','p')
-        for corr in res_phi_corrs:
-            if corr == 'phi_qq':
-                h5_path = params[res_phi_path[corr]]+'/mq'+mq+'/'+src
-            else:
-                h5_path = params[res_phi_path[corr]]+'/mq'+mq+'/'+corr+'/'+src
+        params['SRC'] = src
+        for corr in corrs:
+            h5_path = (res_phi_dset(params)+'/'+src) %{'CORR':corr}
             if h5_path not in h5_dsets:
                 have_corrs = False
                 if debug:
@@ -142,7 +165,7 @@ def get_res_phi(params_in,h5_dsets,h5_file=None,collect=False):
         print('verbose',verbose)
         print('have_corrs',have_corrs)
     if have_corrs and verbose and not overwrite:
-        print('res phi %s: all collected' %no)
+        print('%s %s: all collected' %(params['corr'],no))
     # if collect=True, try to collect data
     if (not have_corrs and collect) or (overwrite and collect):
         # loop over srcs and masses

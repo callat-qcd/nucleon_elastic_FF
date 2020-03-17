@@ -15,6 +15,20 @@ from lattedb.project.formfac.models.data.correlator import (
     TapeCorrelatorH5Dset,
 )
 
+def corr_disk_tape_update(corr_updates,dt='disk'):
+    dt_push = []
+    for ff,dd in corr_updates:
+        d = ff.disk
+        for k,v in dd.items():
+            setattr(d,k,v)
+        dt_push.append(d)
+    if dt == 'disk':
+        DiskCorrelatorH5Dset.objects.bulk_update(dt_push, fields=list(dd.keys()))
+    elif dt == 'tape':
+        TapeCorrelatorH5Dset.objects.bulk_update(dt_push, fields=list(dd.keys()))
+    else:
+        sys.exit('unrecognized dt type',dt)
+
 ''' LOGIC of DISK/TAPE check
 if entry in db:
     if entry has tape attribute:

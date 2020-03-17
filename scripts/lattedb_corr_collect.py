@@ -44,15 +44,15 @@ print('ENSEMBLE:',ens_s)
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',      nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('--corr',              type=str,default='all',help='corr type [res_phi, spec, formfac, hspec] [%(default)s]')
+parser.add_argument('--corr',              type=str,default='all',help='corr type [mres_ll, phi_ll, spec, formfac, mres_ss, phi_ss, hspec] [%(default)s]')
 parser.add_argument('-m','--mq',           type=str,help='specify quark mass [default = all]')
 parser.add_argument('-s','--src',          type=str,help='src [xXyYzZtT] None=All')
 parser.add_argument('--src_set', nargs=3,  type=int,help='specify si sf ds')
-parser.add_argument('-o',          default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('--move',      default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
-parser.add_argument('--update_db', default=False,action='store_const',const=True,help='update db without collection? [%(default)s]')
-parser.add_argument('-v',          default=False,action='store_const',const=True,help='verbose? [%(default)s]')
-parser.add_argument('-d','--debug',default=False,action='store_const',const=True,help='debug? [%(default)s]')
+parser.add_argument('-o',              default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
+parser.add_argument('--move',          default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
+parser.add_argument('-u','--update_db',default=False,action='store_const',const=True,help='update db without collection? [%(default)s]')
+parser.add_argument('-v',              default=False,action='store_const',const=True,help='verbose? [%(default)s]')
+parser.add_argument('-d','--debug',    default=False,action='store_const',const=True,help='debug? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -106,9 +106,9 @@ else:
     mq_lst = [args.mq]
 
 if args.corr == 'all':
-    corrs = ['res_phi_ll','spec','ff']
+    corrs = ['mres_ll','phi_ll','spec','ff']
     if params['run_strange']:
-        corrs += ['res_phi_ss','h_spec']
+        corrs += ['mres_ss','phi_ss','h_spec']
 else:
     corrs = [args.corr]
 
@@ -116,8 +116,6 @@ print('MINING',corrs)
 print('ens_stream = ',ens_s)
 print('srcs:',src_set)
 print('data dir',data_dir)
-
-#all_res_phi_tape = TapeCorrelatorH5Dset.objects.filter(meta__corr='res_phi',meta__ensemble=,meta__stream=,meta__source_set=)
 
 meta_entries = dict()
 tape_entries = dict()
@@ -129,6 +127,13 @@ for corr in corrs:
         name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=data_dir, machine=c51.machine)
     disk_entries[corr] = lattedb_ff.get_or_create_disk_entries(meta_entries[corr],\
         name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=tape_dir, machine=c51.machine)
+
+if False:
+    lattedb_ff.del_entries('ff', cfgs_run, ens, stream, src_set, srcs)
+    lattedb_ff.del_entries('res_phi_ll', cfgs_run, ens, stream, src_set, srcs)
+    lattedb_ff.del_entries('res_phi_ss', cfgs_run, ens, stream, src_set, srcs)
+    sys.exit()
+
 
 for cfg in cfgs_run:
     no = str(cfg)
@@ -151,12 +156,13 @@ for cfg in cfgs_run:
     if not on_tape or (on_tape and args.o):
         # first - try and get dset info from h5 files
         # get dict for tape and disk files
-        tape_dict = lattedb_ff.check_tape(tape_dir, ens_s+'_'+no+'_srcs'+src_set+'.h5')
-        disk_dict = lattedb_ff.check_disk(data_dir, ens_s+'_'+no+'_srcs'+src_set+'.h5')
+        h5_file_name = ens_s+'_'+no+'_srcs'+src_set+'.h5'
+        tape_dict = lattedb_ff.check_tape(tape_dir, h5_file_name)
+        disk_dict = lattedb_ff.check_disk(data_dir, h5_file_name)
         # if tape_file exists, make sure disk_file has same time stamp, or pull from tape
-        tape_file = tape_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
-        h5_full= data_dir    +'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
-        h5_tmp = tmp_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_set+'.h5'
+        tape_file = tape_dir+'/'+h5_file_name
+        h5_full= data_dir    +'/'+h5_file_name
+        h5_tmp = tmp_data_dir+'/'+h5_file_name
         if tape_dict['exists']:
             if disk_dict['exists']:
                 if tape_dict['date_modified'] != disk_dict['date_modified']:
@@ -196,7 +202,7 @@ for cfg in cfgs_run:
         for corr in corrs:
             if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='disk'):
                 params['corr'] = corr
-                if 'res_phi' in corr:
+                if 'mres' in corr or 'phi' in corr:
                     if not collect_utils.get_res_phi(params,dsets_full):
                         if collect_utils.get_res_phi(params, dsets_tmp, h5_file=h5_tmp, collect=True):
                             h5_migrate = True
@@ -210,12 +216,44 @@ for cfg in cfgs_run:
             if not os.path.exists(h5_full):
                 os.system('touch '+h5_full)
             h5migrate(h5_tmp, h5_full, atol=0.0, rtol=1e-10)
+        if h5_migrate or args.update_db:
             # load updated dsets on disk
             with h5py.File(h5_full,'r') as f5_full:
-                dsets_updated = get_dsets(f5_full, load_dsets=False)
-        if h5_migrate or args.update_db:
+                dsets_update = get_dsets(f5_full, load_dsets=False)
             # update disk_db
+            corr_updates = []
+            for corr in corrs:
+                db_filter.update({'correlator':corr})
+                params_tmp = dict(params)
+                tmp = [entry for entry in meta_entries[corr].filter(**db_filter) if entry.disk.exists == False]
+                for ff in tmp:
+                    params_tmp['corr'] = ff.correlator
+                    params_tmp['srcs'] = [ff.source]
+                    params_tmp['SRC']  = ff.source
+                    if 'mres' in params_tmp['corr'] or 'phi' in params_tmp['corr']:
+                        if '_ll' in params_tmp['corr']:
+                            params_tmp['MQ'] = params_tmp['MV_L']
+                        else:
+                            params_tmp['MQ'] = params_tmp['MV_S']
+                        if collect_utils.get_res_phi(params_tmp, dsets_update):
+                            dd = lattedb_ff.check_disk(data_dir,h5_file_name)
+                            if 'size' in dd:# we don't track the size for these files now
+                                del dd['size']
+                            dd['dset'] = collect_utils.res_phi_dset(params_tmp)+'/'+params_tmp['SRC']
+                            dd['name'] = h5_file_name
+                            corr_updates.append((ff, dd))
+
+                #print(meta_entries[corr].filter(**db_filter).disk.to_dataframe())
             print('add update db function')
+            lattedb_ff.corr_disk_tape_update(corr_updates,dt='disk')
+            '''
+            disk_push = []
+            for ff,dd in corr_updates:
+                d = ff.disk
+                for k,v in dd.items():
+                    setattr(d,k,v)
+                disk_push.append(d)
+            '''                
             # push to tape
 
             # if successful, updated tape_db
