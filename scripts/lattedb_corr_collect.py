@@ -206,6 +206,7 @@ for cfg in cfgs_run:
         # if disk entries do not exist - collect data and migrate
         h5_migrate = False
         params['h5_spec_path'] = val_p+'/spec'
+        params['ff_path'] = val_p+'/formfac'
         for corr in corrs:
             if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='disk'):
                 params['corr'] = corr
@@ -218,7 +219,11 @@ for cfg in cfgs_run:
                         if collect_utils.get_spec(params, dsets_tmp, h5_file=h5_tmp, collect=True):
                             h5_migrate = True
                 elif 'ff' == corr:
-                    print('skipping formfac - need to add get_formfac function to collect_corr_utils')
+                    for tsep in params['t_seps']:
+                        params['T_SEP'] = tsep
+                        print('t_sep = ',tsep)
+                        collect_utils.get_formfac(params, dsets_full)
+
         if h5_migrate:
             if not os.path.exists(h5_full):
                 os.system('touch '+h5_full)

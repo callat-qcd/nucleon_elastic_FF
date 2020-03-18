@@ -66,6 +66,14 @@ def spec_dset(params,corr,full_path=True):
         h5_path += '/'+params['SRC']
     return h5_path
 
+def ff_dset(params, full_path=True):
+    params['MQ'] = 'ml'+params['MV_L']
+    mq = params['MQ'].replace('.','p')
+    h5_path = params['ff_path'] +'/'+mq+'/%(PARTICLE)s_%(FLAV_SPIN)s_tsep_%(T_SEP)s_sink_mom_px0_py0_pz0/%(CURRENT)s/px0_py0_pz0'
+    if full_path:
+        h5_path += '/'+params['SRC']
+    return h5_path
+
 def make_corr_dict(params):
     meta_dict = dict()
     meta_dict['correlator']    = params['corr']
@@ -349,4 +357,41 @@ def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
                                     print('  NAN: %s %s %s %s' %(corr,spin,no,src))
                     fin.close()
         f5.close()
+    return have_corrs
+
+def get_formfac(params_in, h5_dsets,h5_file=None,collect=False):
+    params    = dict(params_in)
+    overwrite = params['overwrite']
+    verbose   = params['verbose']
+    debug     = params['debug']
+    no        = params['CFG']
+    dtype     = np.complex64
+    tsep      = params['T_SEP']
+    flav_spin = []
+    for flav in params['flavs']:
+        for spin in params['spins']:
+            flav_spin.append(flav+'_'+spin)
+    params['MQ']  = 'ml'+params['MV_L']
+    mq            = params['MQ'].replace('.','p')
+    params['MOM'] = 'px0py0pz0'
+    have_corrs = True
+    for src in params['srcs']:
+        params['SRC'] = src
+        t_src = src.split('t')[1]
+        for corr in params['particles']:
+            dt = str(tsep)
+            if '_np' in corr:
+                dt = '-'+dt
+            for fs in flav_spin:
+                for curr in params['curr_0p']:
+                    path_replace = {'PARTICLE':corr, 'FLAV_SPIN':fs, 'T_SEP':dt, 'CURRENT':curr}
+                    h5_path = ff_dset(params, full_path=True) %path_replace
+                    if h5_path not in h5_dsets:
+                        have_corrs = False
+    if debug:
+        print('have_corrs t_sep = ',dt,have_corrs)
+    if have_corrs and verbose and not overwrite:
+        print('%s %s: all collected' %(spec,no))
+
+
     return have_corrs
