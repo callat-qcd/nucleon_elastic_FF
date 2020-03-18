@@ -53,6 +53,7 @@ parser.add_argument('--move',          default=False,action='store_const',const=
 parser.add_argument('-u','--update_db',default=False,action='store_const',const=True,help='update db without collection? [%(default)s]')
 parser.add_argument('-v',              default=False,action='store_const',const=True,help='verbose? [%(default)s]')
 parser.add_argument('-d','--debug',    default=False,action='store_const',const=True,help='debug? [%(default)s]')
+parser.add_argument('--delete',        default=False,action='store_const',const=True,help='delete entries? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -88,6 +89,10 @@ if args.src_set:# override src index in sources and area51 files for collection
     params['sf'] = args.src_set[1]
     params['ds'] = args.src_set[2]
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
+if args.delete and len(cfgs_run) > 1:
+    sys.exit('you can only delete entries for one config at a time')
+
+
 src_set = "%d-%d" %(params['si'],params['sf'])
 params['SRC_SET'] = src_set
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
@@ -128,10 +133,9 @@ for corr in corrs:
     disk_entries[corr] = lattedb_ff.get_or_create_disk_entries(meta_entries[corr],\
         name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=tape_dir, machine=c51.machine)
 
-if False:
-    lattedb_ff.del_entries('ff', cfgs_run, ens, stream, src_set, srcs)
-    lattedb_ff.del_entries('res_phi_ll', cfgs_run, ens, stream, src_set, srcs)
-    lattedb_ff.del_entries('res_phi_ss', cfgs_run, ens, stream, src_set, srcs)
+if args.delete:
+    for corr in corrs:
+        lattedb_ff.del_entries(corr, cfgs_run, ens, stream, src_set, srcs)
     sys.exit()
 
 
@@ -169,6 +173,9 @@ for cfg in cfgs_run:
                     if args.v:
                         print('TAPE and DISK times do not match')
                         print(h5_full)
+                        if params['debug']:
+                            print('TAPE:',tape_dict['date_modified'])
+                            print('DISK:',disk_dict['date_modified'])
                         print('  h5migrate from disk to tmp_disk, then pull from tape\n')
                     # copy data_file to tmp_data_file
                     # get file from tape
@@ -177,7 +184,7 @@ for cfg in cfgs_run:
                     h5migrate(h5_full, h5_tmp, atol=0.0, rtol=1e-10)
                     # use get which overwrites disk file with tape file
                     # shutil.move(h5_full, bad_date_data_dir+'/'+h5_full.split('/')[-1])
-                    hsi.cget(data_dir, tape_file, preserve_time=True)
+                    hsi.cget(data_dir, tape_file)
             else:# disk not exists -> pull from tape with cget
                 if args.v:
                     print('FILE EXISTS on tape but not on disk - pulling from tape\n')
@@ -221,39 +228,46 @@ for cfg in cfgs_run:
             with h5py.File(h5_full,'r') as f5_full:
                 dsets_update = get_dsets(f5_full, load_dsets=False)
             # update disk_db
-            corr_updates = []
+            disk_updates = []
+            tape_updates = []
             for corr in corrs:
                 db_filter.update({'correlator':corr})
                 params_tmp = dict(params)
-                tmp = [entry for entry in meta_entries[corr].filter(**db_filter) if entry.disk.exists == False]
-                for ff in tmp:
+                update_entries = [e for e in meta_entries[corr].filter(**db_filter) if (e.disk.exists == False or e.tape.exists == False)]
+                for ff in update_entries:
                     params_tmp['corr'] = ff.correlator
                     params_tmp['srcs'] = [ff.source]
                     params_tmp['SRC']  = ff.source
+                    dd = lattedb_ff.check_disk(data_dir,h5_file_name)
+                    if 'size' in dd:# we don't track the size for these files now
+                        del dd['size']
+                    dd['name'] = h5_file_name
+                    updates = False
                     if 'mres' in params_tmp['corr'] or 'phi' in params_tmp['corr']:
-                        if '_ll' in params_tmp['corr']:
-                            params_tmp['MQ'] = params_tmp['MV_L']
-                        else:
-                            params_tmp['MQ'] = params_tmp['MV_S']
+                        dd['dset'] = collect_utils.res_phi_dset(params_tmp,full_path=True)
                         if collect_utils.get_res_phi(params_tmp, dsets_update):
-                            dd = lattedb_ff.check_disk(data_dir,h5_file_name)
-                            if 'size' in dd:# we don't track the size for these files now
-                                del dd['size']
-                            dd['dset'] = collect_utils.res_phi_dset(params_tmp)+'/'+params_tmp['SRC']
-                            dd['name'] = h5_file_name
-                            corr_updates.append((ff, dd))
-
+                            updates = True
+                    if corr in ['spec','h_spec']:
+                        dd['dset'] = collect_utils.spec_dset(params_tmp, params_tmp['corr'], full_path=True)
+                        if collect_utils.get_spec(params_tmp, dsets_update):
+                            updates = True
+                    if updates:
+                        if not ff.disk.exists:
+                            disk_updates.append((ff, dd))
+                        if not ff.tape.exists:
+                            tt = dict(dd)
+                            tt['path'] = tape_dir
+                            tape_updates.append((ff, tt))
                 #print(meta_entries[corr].filter(**db_filter).disk.to_dataframe())
-            print('add update db function')
-            lattedb_ff.corr_disk_tape_update(corr_updates,dt='disk')
-            '''
-            disk_push = []
-            for ff,dd in corr_updates:
-                d = ff.disk
-                for k,v in dd.items():
-                    setattr(d,k,v)
-                disk_push.append(d)
-            '''                
+            print('updating DISK entries %d' %(len(disk_updates)))
+            if len(disk_updates) > 0:
+                lattedb_ff.corr_disk_tape_update(disk_updates,dt='disk', debug=args.debug)
             # push to tape
-
-            # if successful, updated tape_db
+            try:
+                if h5_migrate:
+                    hsi.cput(h5_full, tape_dir+'/'+h5_full.split('/')[-1])
+                print('updating TAPE entries %d' %(len(tape_updates)))
+                if len(tape_updates) > 0:
+                    lattedb_ff.corr_disk_tape_update(tape_updates, dt='tape',debug=args.debug)
+            except Exception as e:
+                print(e)

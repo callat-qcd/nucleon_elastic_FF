@@ -15,43 +15,24 @@ from lattedb.project.formfac.models.data.correlator import (
     TapeCorrelatorH5Dset,
 )
 
-def corr_disk_tape_update(corr_updates,dt='disk'):
+def corr_disk_tape_update(corr_updates,dt='disk',debug=False):
     dt_push = []
     for ff,dd in corr_updates:
         d = ff.disk
         for k,v in dd.items():
+            if debug:
+                if k == 'exists':
+                    print('DEBUG:',dt,ff.correlator,ff.source,'BEFORE UPDATE: exists',getattr(d,k),'AFTER UPDATE: exists',v)
             setattr(d,k,v)
         dt_push.append(d)
+        #if debug:
+        #    print('DEBUG:',dt,ff.correlator,ff.source,{k:getattr(d,k) for k,v in dd.items()})
     if dt == 'disk':
         DiskCorrelatorH5Dset.objects.bulk_update(dt_push, fields=list(dd.keys()))
     elif dt == 'tape':
         TapeCorrelatorH5Dset.objects.bulk_update(dt_push, fields=list(dd.keys()))
     else:
         sys.exit('unrecognized dt type',dt)
-
-''' LOGIC of DISK/TAPE check
-if entry in db:
-    if entry has tape attribute:
-        if update or update_tape:
-            check_tape
-            if entry_tape_exists != tape_exists::
-                add to update_tape list
-    else:
-        get tape status and append to list
-    if disk in db entry:
-        if update or update_disk:
-            check disk
-            if db.exists != disk.exists:
-                append to upate_disk list
-    else:
-        get disk status and append to list
-    if disk_exists and not tape_exists:
-        add to put to tape list
-    if tape_exists and not disk_exists and pull_tape:
-        add to pull from tape list
-else:
-    create disk/tape status and append to list
-'''
 
 def check_tape(t_path,t_file):
     t_dict = dict()
@@ -82,7 +63,7 @@ def check_disk(d_path,d_file):
     if os.path.exists(d_path+'/'+d_file):
         d_dict['exists'] = True
         d_dict['size']   = os.path.getsize(d_path+'/'+d_file)
-        utc = datetime.utcfromtimestamp(os.path.getmtime(d_path+'/'+d_file))
+        utc = datetime.utcfromtimestamp(os.path.getmtime(d_path+'/'+d_file)).replace(microsecond=0)
         local_time = utc.replace(tzinfo=pytz.utc).astimezone(local_tz)
         d_dict['date_modified'] = local_time
     else:

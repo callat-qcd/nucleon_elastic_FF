@@ -27,7 +27,11 @@ res_phi_path  = {
     'midpoint_pseudo':'mres_path','pseudo_pseudo':'mres_path',
     'phi_ll':'phi_qq_path', 'phi_ss':'phi_qq_path',
 }
-def res_phi_dset(params):
+def res_phi_dset(params,full_path=True):
+    if '_ll' in params['corr']:
+        params['MQ'] = params['MV_L']
+    elif '_ss' in params['corr']:
+        params['MQ'] = params['MV_S']
     mq   = params['MQ'].replace('.','p')
     src  = params['SRC']
     corr = params['corr']
@@ -35,8 +39,32 @@ def res_phi_dset(params):
         h5_path = params[res_phi_path[corr]]+'/mq'+mq
     else:
         h5_path = params[res_phi_path[corr]]+'/mq'+mq+'/%(CORR)s'
+    if full_path:
+        h5_path += '/'+src
     return h5_path
 
+
+def spec_dset(params,corr,full_path=True):
+    #params['core'] controls the master group while corr is the specific dset of interest
+    b_octet    = ['proton','proton_np','lambda_z','lambda_z_np','sigma_p','sigma_p_np','xi_z','xi_z_np']
+    b_decuplet = ['delta_pp','delta_pp_np','omega_m','omega_m_np','sigma_star_p','sigma_star_p_np','xi_star_z','xi_star_z_np']
+    spec = params['corr']
+    if spec == 'spec':
+        params['MQ'] = 'ml'+params['MV_L']
+    elif spec in ['hyperspec', 'h_spec']:
+        params['MQ'] = 'ml'+params['MV_L']+'_ms'+params['MV_S']
+    mq = params['MQ'].replace('.','p')
+    if corr in ['spec','h_spec']:
+        h5_path = params['h5_spec_path']+'/'+mq+'/%(CORR)s/%(SPIN)s/%(MOM)s'
+    elif corr in ['piplus','kminus','kplus']:
+        h5_path = params['h5_spec_path']+'/'+mq+'/'+corr+'/%(MOM)s'
+    elif corr in b_octet + b_decuplet:
+        h5_path = params['h5_spec_path']+'/'+mq+'/'+corr+'/%(SPIN)s/%(MOM)s'
+    else:
+        sys.exit('unrecognized spec type %s' %spec)
+    if full_path:
+        h5_path += '/'+params['SRC']
+    return h5_path
 
 def make_corr_dict(params):
     meta_dict = dict()
@@ -66,7 +94,7 @@ def collect_res_phi(params,h5_file):
     # check if data is collected in h5 already
     f5 = h5.open_file(h5_file,'a')
     for corr in corrs:
-        h5_paths[corr] = '/'+res_phi_dset(params) %{'CORR':corr}
+        h5_paths[corr] = '/'+res_phi_dset(params,full_path=False) %{'CORR':corr}
         create_group(f5,h5_paths[corr])
         if (src not in f5.get_node(h5_paths[corr])) or (src in f5.get_node(h5_paths[corr]) and overwrite):
             get_data = True
@@ -156,7 +184,7 @@ def get_res_phi(params_in,h5_dsets,h5_file=None,collect=False):
         mq = params['MQ'].replace('.','p')
         params['SRC'] = src
         for corr in corrs:
-            h5_path = (res_phi_dset(params)+'/'+src) %{'CORR':corr}
+            h5_path = res_phi_dset(params,full_path=True) %{'CORR':corr}
             if h5_path not in h5_dsets:
                 have_corrs = False
                 if debug:
@@ -223,9 +251,11 @@ def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
     # first check if corrs are in the h5_dsets
     have_corrs = True
     for src in params['srcs']:
+        params['SRC'] = src
         for corr in mesons:
             for mom in utils.p_lst(params['MESONS_PSQ_MAX']):
-                h5_path = params['h5_spec_path']+'/'+mq+'/'+corr+'/'+mom+'/'+src
+                h5_path = spec_dset(params,corr,full_path=True) %{'MOM':mom}
+                #h5_path = params['h5_spec_path']+'/'+mq+'/'+corr+'/'+mom+'/'+src
                 if h5_path not in h5_dsets:
                     have_corrs = False
                     if debug:
@@ -233,7 +263,8 @@ def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
         for corr in octet + decuplet:
             for spin in spin_dict[corr]:
                 for mom in utils.p_lst(params['BARYONS_PSQ_MAX']):
-                    h5_path = params['h5_spec_path']+'/'+mq+'/'+corr+'/'+spin+'/'+mom+'/'+src
+                    h5_path = spec_dset(params, corr, full_path=True) %{'MOM':mom, 'SPIN':spin}
+                    #h5_path = params['h5_spec_path']+'/'+mq+'/'+corr+'/'+spin+'/'+mom+'/'+src
                     if h5_path not in h5_dsets:
                         have_corrs = False
                         if debug:
@@ -253,14 +284,15 @@ def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
             get_data = False
             for corr in mesons:
                 for mom in utils.p_lst(params['MESONS_PSQ_MAX']):
-                    h5_path = '/'+params['h5_spec_path']+'/'+mq+'/'+corr+'/'+mom
+                    h5_path = '/'+ spec_dset(params,corr,full_path=False) %{'MOM':mom}
                     create_group(f5,h5_path)
                     if (src not in f5.get_node(h5_path)) or (src in f5.get_node(h5_path) and overwrite):
                         get_data = True
             for corr in octet + decuplet:
                 for spin in spin_dict[corr]:
                     for mom in utils.p_lst(params['BARYONS_PSQ_MAX']):
-                        h5_path = '/'+params['h5_spec_path']+'/'+mq+'/'+corr+'/'+spin+'/'+mom
+                        #h5_path = '/'+params['h5_spec_path']+'/'+mq+'/'+corr+'/'+spin+'/'+mom
+                        h5_path = '/' + spec_dset(params,corr,full_path=False) %{'MOM':mom, 'SPIN':spin}
                         create_group(f5,h5_path)
                         if (src not in f5.get_node(h5_path)) or (src in f5.get_node(h5_path) and overwrite):
                             get_data = True
@@ -278,7 +310,7 @@ def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
                     t_src = int(src.split('t')[1])
                     for corr in mesons:
                         for mom in utils.p_lst(params['MESONS_PSQ_MAX']):
-                            h5_path = '/'+params['h5_spec_path']+'/'+mq+'/'+corr+'/'+mom
+                            h5_path = '/'+ spec_dset(params,corr,full_path=False) %{'MOM':mom} #params['h5_spec_path']+'/'+mq+'/'+corr+'/'+mom
                             nt = int(params['NT'])
                             data = np.zeros([nt,2,1],dtype=dtype)
                             data[:,0,0] = fin.get_node('/sh/'+corr+'/'+src_split+'/'+mom).read()
@@ -298,7 +330,7 @@ def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
                     for corr in octet+decuplet:
                         for spin in spin_dict[corr]:
                             for mom in utils.p_lst(params['BARYONS_PSQ_MAX']):
-                                h5_path = '/'+params['h5_spec_path']+'/'+mq+'/'+corr+'/'+spin+'/'+mom
+                                h5_path = '/'+ spec_dset(params,corr,full_path=False) %{'MOM':mom, 'SPIN':spin} #params['h5_spec_path']+'/'+mq+'/'+corr+'/'+spin+'/'+mom
                                 nt = int(params['NT'])
                                 data = np.zeros([nt,2,1],dtype=dtype)
                                 data[:,0,0] = fin.get_node('/sh/'+corr+'/'+spin+'/'+src_split+'/'+mom).read()
