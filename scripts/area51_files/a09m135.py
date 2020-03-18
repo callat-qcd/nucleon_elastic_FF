@@ -1,10 +1,10 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['tuning_ms'] = False
-params['run_ff'] = False
-params['run_strange'] = False
+params['tuning_mq']   = False
+params['tuning_ms']   = False
+params['run_ff']      = False
+params['run_strange'] = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default

@@ -44,7 +44,7 @@ print('ENSEMBLE:',ens_s)
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
 parser.add_argument('cfgs',        nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('--corr',                type=str,default='all',help='corr type [mres_ll, phi_ll, spec, formfac, mres_ss, phi_ss, hspec] [%(default)s]')
+parser.add_argument('--corr',      nargs='+',type=str,default=['all'],help='corr type [mres_ll, phi_ll, spec, formfac, mres_ss, phi_ss, hspec] [%(default)s]')
 parser.add_argument('-m','--mq',             type=str,help='specify quark mass [default = all]')
 parser.add_argument('-s','--src',            type=str,help='src [xXyYzZtT] None=All')
 parser.add_argument('--src_set',   nargs=3,  type=int,help='specify si sf ds')
@@ -119,18 +119,18 @@ else:
             sys.exit('you asked for a t_sep value not in area51 file: %d' %t)
     params['t_seps'] = args.t_sep
 
-if args.corr == 'all':
+if args.corr == ['all']:
     corrs = ['mres_ll','phi_ll','spec']
     for dt in params['t_seps']:
         corrs.append('ff_tsep_'+str(dt))
     if params['run_strange']:
         corrs += ['mres_ss','phi_ss','h_spec']
-elif args.corr == 'ff':
-    corrs = []
+elif 'ff' in args.corr:
+    corrs = [c for c in args.corr if c != 'ff']
     for dt in params['t_seps']:
         corrs.append('ff_tsep_'+str(dt))
 else:
-    corrs = [args.corr]
+    corrs = args.corr
 
 print('MINING',corrs)
 print('ens_stream = ',ens_s)
@@ -142,6 +142,7 @@ tape_entries = dict()
 disk_entries = dict()
 
 for corr in corrs:
+    print('checking lattedb entries [meta, tape, disk] for %s' %corr)
     meta_entries[corr] = lattedb_ff.get_or_create_meta_entries(corr, cfgs_run, ens, stream, src_set, srcs)
     tape_entries[corr] = lattedb_ff.get_or_create_tape_entries(meta_entries[corr],\
         name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=data_dir, machine=c51.machine)
