@@ -43,11 +43,12 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
-parser.add_argument('cfgs',      nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('--corr',              type=str,default='all',help='corr type [mres_ll, phi_ll, spec, formfac, mres_ss, phi_ss, hspec] [%(default)s]')
-parser.add_argument('-m','--mq',           type=str,help='specify quark mass [default = all]')
-parser.add_argument('-s','--src',          type=str,help='src [xXyYzZtT] None=All')
-parser.add_argument('--src_set', nargs=3,  type=int,help='specify si sf ds')
+parser.add_argument('cfgs',        nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('--corr',                type=str,default='all',help='corr type [mres_ll, phi_ll, spec, formfac, mres_ss, phi_ss, hspec] [%(default)s]')
+parser.add_argument('-m','--mq',             type=str,help='specify quark mass [default = all]')
+parser.add_argument('-s','--src',            type=str,help='src [xXyYzZtT] None=All')
+parser.add_argument('--src_set',   nargs=3,  type=int,help='specify si sf ds')
+parser.add_argument('-t','--t_sep',nargs='+',type=int,help='value of t_sep [default = all]')
 parser.add_argument('-o',              default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
 parser.add_argument('--move',          default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
 parser.add_argument('-u','--update_db',default=False,action='store_const',const=True,help='update db without collection? [%(default)s]')
@@ -110,10 +111,24 @@ if args.mq == None:
 else:
     mq_lst = [args.mq]
 
+if args.t_sep == None:
+    pass
+else:
+    for t in args.t_sep:
+        if t not in params['t_seps']:
+            sys.exit('you asked for a t_sep value not in area51 file: %d' %t)
+    params['t_seps'] = args.t_sep
+
 if args.corr == 'all':
-    corrs = ['mres_ll','phi_ll','spec','ff']
+    corrs = ['mres_ll','phi_ll','spec']
+    for dt in params['t_seps']:
+        corrs.append('ff_tsep_'+str(dt))
     if params['run_strange']:
         corrs += ['mres_ss','phi_ss','h_spec']
+elif args.corr == 'ff':
+    corrs = []
+    for dt in params['t_seps']:
+        corrs.append('ff_tsep_'+str(dt))
 else:
     corrs = [args.corr]
 
@@ -208,7 +223,7 @@ for cfg in cfgs_run:
         params['h5_spec_path'] = val_p+'/spec'
         params['ff_path'] = val_p+'/formfac'
         for corr in corrs:
-            if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='disk'):
+            if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='disk', debug=args.debug):
                 params['corr'] = corr
                 if 'mres' in corr or 'phi' in corr:
                     if not collect_utils.get_res_phi(params,dsets_full):
@@ -218,12 +233,13 @@ for cfg in cfgs_run:
                     if not collect_utils.get_spec(params, dsets_full):
                         if collect_utils.get_spec(params, dsets_tmp, h5_file=h5_tmp, collect=True):
                             h5_migrate = True
-                elif 'ff' == corr:
+                elif 'ff' in corr:
                     for tsep in params['t_seps']:
+                        params['corr'] = 'ff_tsep_'+str(tsep)
                         params['T_SEP'] = tsep
-                        print('t_sep = ',tsep)
-                        collect_utils.get_formfac(params, dsets_full)
-
+                        if not collect_utils.get_formfac(params, dsets_full):
+                            if collect_utils.get_formfac(params, dsets_tmp, h5_file=h5_tmp, collect=True):
+                                h5_migrate = True
         if h5_migrate:
             if not os.path.exists(h5_full):
                 os.system('touch '+h5_full)
@@ -240,6 +256,8 @@ for cfg in cfgs_run:
                 params_tmp = dict(params)
                 update_entries = [e for e in meta_entries[corr].filter(**db_filter) if (e.disk.exists == False or e.tape.exists == False)]
                 for ff in update_entries:
+                    if args.debug:
+                        print('DEBUG: exist from meta_read',ff.tape.exists)
                     params_tmp['corr'] = ff.correlator
                     params_tmp['srcs'] = [ff.source]
                     params_tmp['SRC']  = ff.source
@@ -255,6 +273,10 @@ for cfg in cfgs_run:
                     if corr in ['spec','h_spec']:
                         dd['dset'] = collect_utils.spec_dset(params_tmp, params_tmp['corr'], full_path=True)
                         if collect_utils.get_spec(params_tmp, dsets_update):
+                            updates = True
+                    if 'ff' in corr:
+                        dd['dset'] = collect_utils.ff_dset(params_tmp, full_path=True)
+                        if collect_utils.get_formfac(params_tmp, dsets_update):
                             updates = True
                     if updates:
                         if not ff.disk.exists:

@@ -66,10 +66,13 @@ def spec_dset(params,corr,full_path=True):
         h5_path += '/'+params['SRC']
     return h5_path
 
-def ff_dset(params, full_path=True):
-    params['MQ'] = 'ml'+params['MV_L']
-    mq = params['MQ'].replace('.','p')
-    h5_path = params['ff_path'] +'/'+mq+'/%(PARTICLE)s_%(FLAV_SPIN)s_tsep_%(T_SEP)s_sink_mom_px0_py0_pz0/%(CURRENT)s/px0_py0_pz0'
+def ff_dset(params, in_path=False, full_path=True):
+    params['MQ'] = params['MV_L']
+    mq = 'ml'+params['MQ'].replace('.','p')
+    if in_path:
+        h5_path = '%(PARTICLE)s_%(FLAV_SPIN)s_t0_%(T_0)s_tsep_%(T_SEP)s_sink_mom_px0_py0_pz0/%(CURRENT)s/%(SRC_SPLIT)s/px0_py0_pz0/local_current'
+    else:
+        h5_path = params['ff_path'] +'/'+mq+'/%(PARTICLE)s_%(FLAV_SPIN)s_tsep_%(T_SEP)s_sink_mom_px0_py0_pz0/%(CURRENT)s/px0_py0_pz0'
     if full_path:
         h5_path += '/'+params['SRC']
     return h5_path
@@ -82,10 +85,6 @@ def make_corr_dict(params):
     meta_dict['configuration'] = int(params['CFG'])
     meta_dict['source_set']    = params['SRC_SET']
     meta_dict['source']        = params['SRC']
-
-def make_corr_td_dict(params):
-    td_dict = dict()
-    
 
 def collect_res_phi(params,h5_file):
     overwrite  = params['overwrite']
@@ -200,6 +199,8 @@ def get_res_phi(params_in,h5_dsets,h5_file=None,collect=False):
     if debug:
         print('verbose',verbose)
         print('have_corrs',have_corrs)
+    if overwrite:
+        have_corrs = False
     if have_corrs and verbose and not overwrite:
         print('%s %s: all collected' %(params['corr'],no))
     # if collect=True, try to collect data
@@ -279,12 +280,13 @@ def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
                             print("%15s %s" %(corr,h5_path))
     if debug:
         print('have_corrs',have_corrs)
+    if overwrite:
+        have_corrs = False
     if have_corrs and verbose and not overwrite:
         print('%s %s: all collected' %(spec,no))
     # if collect=True, try to collect data
     if (not have_corrs and collect) or (overwrite and collect):
         f5 = h5.open_file(h5_file,'a')
-        corr_dicts = []
         for src in params['srcs']:
             params['SRC'] = src
             src_split = sources.src_split(src)
@@ -311,7 +313,10 @@ def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
                 spec_file = params[spec] +'/'+ spec_name+'.h5'
                 # make sure file exists and is the correct size
                 if debug:
-                    print(params['spec_size'], os.path.getsize(spec_file), spec_file)
+                    if os.path.exists(spec_file):
+                        print(params['spec_size'], os.path.getsize(spec_file), spec_file)
+                    else:
+                        print('does not exist', spec_file)
                 if os.path.exists(spec_file) and os.path.getsize(spec_file) > params['spec_size']:
                     fin = h5.open_file(spec_file,'r')
                     src_split = sources.src_split(src)
@@ -356,8 +361,15 @@ def get_spec(params_in, h5_dsets,h5_file=None,collect=False):
                                 else:
                                     print('  NAN: %s %s %s %s' %(corr,spin,no,src))
                     fin.close()
+                    have_corrs = True
         f5.close()
     return have_corrs
+
+def tsep_str(corr,tsep):
+    dt = str(tsep)
+    if '_np' in corr:
+        dt = '-'+dt
+    return dt
 
 def get_formfac(params_in, h5_dsets,h5_file=None,collect=False):
     params    = dict(params_in)
@@ -371,7 +383,7 @@ def get_formfac(params_in, h5_dsets,h5_file=None,collect=False):
     for flav in params['flavs']:
         for spin in params['spins']:
             flav_spin.append(flav+'_'+spin)
-    params['MQ']  = 'ml'+params['MV_L']
+    params['MQ']  = params['MV_L']
     mq            = params['MQ'].replace('.','p')
     params['MOM'] = 'px0py0pz0'
     have_corrs = True
@@ -379,9 +391,7 @@ def get_formfac(params_in, h5_dsets,h5_file=None,collect=False):
         params['SRC'] = src
         t_src = src.split('t')[1]
         for corr in params['particles']:
-            dt = str(tsep)
-            if '_np' in corr:
-                dt = '-'+dt
+            dt = tsep_str(corr,tsep)
             for fs in flav_spin:
                 for curr in params['curr_0p']:
                     path_replace = {'PARTICLE':corr, 'FLAV_SPIN':fs, 'T_SEP':dt, 'CURRENT':curr}
@@ -390,8 +400,47 @@ def get_formfac(params_in, h5_dsets,h5_file=None,collect=False):
                         have_corrs = False
     if debug:
         print('have_corrs t_sep = ',dt,have_corrs)
+    if overwrite:
+        have_corrs = False
     if have_corrs and verbose and not overwrite:
-        print('%s %s: all collected' %(spec,no))
+        print('%s %s tsep = %s: all collected' %(corr,no,dt))
 
-
+    # if collect=True, try to collect data
+    if (not have_corrs and collect) or (overwrite and collect):
+        f5 = h5.open_file(h5_file,'a')
+        for src in params['srcs']:
+            params['SRC'] = src
+            # check if data is collected already
+            get_data = False
+            for corr in params['particles']:
+                dt = tsep_str(corr,tsep)
+                for fs in flav_spin:
+                    for curr in params['curr_0p']:
+                        path_replace = {'PARTICLE':corr, 'FLAV_SPIN':fs, 'T_SEP':dt, 'CURRENT':curr}
+                        h5_path = '/' + ff_dset(params, full_path=False) %path_replace
+                        create_group(f5, h5_path)
+                        if (src not in f5.get_node(h5_path)) or (src in f5.get_node(h5_path) and overwrite):
+                            get_data = True
+            if get_data:
+                ff_name = c51.names['formfac'] % params
+                ff_file = params['formfac'] +'/'+ ff_name+'.h5'
+                # make sure file exists
+                utils.check_file(ff_file,params['ff_size'],params['file_time_delete'],params['corrupt'])
+                if os.path.exists(ff_file):
+                    print(params['corr'], no, src)
+                    f_in      = h5.open_file(ff_file,'r')
+                    src_split = sources.src_split(src)
+                    t_src     = src.split('t')[1]
+                    for corr in params['particles']:
+                        dt = tsep_str(corr,tsep)
+                        for fs in flav_spin:
+                            for curr in params['curr_0p']:
+                                path_replace = {'PARTICLE':corr, 'FLAV_SPIN':fs, 'T_0':t_src, 'T_SEP':dt, 'CURRENT':curr, 'SRC_SPLIT':src_split}
+                                h5_in_path = '/'+ff_dset(params, in_path=True, full_path=False) % path_replace
+                                h5_path    = '/'+ff_dset(params, full_path=False) % path_replace
+                                utils.get_write_h5_ff_data(f_in, f5, h5_in_path, h5_path, src, overwrite=overwrite, verbose=verbose)
+                                f5.flush()
+                    f_in.close()
+                    have_corrs = True
+        f5.close()
     return have_corrs

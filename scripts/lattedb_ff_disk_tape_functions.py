@@ -18,7 +18,10 @@ from lattedb.project.formfac.models.data.correlator import (
 def corr_disk_tape_update(corr_updates,dt='disk',debug=False):
     dt_push = []
     for ff,dd in corr_updates:
-        d = ff.disk
+        if dt == 'disk':
+            d = ff.disk
+        elif dt == 'tape':
+            d = ff.tape
         for k,v in dd.items():
             if debug:
                 if k == 'exists':
@@ -237,7 +240,7 @@ def get_or_create_meta_entries(
         )
 
     # Return all entries
-    return meta_entries
+    return meta_entries.prefetch_related('disk','tape')
 
 def get_or_create_disk_entries(meta_entries: List[CorrelatorMeta], name: str, path: str, machine: str,
         )-> List[DiskCorrelatorH5Dset]:
@@ -303,19 +306,23 @@ def get_or_create_tape_entries(meta_entries: List[CorrelatorMeta], name: str, pa
     
     return file_entries
 
-def querry_corr_disk_tape(meta_entries,corr,db_filter,dt='tape'):
+def querry_corr_disk_tape(meta_entries,corr,db_filter,dt='tape',debug=False):
     has_dt = True
     db_filter_copy = dict(db_filter)
     db_filter_copy.update({'correlator':corr})
     for entry in meta_entries[corr].filter(**db_filter):
         if dt == 'tape':
             if hasattr(entry, 'tape'):
+                if debug:
+                    print(corr,'tape exists',entry.tape.exists)
                 if not entry.tape.exists:
                     has_dt = False
             else:
                 has_dt = False
         elif dt == 'disk':
             if hasattr(entry, 'disk'):
+                if debug:
+                    print(corr,'disk exists',entry.tape.exists)
                 if not entry.disk.exists:
                     has_dt = False
             else:
