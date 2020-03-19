@@ -41,11 +41,12 @@ params['alpha5'] = '2.0'
 #params['MV_L'] = '0.00137'
 params['MV_L'] = '0.00152'
 #params['MV_S'] = '0.0491' # from a09m220
-params['MV_S'] = '0.0481' # estimated from MILC's phys pion mass a09m130 ensemble
+#params['MV_S'] = '0.0481' # estimated from MILC's phys pion mass a09m130 ensemble
+params['MV_S'] = '0.04735' # after 100 cfgs tuning
 
 params['spec_size'] = 51312
 params['ff_size']   = 435560
-params['hyperspec_size'] = 1
+params['hyperspec_size'] = 485800
 params['spec_4D_tslice_fact'] = 0.33333333
 params['src_size']     = 28991031000
 params['prop_size']    = 28991032000
