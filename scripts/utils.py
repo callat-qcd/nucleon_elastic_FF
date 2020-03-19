@@ -61,7 +61,7 @@ def parse_cfg_argument(cfg_arg, params):
             print('unrecognized use of cfg arg')
             print('cfg_i [cfg_f cfg_d]')
             sys.exit()
-    return range(ci,cf+dc,dc)
+    return range(ci,cf+1,dc)
 
 def parse_cfg_src_argument(cfg_arg,src_arg,params,src_type=[]):
     cfgs_run = parse_cfg_argument(cfg_arg,params)
@@ -84,7 +84,7 @@ def parse_cfg_src_argument(cfg_arg,src_arg,params,src_type=[]):
                 for src_type, src in src_gen:
                     src_check.append(sources.xXyYzZtT(src))
             if 'si' in params and 'sf' in params and 'ds' in params:
-                src_check = src_check[params['si']:params['sf']+params['ds']:params['ds']]
+                src_check = src_check[params['si']:params['sf']+1:params['ds']]
             if srcs[cfgs_run[0]][0] not in src_check:
                 print('you supplied a src not in the current src list: allowed srcs')
                 print(src_check)
@@ -108,7 +108,7 @@ def parse_cfg_src_argument(cfg_arg,src_arg,params,src_type=[]):
                     else:
                         srcs[c].append(sources.xXyYzZtT(src))
             if 'si' in params and 'sf' in params and 'ds' in params:
-                srcs[c] = srcs[c][params['si']:params['sf']+params['ds']:params['ds']]
+                srcs[c] = srcs[c][params['si']:params['sf']+1:params['ds']]
     return cfgs_run, srcs
 
 def nsq_vectors(nsq):

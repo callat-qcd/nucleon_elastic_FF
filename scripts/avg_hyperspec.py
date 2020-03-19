@@ -32,19 +32,23 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='average phi_qq')
-parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--srcs',type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
-parser.add_argument('--fout',type=str,help='name of output file')
+parser.add_argument('--cfgs',nargs='+',   type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('--srcs',             type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
+parser.add_argument('--fout',             type=str,help='name of output file')
 parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--ddir',             type=str,default='data',help='use data or tmp_data dir to collect from [%(default)s]')
+parser.add_argument('-o',default=False,action='store_const',const=True, help='overwrite? [%(default)s]')
+parser.add_argument('-v',default=True, action='store_const',const=False,help='verbose? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
 print('')
 
 dtype = np.complex64
-data_dir = c51.data_dir % params
+if args.ddir == 'data':
+    data_dir = c51.data_dir % params
+elif args.ddir == 'tmp_data':
+    data_dir = c51.tmp_data_dir % params
 utils.ensure_dirExists(data_dir)
 data_avg_dir = data_dir+'/avg'
 utils.ensure_dirExists(data_avg_dir)
