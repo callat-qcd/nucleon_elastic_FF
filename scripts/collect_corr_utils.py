@@ -170,7 +170,11 @@ def collect_res_phi(params,h5_file):
             else:
                 print('NAN in data',prop_xml)
         else:
-            print('bad prop xml file',prop_xml)
+            if verbose:
+                if os.path.exists(prop_xml):
+                    print('bad prop xml file',prop_xml)
+                else:
+                    print('prop xml does not exist',prop_xml)
     f5.close()
     return have_corrs
 

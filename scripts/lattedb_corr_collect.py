@@ -141,11 +141,16 @@ meta_entries = dict()
 tape_entries = dict()
 disk_entries = dict()
 
+
+
 for corr in corrs:
     print('checking lattedb entries [meta, tape, disk] for %s' %corr)
+    print(corr,': meta')
     meta_entries[corr] = lattedb_ff.get_or_create_meta_entries(corr, cfgs_run, ens, stream, src_set, srcs)
+    print(corr,': tape')
     tape_entries[corr] = lattedb_ff.get_or_create_tape_entries(meta_entries[corr],\
         name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=data_dir, machine=c51.machine)
+    print(corr,': disk')
     disk_entries[corr] = lattedb_ff.get_or_create_disk_entries(meta_entries[corr],\
         name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=tape_dir, machine=c51.machine)
 
@@ -247,8 +252,11 @@ for cfg in cfgs_run:
             h5migrate(h5_tmp, h5_full, atol=0.0, rtol=1e-10)
         if h5_migrate or args.update_db:
             # load updated dsets on disk
-            with h5py.File(h5_full,'r') as f5_full:
-                dsets_update = get_dsets(f5_full, load_dsets=False)
+            if os.path.exists(h5_full):
+                with h5py.File(h5_full,'r') as f5_full:
+                    dsets_update = get_dsets(f5_full, load_dsets=False)
+            else:
+                dsets_update = {}
             # update disk_db
             disk_updates = []
             tape_updates = []
