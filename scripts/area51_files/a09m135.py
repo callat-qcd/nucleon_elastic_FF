@@ -47,6 +47,7 @@ params['MV_S'] = '0.04735' # after 100 cfgs tuning
 params['spec_size'] = 51312
 params['ff_size']   = 435560
 params['hyperspec_size'] = 485800
+params['mixed_size'] = 48200
 params['spec_4D_tslice_fact'] = 0.33333333
 params['src_size']     = 28991031000
 params['prop_size']    = 28991032000
@@ -151,6 +152,23 @@ def mpirun_params(machine):
         params['gpu_c_rs']    = '-c6'
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 2 12'
+        params['gpu_bind']    = ''
+
+        params['hisq_nodes']  = 4
+        params['hisq_metaq_nodes'] = 0
+        params['hisq_gpus']   = 24
+        params['hisq_coul_spec'] = 16
+        params['hisq_spec']   = 4
+        params['hisq_maxcus'] = 1
+        params['mixed_mesons_time'] = 20
+
+        params['hisq_nrs']     = '--nrs 4'
+        params['hisq_rs_node'] = '-r1'
+        params['hisq_a_rs']    = '-a6'
+        params['hisq_g_rs']    = '-g6'
+        params['hisq_c_rs']    = '-c6'
+        params['hisq_latency'] = '-l gpu-cpu'
+        params['hisq_geom']    = ' -geom 1 1 2 12 -qmp-geom 1 1 2 12 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
         params['gpu_bind']    = ''
 
     return params
