@@ -38,6 +38,7 @@ parser.add_argument('--ml',type=str,help='quark mass [%(default)s]')
 parser.add_argument('--ms',type=str,help='quark mass [%(default)s]')
 parser.add_argument('--ns',type=int,help='number of srcs/cfg [%(default)s]')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
+parser.add_argument('--ddir',             type=str,default='data',help='use data or tmp_data dir to collect from [%(default)s]')
 parser.add_argument('--fin',type=str,help='directory to input (which is get script output), need to end with /, leave empty for production')
 parser.add_argument('--fout',type=str,help='directory to output, need to end with /, leave empty for production')
 parser.add_argument('--complete',default='avg_meson_complete.txt',type=str,help='avg_meson ml, ms, cfg complete text file')
@@ -50,8 +51,12 @@ print(args)
 print('')
 
 dtype = np.complex64
-data_dir = c51.data_dir % params
+if args.ddir == 'data':
+    data_dir = c51.data_dir % params
+elif args.ddir == 'tmp_data':
+    data_dir = c51.tmp_data_dir % params
 utils.ensure_dirExists(data_dir)
+utils.ensure_dirExists(data_dir+'/avg')
 
 params = sources.src_start_stop(params,ens,stream)
 args.src=None
@@ -65,9 +70,6 @@ mv_l = params['MV_L']
 mv_s = params['MV_S']
 ms_l = params['MS_L']
 ms_s = params['MS_S']
-
-
-data_dir = c51.data_dir % params
 
 bd_name = 'bad_mes_'+ens_s+'.lst'
 tmp_name = ens_s
@@ -97,7 +99,6 @@ proceed = input('do you want to proceed?\t')
 if proceed not in ['y','yes']:
     os.system('python '+sys.argv[0]+' -h')
     sys.exit()
-
 
 completeFile = open('./'+args.complete,'a')
 completeFile.write(time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime())+'\n')
