@@ -224,6 +224,7 @@ for c in cfgs:
         for mqs in [mv_s]:
             params['MQ_L'],params['MQ_S']=mql,mqs
             mixed_corr = c51.names['mixed_corr']%params
+            utils.check_file(mixed_corr, params['mixed_size'], params['file_time_delete'],params['corrupt'])
             if not os.path.exists(mixed_dir+'/'+mixed_corr):
                 print('mqs '+mixed_dir+'/'+mixed_corr)
                 pq_del[mql],pq_del[mqs] = False,False

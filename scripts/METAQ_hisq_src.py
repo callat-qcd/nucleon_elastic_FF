@@ -31,6 +31,7 @@ params['METAQ_PROJECT'] = 'spec_'+ens_s
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
 parser.add_argument('cfgs',nargs='+',type=int,help='cfg[s] no to check: ni [nf dn]')
 parser.add_argument('--src',type=str,help='pass a specific src if desired')
+parser.add_argument('--pt',default=True,action='store_const',const=False,help='make a point source? [%(default)s]')
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('--mtype',default='cpu',help='specify metaq dir [%(default)s]')
@@ -167,7 +168,10 @@ for cfg in cfgs_run:
         if not os.path.exists(params['prod']+'/src'+'/'+src_id):
             print('making src %s' %src)
             # make and write source
-            xml_in.write(xml_input.src_sh_stag % params)
+            if args.pt:
+                xml_in.write(xml_input.src_pt_stag % params)
+            else:
+                xml_in.write(xml_input.src_sh_stag % params)
             params.update({
                 'OBJ_ID':src_id,'PARALLEL_IO':'true',
                 'FILE_DIR':params['prod']+'/src','FILE_NAME':src_id,

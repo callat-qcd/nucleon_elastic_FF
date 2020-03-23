@@ -33,6 +33,7 @@ elif any(host in hn for host in ['login','batch','rhea']):
     env      = 'source /ccs/proj/lgt100/c51/software/summit_smpi/install/env.sh'
     env     += '\nmodule load python/3.7.0-anaconda3-5.3.0'
     bind_dir = ''
+    milc_dir  = '/ccs/proj/lgt100/c51/software/summit_smpi/install/lattice_milc_qcd'
     python   = 'python'
 else:
     print("Host "+hn+" unknown, using default.")
