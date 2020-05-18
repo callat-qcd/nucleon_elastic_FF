@@ -279,7 +279,7 @@ for c in cfgs_run:
                                 params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                                 params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                                 params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
-                                params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_seqprop.py '
+                                params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_coherent_seqprop.py '
                                 params['CLEANUP']  += params['CFG']+' '+src_args+' '+params['PRIORITY']+'\n'
                                 params['CLEANUP']  += '    sleep 5\n'
                                 params['CLEANUP']  += 'else\n'

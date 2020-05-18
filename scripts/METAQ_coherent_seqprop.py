@@ -209,11 +209,16 @@ for c in cfgs_run:
                         if not os.path.exists(seqprop_file):
                             ''' make sure all seqsource files exists '''
                             have_seqsrc_t = True
+                            try:
+                                seqsrc_size = params['seqsrc_size']
+                            except:
+                                print('SEQSRC_SIZE not defined in area51 file: using crude default')
+                                seqsrc_size      = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                             for s0 in srcs[c]:
                                 params['SRC'] = s0
                                 seqsrc_name = c51.names['seqsrc'] %params
                                 seqsrc_file = params['seqsrc']+'/'+seqsrc_name+'.'+params['SP_EXTENSION']
-                                utils.check_file(seqsrc_file,seqprop_size,params['file_time_delete'],params['corrupt'])
+                                utils.check_file(seqsrc_file,seqsrc_size,params['file_time_delete'],params['corrupt'])
                                 if not os.path.exists(seqsrc_file):
                                     if args.verbose:
                                         print('    missing sink',seqsrc_file)
@@ -280,7 +285,7 @@ for c in cfgs_run:
                                     params['T_SEP']     = dt
                                     params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                                     params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
-                                    params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '+params['CFG']
+                                    params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '+params['CFG']
                                     params['CLEANUP']  += ' '+src_args+' -t '+params['T_SEP']+' -s '+s0+' '+params['PRIORITY']+'\n'
                                     params['CLEANUP']  += '    sleep 5\n'
                                     params['CLEANUP']  += 'else\n'

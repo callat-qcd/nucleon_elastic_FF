@@ -220,14 +220,14 @@ for c in cfgs_run:
                             params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                             params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                             if not prop_exists:
-                                params['CLEANUP'] += '    python %s %s -s %s %s %s\n'\
-                                    %(params['SCRIPT_DIR']+'/METAQ_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
+                                params['CLEANUP'] += '    %s %s %s -s %s %s %s\n'\
+                                    %(c51.python,params['SCRIPT_DIR']+'/METAQ_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
                             if args.strange and not os.path.exists(prop_strange):
-                                params['CLEANUP'] += '    python %s %s -s %s %s %s\n'\
-                                    %(params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
+                                params['CLEANUP'] += '    %s %s %s -s %s %s %s\n'\
+                                    %(c51.python,params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
                             elif not args.strange and not os.path.exists(prop_strange) and params['run_strange']:
-                                params['CLEANUP'] += '    python %s %s -s %s %s %s\n'\
-                                    %(params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
+                                params['CLEANUP'] += '    %s %s %s -s %s %s %s\n'\
+                                    %(c51.python,params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
                             params['CLEANUP']  += '    sleep 5\n'
                             params['CLEANUP']  += 'else\n'
                             params['CLEANUP']  += '    echo "mpirun failed"\n'
