@@ -31,6 +31,7 @@ params['METAQ_PROJECT'] = 'spec_'+ens_s
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
 parser.add_argument('cfgs',nargs='+',type=int,help='cfg[s] no to check: ni [nf dn]')
 parser.add_argument('--src',type=str,help='pass a specific src if desired')
+parser.add_argument('--pt',default=True,action='store_const',const=False,help='make a point source? [%(default)s]')
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('--mtype',default='cpu',help='specify metaq dir [%(default)s]')
@@ -92,9 +93,6 @@ p_size = {
 s_i = params['si']
 s_f = params['sf']
 
-nt = int(params['NT'])
-nl = int(params['NL'])
-
 #nn_srcs = ep.nn_srcs
 #crnr_dl = ep.crnr_dl
 params = area51.mpirun_params(c51.machine)
@@ -143,153 +141,129 @@ for cfg in cfgs_run:
     cfg_exist = os.path.exists(params['CFG_FILE'])
     print('CFG_EXISTS: %s' %cfg_exist)
 
-    if cfg_exist:
-        # make SRCS
-        if args.src == None:
-            srcs_cfg = [srcs[cfg][args.si]]#hardwire mixed_mesons to be only specified src
-        else:
-            srcs_cfg = [args.src]
+    # make SRCS
+    if args.src == None:
+        srcs_cfg = [srcs[cfg][args.si]]#hardwire mixed_mesons to be only specified src
+    else:
+        srcs_cfg = [args.src]
 
-        for src in srcs_cfg:
-            print( no, src)
-            task_base = 'hisq_src'
-            xmlin  = task_base+'_'+ens_s+'_src'+src+'.ini.xml'
-            xmlout = task_base+'_'+ens_s+'_src'+src+'.out.xml'
-            stdout = task_base+'_'+ens_s+'_src'+src+'.stdout'
-            xml_in = open(params['prod']+'/xml/'+no+'/'+xmlin,'w')
-            xml_in.write(xml_input.head)
-            x0 = src.split('x')[1].split('y')[0]
-            y0 = src.split('y')[1].split('z')[0]
-            z0 = src.split('z')[1].split('t')[0]
-            t0 = src.split('t')[1]
-            params.update({'X0':x0,'Y0':y0,'Z0':z0,'T0':t0,'SRC':src})
-            src_id = 'src_'+no+'_'+src+'_'+'wv_w'+params['WF_S']+'_n'+params['WF_N']+'_hisq'
-            params.update({'SRC_ID':src_id,'GAUGE_FIELD':'default_gauge_field'
-                          })
-            make_task = False
+    for src in srcs_cfg:
+        print( no, src)
+        task_base = 'hisq_src'
+        xmlin  = task_base+'_'+ens_s+'_src'+src+'.ini.xml'
+        xmlout = task_base+'_'+ens_s+'_src'+src+'.out.xml'
+        stdout = task_base+'_'+ens_s+'_src'+src+'.stdout'
+        xml_in = open(params['prod']+'/xml/'+no+'/'+xmlin,'w')
+        xml_in.write(xml_input.head)
+        x0 = src.split('x')[1].split('y')[0]
+        y0 = src.split('y')[1].split('z')[0]
+        z0 = src.split('z')[1].split('t')[0]
+        t0 = src.split('t')[1]
+        params.update({'X0':x0,'Y0':y0,'Z0':z0,'T0':t0,'SRC':src})
+        src_id = 'src_'+no+'_'+src+'_'+'wv_w'+params['WF_S']+'_n'+params['WF_N']+'_hisq'
+        params.update({'SRC_ID':src_id,'GAUGE_FIELD':'default_gauge_field'
+                      })
+        make_task = False
 
-            if not os.path.exists(params['prod']+'/src'+'/'+src_id):
-                print('making src %s' %src)
-                # make and write source
+        if not os.path.exists(params['prod']+'/src'+'/'+src_id):
+            print('making src %s' %src)
+            # make and write source
+            if args.pt:
+                xml_in.write(xml_input.src_pt_stag % params)
+            else:
                 xml_in.write(xml_input.src_sh_stag % params)
-                params.update({
-                    'OBJ_ID':src_id,'PARALLEL_IO':'true',
-                    'FILE_DIR':params['prod']+'/src','FILE_NAME':src_id,
-                    })
-                xml_in.write(xml_input.stag_src_write % params)
-                make_task = True
-            # look for and delete ddpairs that are not too small
-            if args.pdel:
-                #pq_ml = [mv_l]   pq_ms = [mv_s]				
-                for mqn in mqDict:
-                    mq=mqDict[mqn]
-                    prop_dir=params['prod'] + '/prop/'
-                    if mqn=='MS':
-                        prop_dir=params['prod'] + '/prop_strange/'
-                    params['MQ']=mq
-
-                    prop = c51.names['prop']%params+'.lime'
-
-                    prop_dd = prop.replace('.lime','') + '_ddpairs'
-                    utils.check_file(prop_dir+no+'/'+prop_dd,p_size[ens],params['file_time_delete'],params['corrupt'])
-                    '''
-                    if os.path.exists(prop_dir+no+'/'+prop_dd) and os.path.getsize(prop_dir+no+'/'+prop_dd) < p_size[ens]:
-                        print('DELETING')
-                        print(prop_dd)
-                        os.remove(prop_dir + '/'+prop_dd)
-                    '''
-            # make USQCD_DD_PAIRS props
+            params.update({
+                'OBJ_ID':src_id,'PARALLEL_IO':'true',
+                'FILE_DIR':params['prod']+'/src','FILE_NAME':src_id,
+                })
+            xml_in.write(xml_input.stag_src_write % params)
+            make_task = True
+        # look for and delete ddpairs that are not too small
+        if args.pdel:
+            #pq_ml = [mv_l]   pq_ms = [mv_s]				
             for mqn in mqDict:
                 mq=mqDict[mqn]
-                params['MQ']=mq
                 prop_dir=params['prod'] + '/prop/'
                 if mqn=='MS':
                     prop_dir=params['prod'] + '/prop_strange/'
+                params['MQ']=mq
 
                 prop = c51.names['prop']%params+'.lime'
-                prop_file = prop_dir+'/'+no+'/'+prop
+
+                prop_dd = prop.replace('.lime','') + '_ddpairs'
+                utils.check_file(prop_dir+no+'/'+prop_dd,p_size[ens],params['file_time_delete'],params['corrupt'])
+                '''
+                if os.path.exists(prop_dir+no+'/'+prop_dd) and os.path.getsize(prop_dir+no+'/'+prop_dd) < p_size[ens]:
+                    print('DELETING')
+                    print(prop_dd)
+                    os.remove(prop_dir + '/'+prop_dd)
+                '''
+        # make USQCD_DD_PAIRS props
+        for mqn in mqDict:
+            mq=mqDict[mqn]
+            params['MQ']=mq
+            prop_dir=params['prod'] + '/prop/'
+            if mqn=='MS':
+                prop_dir=params['prod'] + '/prop_strange/'
+            
+            prop = c51.names['prop']%params+'.lime'
+            prop_dd = prop.replace('.lime','') + '_ddpairs'
+            
+            if not os.path.exists(prop_dir+no+'/'+prop_dd):
+                if not os.path.exists(prop_dir+no+'/'+prop):
+                    print('DOES NOT EXIST: '+prop_dir+no+'/'+prop)
+                else:
+                    # read prop
+                    print('Writing: %s' %prop)
+                    params.update({'OBJ_ID':prop,'OBJ_TYPE':'LatticePropagator',
+                        'LIME_FILE':prop_dir+no+'/'+prop})
+                    xml_in.write(xml_input.qio_read % params)
+                    # write ddpairs
+                    params.update({'PROP_DIR':prop_dir+no,'PROP_ID_DD':prop_dd,'PROP_ID':prop})
+                    xml_in.write(xml_input.dd_pairs % params)
+                    make_task = True
+        # close xml file
+        xml_in.write(xml_input.tail % params)
+        xml_in.close()
+
+        # make TASK.sh
+        if args.metaQ and make_task:
+           metaq = task_base +'_'+ens_s+'_'+no+'_'+src+'_wv_w'+params['WF_S']+'_n'+params['WF_N']+'.sh'
+
+           t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
+           try:
+                if params['metaq_split']:
+                    t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['gpu_nodes']),params,folder=q,overwrite=args.o)
+                    t_w = t_w or t_w2
+                    t_e = t_e or t_e2
+           except:
+                pass
+           if not t_e or (args.o and not t_w):
+                ''' make METAQ task '''
+                params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
+                params['INI']       = params['prod']+'/xml/'+no+'/'+xmlin
+                params['OUT']       = params['INI'].replace('.ini','.out')
+                params['STDOUT']    = params['INI'].replace('.ini','').replace('xml','stdout')
+                params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
+                params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
+                params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_milc_mixed_mesons.py '
+                params['CLEANUP']  += params['CFG']+' --si '+str(args.si)+' '+params['PRIORITY']+'\n'
+                params['CLEANUP']  += '    sleep 5\n'
+                params['CLEANUP']  += 'else\n'
+                params['CLEANUP']  += '    echo "mpirun failed"\n'
+                params['CLEANUP']  += 'fi\n'
+                mtype = args.mtype
+
                 try:
-                    file_size = params['prop_size']
-                except:
-                    print('PROP_SIZE not defined in area51 file: using crude default')
-                    file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
-                utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
-                prop_exists = os.path.exists(prop_file)
-                if ens in ['a12m130','a15m135XL'] and not prop_exists:
-                    prop_file = prop_dir+'/'+no+'/'+c51.names['prop']%params+'.h5'
-                    try:
-                        file_size = params['prop_size_h5']
-                    except:
-                        print('PROP_SIZE not defined in area51 file: using crude default')
-                        file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
-                    utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
-                    prop_exists = os.path.exists(prop_file)                        
-                prop_dd = (c51.names['prop']%params) + '_ddpairs'
-
-                if not os.path.exists(prop_dir+no+'/'+prop_dd):
-                    if not prop_exists:
-                        print('DOES NOT EXIST: '+prop_file)
-                    else:
-                        # read prop
-                        print('READ: %s' %prop)
-                        params.update({'OBJ_ID':prop,'OBJ_TYPE':'LatticePropagator'})
-                        if prop_file.split('.')[-1] == 'lime':
-                            params.update({'LIME_FILE':prop_file})
-                            xml_in.write(xml_input.qio_read % params)
-                        elif prop_file.split('.')[-1] == 'h5':
-                            params['H5_FILE'] = prop_file
-                            if ens == 'a15m135XL':
-                                params['H5_PATH'] = ''
-                                params['H5_OBJ_NAME'] = 'prop'
-                            else:
-                                sys.exit(ens+' h5 read needs support for mixed')
-                            xml_in.write(xml_input.hdf5_read % params)
-                        # write ddpairs
-                        params.update({'PROP_DIR':prop_dir+no,'PROP_ID_DD':prop_dd,'PROP_ID':prop})
-                        xml_in.write(xml_input.dd_pairs % params)
-                        make_task = True
-            # close xml file
-            xml_in.write(xml_input.tail % params)
-            xml_in.close()
-
-            # make TASK.sh
-            if args.metaQ and make_task:
-               metaq = task_base +'_'+ens_s+'_'+no+'_'+src+'_wv_w'+params['WF_S']+'_n'+params['WF_N']+'.sh'
-
-               t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
-               try:
                     if params['metaq_split']:
-                        t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['gpu_nodes']),params,folder=q,overwrite=args.o)
-                        t_w = t_w or t_w2
-                        t_e = t_e or t_e2
-               except:
+                        mtype = mtype + '_'+str(params['gpu_nodes'])
+                except:
                     pass
-               if not t_e or (args.o and not t_w):
-                    ''' make METAQ task '''
-                    params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
-                    params['INI']       = params['prod']+'/xml/'+no+'/'+xmlin
-                    params['OUT']       = params['INI'].replace('.ini','.out')
-                    params['STDOUT']    = params['INI'].replace('.ini','').replace('xml','stdout')
-                    params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
-                    params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
-                    params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_milc_mixed_mesons.py '
-                    params['CLEANUP']  += params['CFG']+' --si '+str(args.si)+' '+params['PRIORITY']+'\n'
-                    params['CLEANUP']  += '    sleep 5\n'
-                    params['CLEANUP']  += 'else\n'
-                    params['CLEANUP']  += '    echo "mpirun failed"\n'
-                    params['CLEANUP']  += 'fi\n'
-                    mtype = args.mtype
+                scheduler.make_task(metaq,mtype,params,folder=q)
+           else:
+                print('  task exists:',metaq)
 
-                    try:
-                        if params['metaq_split']:
-                            mtype = mtype + '_'+str(params['gpu_nodes'])
-                    except:
-                        pass
-                    scheduler.make_task(metaq,mtype,params,folder=q)
-               else:
-                    print('  task exists:',metaq)
-
-            elif args.metaQ and not make_task:
-                print('  done')
-            else:
-                print('not backwards compatible without metaQ')
+        elif args.metaQ and not make_task:
+            print('  done')
+        else:
+            print('not backwards compatible without metaQ')

@@ -24,7 +24,7 @@ params['machine'] = c51.machine
 params['ENS_LONG'] = c51.ens_long[ens]
 params['ENS_S']    = ens_s
 params['STREAM']   = stream
-params['METAQ_PROJECT'] = 'dwf_hisq_spec_'+ens_s
+params['METAQ_PROJECT'] = 'mixedmesons_'+ens_s
 
 parser = argparse.ArgumentParser(description='make mixed meson tasks for cfg %s' %sys.argv[0].split('/')[-1])
 parser.add_argument('cfgs',nargs='+',type=int,help='cfg[s] no to check: ni [nf dn]')
@@ -103,6 +103,7 @@ params['SOURCE_ENV']  = c51.env
 params['SOURCE_ENV']  +='\nexport QUDA_RESOURCE_PATH="`pwd`/quda_resource_milc"\n'
 params['SOURCE_ENV']  +='[[ -e $QUDA_RESOURCE_PATH ]] || mkdir $QUDA_RESOURCE_PATH'
 
+
 params['PROG']        = '"$KS_HISQ_SPEC '+params['hisq_geom']+'"\n'
 params['APP']         = 'APP='+c51.bind_dir+params['gpu_bind']
 params['NRS']         = params['hisq_nrs']
@@ -113,7 +114,7 @@ params['C_RS']        = params['hisq_c_rs']
 params['L_GPU_CPU']   = params['hisq_latency']
 params['IO_OUT']      = '$ini $stdout'
 scheduler.mpirun['lassen']="jsrun "+params['NRS']+' '+params['RS_NODE']+' '+params['A_RS']+' '+params['G_RS']+ ' '+\
-                           params['C_RS']+ ' '+ params['L_GPU_CPU']+ ' -b packed:smt:4 $PROG $geom $ini > $stdout 2>&1'
+                           params['C_RS']+ ' '+ params['L_GPU_CPU']+ ' -b packed:smt:4 $PROG $geom $ini >> $stdout 2>&1'
 
 mqList=[params['MV_L'],params['MV_S']]
 
@@ -222,8 +223,8 @@ for c in cfgs:
     for mql in [mv_l]:
         for mqs in [mv_s]:
             params['MQ_L'],params['MQ_S']=mql,mqs
-            mixed_corr = c51.names['mixed_corr'] %params
-            utils.check_file(mixed_dir+'/'+mixed_corr, params['mixed_size'], params['file_time_delete'],params['corrupt'])
+            mixed_corr = c51.names['mixed_corr']%params
+            utils.check_file(mixed_corr, params['mixed_size'], params['file_time_delete'],params['corrupt'])
             if not os.path.exists(mixed_dir+'/'+mixed_corr):
                 print('mqs '+mixed_dir+'/'+mixed_corr)
                 pq_del[mql],pq_del[mqs] = False,False
@@ -283,11 +284,11 @@ for c in cfgs:
                                                and os.path.exists(params['PROP_DIR_STRANGE']+'/'+prop_s) \
                                                and not os.path.exists(mixed_dir+'/'+mixed_corr):
                 params.update({'PROP_L':prop_l,'PROP_S':prop_s,'MV_L':mql,'MV_S':mqs,})
-                meta_base   = mixed_corr.replace('.corr','')
-                mixed_id    = meta_base
-                milc_in     = params['xml']+'/'+mixed_id+'.in'
-                milc_out    = params['xml']+'/'+mixed_id+'.out'
+                mixed_id = 'dwf_hisq_spec_'+str(no)+'_ml'+mql+'_ms'+mqs
+                milc_in = params['xml']+'/'+mixed_id+'.in'
+                milc_out = params['xml']+'/'+mixed_id+'.out'
                 milc_stdout = params['stdout']+'/'+mixed_id+'.stdout'
+                meta_base = ens_s+'_'+str(no)+'_dwf_hisq_ml'+mql+'_ms'+mqs
                 params.update({
                     'JOB_ID':mixed_id,
                     'HISQ_CORR_FILE':mixed_dir+'/'+mixed_corr,
@@ -295,7 +296,7 @@ for c in cfgs:
                     })
 
                 # check if task exists
-                metaq = meta_base+'.sh'
+                metaq = 'mixedmesons_'+meta_base+'.sh'
 
                 t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
                 try:
