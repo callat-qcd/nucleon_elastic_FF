@@ -47,9 +47,14 @@ params['alpha5'] = '2.50'
 params['MV_L'] = '0.00380'
 params['MV_S'] = '0.0693'
 
-params['spec_size']      = 1
+params['spec_size']      = 42900
 params['hyperspec_size'] = 1
-params['ff_size']        = 1
+params['ff_size']        = 429500
+
+params['src_size']     = 2415920000
+params['prop_size']    = 2415921000
+params['seqsrc_size']  = 2415926400
+params['seqprop_size'] = 2415928000
 
 params['MAX_ITER']   = '10000'
 params['RSD_TARGET'] = '1.e-7'
@@ -109,8 +114,8 @@ def mpirun_params(machine):
         params['gpu_metaq_nodes']   = 0
         params['gpu_gpus']     = 4
         params['gpu_maxcus']   = 1
-        params['prop_time']    = 40
-        params['seqprop_time'] = 30
+        params['prop_time']    = 25
+        params['seqprop_time'] = 18
         params['strange_prop_time'] = 15
 
         params['gpu_nrs']     = '--nrs 1'

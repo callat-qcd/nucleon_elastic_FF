@@ -48,6 +48,7 @@ print('')
 dtype = np.float64
 data_dir = c51.data_dir % params
 utils.ensure_dirExists(data_dir)
+utils.ensure_dirExists(data_dir+'/avg')
 
 params = sources.src_start_stop(params,ens,stream)
 cfgs   = utils.parse_cfg_argument(args.cfgs,params)
@@ -63,6 +64,7 @@ for cfg in cfgs:
     h5_file = data_dir+'/'+ens_s+'_'+no+'_gauge_params.h5'
     if not os.path.exists(h5_file):
         all_files = False
+        print(data_dir+'/'+ens_s+'_'+no+'_gauge_params.h5')
     missing_cfgs.append(cfg)
 
 if all_files or (not all_files and args.force):
@@ -96,6 +98,7 @@ if all_files or (not all_files and args.force):
                         print('first data:',data[0].shape)
                         print('  cfg=%s' %no,data_no.shape)
                         sys.exit()
+        cfgs_collect = np.array(cfgs_collect)
         f5_out = h5.open_file(out_file,'a')
         if d_set == 't_gf':
             data = data[0]

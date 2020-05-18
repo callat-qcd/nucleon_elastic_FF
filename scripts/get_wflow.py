@@ -37,6 +37,8 @@ parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
 parser.add_argument('-m','--mq', type=str,help='specify quark mass [default = all]')
 parser.add_argument('-s','--src',type=str,help='src [xXyYzZtT] None=All')
 parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
+parser.add_argument('-q',default=True, action='store_const',const=False,help='collect stout Q measurement? [%(default)s]')
+parser.add_argument('--qonly',default=False,action='store_const',const=True,help='only collect Q? [%(default)s]')
 parser.add_argument('--rho',     type=str,default='0.068',help='specify rho parameter for stout smearing [%(default)s]')
 parser.add_argument('--steps',   type=str,default='2000' ,help='specify Nsteps of stout [%(default)s]')
 parser.add_argument('--move',default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
@@ -64,7 +66,7 @@ for cfg in cfgs_run:
     wflow_file = params['prod']+'/gauge/'+params['ENS_LONG']+params['STREAM']+'.gflow.'+no
     q_file     = params['prod']+'/gauge/'+params['ENS_LONG']+params['STREAM']+'.stout.rho'+args.rho+'.step'+args.steps+'.'+no
     # get flow data
-    if os.path.exists(wflow_file):
+    if os.path.exists(wflow_file) and not args.qonly:
         t_gf = []
         plaq = []
         E    = []
@@ -90,16 +92,23 @@ for cfg in cfgs_run:
         f5.create_array('/','E',E)
         f5.create_array('/','Q_wflow',Q)
         f5.close()
-    if os.path.exists(q_file):
-        Q_stout = []
-        stout_grep = subprocess.check_output('grep "Q charge at step" %s' %q_file, shell=True).decode('ascii')
-        for l in stout_grep.split('\n'):
-            try:
-                Q_stout.append(float(l.split()[6]))
-            except:
-                pass
-        Q_stout = np.array(Q_stout)
-        f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_gauge_params'+'.h5','a')
-        f5.create_array('/','Q_stout',Q_stout)
-        f5.close()
+    if args.q:
+        if os.path.exists(q_file):
+            f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_gauge_params'+'.h5','a')
+            collect=True
+            if 'Q_stout' in f5.root and not args.o:
+                collect=False
+            if 'Q_stout' in f5.root and args.o:
+                f5.remove_node('/Q_stout')
+            if collect:
+                Q_stout = []
+                stout_grep = subprocess.check_output('grep "Q charge at step" %s' %q_file, shell=True).decode('ascii')
+                for l in stout_grep.split('\n'):
+                    try:
+                        Q_stout.append(float(l.split()[6]))
+                    except:
+                        pass
+                Q_stout = np.array(Q_stout)
+                f5.create_array('/','Q_stout',Q_stout)
+            f5.close()
         

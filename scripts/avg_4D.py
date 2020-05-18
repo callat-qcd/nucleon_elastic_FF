@@ -97,8 +97,10 @@ def check_ff_tslice(params,c51,srcs):
             all_files = False
         else:
             all_sizes.append(os.path.getsize(file_4D))
-    if not all(size == all_sizes[0] for size in all_sizes):
+    if not all(abs(size - all_sizes[0])/all_sizes[0] < 1e-5 for size in all_sizes):
         print('BAD FORMFAC_4D_TSLICE FILE SIZE(s)')
+        for i,s0 in enumerate(srcs):
+            print(s0,all_sizes[i])
         all_files = False
     return all_files
 

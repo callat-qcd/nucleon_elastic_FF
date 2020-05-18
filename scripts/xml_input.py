@@ -639,6 +639,32 @@ src_sh_stag = '''<elem>
 
 '''
 
+src_pt_stag = '''<elem>
+<Name>MAKE_SOURCE_STAG</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>2</version>
+  <SourceType>POINT_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <t_srce>%(X0)s %(Y0)s %(Z0)s %(T0)s</t_srce>
+  <Displacement>
+    <version>1</version>
+    <DisplacementType>SCALAR_STAG_FLAV</DisplacementType>
+    <mu>1</mu>
+    <nu>2</nu>
+  </Displacement>
+</Source>
+</Param>
+<NamedObject>
+  <gauge_id>%(GAUGE_FIELD)s</gauge_id>
+  <source_id>%(SRC_ID)s</source_id>
+</NamedObject>
+</elem>
+
+'''
+
 stag_src_write = '''<elem>
  <Name>MILC_WRITE_STAGGERED_SOURCE</Name>
  <Frequency>1</Frequency>
