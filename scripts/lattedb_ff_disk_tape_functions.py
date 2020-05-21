@@ -7,12 +7,23 @@ local_tz = get_localzone()
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 import c51_mdwf_hisq as c51
+# Evan's tape hpss module
+import hpss.hsi as hsi
 
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Optional, TypeVar
+from lattedb.project.formfac.models import (
+    TSlicedSAveragedFormFactor4DFile,
+    DiskTSlicedSAveragedFormFactor4DFile,
+    TapeTSlicedSAveragedFormFactor4DFile,
+    TSlicedFormFactor4DFile,
+    DiskTSlicedFormFactor4DFile,
+    FormFactor4DFile,
+    DiskFormFactor4DFile
+)
 from lattedb.project.formfac.models.data.correlator import (
     CorrelatorMeta,
     DiskCorrelatorH5Dset,
-    TapeCorrelatorH5Dset,
+    TapeCorrelatorH5Dset
 )
 
 def corr_disk_tape_update(corr_updates,dt='disk',debug=False):
@@ -74,6 +85,55 @@ def check_disk(d_path,d_file):
         d_dict['size']          = None
         d_dict['date_modified'] = None
     return d_dict
+
+def collect_ff_4D_tslice_src_avg(params, db_entries):
+    f_type = 'formfac_4D_tslice_src_avg'
+    disk_dir = params[f_type]
+    f_dict = dict()
+    f_dict['ensemble']      = params['ENS_S'].split('_')[0]
+    f_dict['stream']        = params['STREAM']
+    f_dict['configuration'] = int(params['CFG'])
+    f_dict['source_set']    = params['SRC_SET']
+    f_dict['t_separation']  = params['T_SEP']
+    f_name                  = (c51.names[f_type]+'.h5') % params
+    f_dict['name']          = f_name
+    # filter db for unique entry
+    entry = db_entries.filter(**f_dict).first()
+    if not entry:
+        sys.exit('something went wrong - this entry should have been created already')
+    t_exists = entry.tape.exists
+    d_exists = entry.disk.exists
+    # the disk and tape entries will have been created already, unless something went wrong
+    if not t_exists and (params['UPDATE'] or params['TAPE_UPDATE']):
+        t_dict = check_tape(entry.tape.path, entry.name)
+        if t_dict['exists'] != t_exists:
+            for k,v in t_dict.items():
+                setattr(entry.tape, k, v)
+            entry.tape.save()
+        
+    if not d_exists and t_exists and params['TAPE_GET']:
+        print('retrieving from tape: %s' %entry.name)
+        hsi.cget(entry.disk.path, entry.tape.path+'/'+entry.name)
+
+    # if data does not exists on disk or tape, try src avg
+    if not d_exists and not t_exists:
+        d_dict = check_disk(entry.disk.path, entry.name)
+        if not d_dict['exists']:
+            os.system(c51.python+' %s/avg_4D.py formfac --cfgs %s -t %s --src_set %s %s %s %s' \
+                      %(c51.script_dir, params['CFG'], params['T_SEP'], params['si'],params['sf'],params['ds'], params['bad_size']))
+        d_dict = check_disk(entry.disk.path, entry.name)
+        if d_dict['exists']:
+            # save to tape
+            hsi.cput(entry.disk.path+'/'+entry.name, entry.tape.path+'/'+entry.name)
+            t_dict = check_tape(entry.tape.path, entry.name)
+            # update DB
+            print('updating lattedb')
+            for k,v in d_dict.items():
+                setattr(entry.disk, k, v)
+            entry.disk.save()
+            for k,v in t_dict.items():
+                setattr(entry.tape, k, v)
+            entry.tape.save()
 
 def check_ff_4D_tslice_src_avg(
         params,            # a dictionary of information about the file names, locations, etc.
@@ -188,6 +248,171 @@ def check_ff_4D_tslice(
 def collect_ff4D_tslice_src_avg(ff_list):
     return None
 
+'''
+    FF 4D helper functions
+'''
+def get_or_create_ff4D_tsliced_savg(
+        params:              dict,
+        configuration_range: List[int],
+        ensemble:            str,
+        stream:              str,
+        source_set:          str,
+    ) -> List[TSlicedSAveragedFormFactor4DFile]:
+    """Returns queryset of TSlicedSAveragedFormFactor4DFile entries for given input
+    
+    Creates entries in bulk if they do not exist.
+    """
+    f_type = 'formfac_4D_tslice_src_avg'
+    params['SRC'] = 'src_avg'
+    t_seps = params['t_seps']
+    # Pull all relevant meta entries to local python script
+    meta_entries = TSlicedSAveragedFormFactor4DFile.objects.filter(
+        configuration__in = configuration_range,
+        ensemble          = ensemble,
+        stream            = stream,
+        source_set        = source_set,
+        t_separation__in  = t_seps,
+    )
+
+    kwargs = {
+        "ensemble":   ensemble,
+        "stream":     stream,
+        "source_set": source_set,
+    }
+
+    # Check if all entries are present
+    new_entries = []
+    for cfg in configuration_range:
+        params['CFG']   = str(cfg)
+        for tsep in t_seps:
+            params['T_SEP'] = str(tsep)
+            meta_data = kwargs.copy()
+            f_name = (c51.names[f_type]+'.h5') % params
+            #print(f_name)
+            #sys.exit()
+            meta_data["name"]          = f_name
+            meta_data["configuration"] = cfg
+            meta_data["t_separation"]  = tsep
+
+            if not meta_entries.filter(**meta_data).first():
+                new_entries.append(TSlicedSAveragedFormFactor4DFile(**meta_data))
+
+    # Create entries if not present
+    if new_entries:
+        created_entries = TSlicedSAveragedFormFactor4DFile.objects.bulk_create(new_entries)
+        print(f"Created {len(created_entries)} entries")
+        meta_entries = TSlicedSAveragedFormFactor4DFile.objects.filter(
+            configuration__in=configuration_range,
+            ensemble=ensemble,
+            stream=stream,
+            source_set=source_set,
+            t_separation__in=t_seps,
+        )
+
+    # Return all entries
+    return meta_entries.prefetch_related('disk','tape')
+
+DiskEntries = TypeVar("DiskEntries")
+def get_or_create_disk_entries_new(meta_entries: List, disk_entries: DiskEntries, path: str, machine: str, name: Optional[str] = None,
+        )-> List[DiskEntries]:
+    """Returns queryset of DiskCorrelatorH5Dset entries for given CorrelatorMeta entries
+    
+    Creates entries in bulk with status does not exist if they do not exist in DB.
+    """
+    if disk_entries == DiskCorrelatorH5Dset:
+        file_entries = disk_entries.objects.filter(meta__in=meta_entries)
+    elif disk_entries == DiskTSlicedSAveragedFormFactor4DFile:#[DiskTSlicedSAveragedFormFactor4DFile, DiskTSlicedFormFactor4DFile, DiskFormFactor4DFile]:
+        file_entries = disk_entries.objects.filter(file__in=meta_entries)
+    else:
+        print('Disk Entry Error: we dont know what is this',disk_entries)
+        sys.exit()    
+
+    # Create entries if not present
+    kwargs = {
+        "path"    : path,
+        "machine" : machine,
+        "exists"  : False,
+    }
+    
+    if not file_entries.count() == meta_entries.count():
+        entries_to_create = []
+        for meta in meta_entries:
+            if not hasattr(meta, 'disk'):
+                data = kwargs.copy()
+                if disk_entries == DiskCorrelatorH5Dset:
+                    data["name"] = name %{'CFG':meta.configuration}
+                    data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+                    data["meta"] = meta
+                elif disk_entries == DiskTSlicedSAveragedFormFactor4DFile:
+                    data["path"] = data["path"] %{'ENS_S':meta.ensemble+'_'+meta.stream, 'CFG':str(meta.configuration)}
+                    data["file"] = meta
+                d_dict = check_disk(data['path'], meta.name)
+                for k in d_dict:
+                    data[k] = d_dict[k]
+                entries_to_create.append(disk_entries(**data))
+        
+        if entries_to_create:
+            created_entries = disk_entries.objects.bulk_create(entries_to_create)
+            print(f"Created {len(created_entries)} entries")
+            if disk_entries == DiskCorrelatorH5Dset:
+                file_entries = disk_entries.objects.filter(meta__in=meta_entries)
+            else:
+                file_entries = disk_entries.objects.filter(file__in=meta_entries)
+
+    return file_entries
+
+TapeEntries = TypeVar("TapeEntries")
+def get_or_create_tape_entries_new(meta_entries: List, tape_entries: TapeEntries, path: str, machine: str, name: Optional[str] = None,
+        ) -> List[TapeEntries]:
+    """Returns queryset of TapeEntries entries for given CorrelatorMeta entries
+    
+    Creates entries in bulk with status does not exist if they do not exist in DB.
+    """
+    if tape_entries == TapeCorrelatorH5Dset:
+        file_entries = tape_entries.objects.filter(meta__in=meta_entries)
+    elif tape_entries in [TapeTSlicedSAveragedFormFactor4DFile]:
+        file_entries = tape_entries.objects.filter(file__in=meta_entries)
+    else:
+        print('Tape Entry Error: we dont know what is this',tape_entries)
+        sys.exit()    
+    
+    # Create entries if not present
+    kwargs = {
+        "path"    : path,
+        "machine" : machine,
+        "exists"  : False,
+    }
+    
+    if file_entries.count() != meta_entries.count():
+        entries_to_create = []
+        for meta in meta_entries:
+            if not hasattr(meta, 'tape'):
+                data = kwargs.copy()
+                if tape_entries == TapeCorrelatorH5Dset:
+                    data["name"] = name %{'CFG':meta.configuration}
+                    data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+                    data["meta"] = meta
+                else:# tape_entries == TapeTSlicedSAveragedFormFactor4DFile:
+                    data["path"] = data["path"] %{'ENS_S':meta.ensemble+'_'+meta.stream, 'CFG':str(meta.configuration)}
+                    data["file"] = meta
+                    t_dict = check_tape(data['path'], meta.name)
+                    for k in t_dict:
+                        data[k] = t_dict[k]
+                entries_to_create.append(tape_entries(**data))
+        
+        if entries_to_create:
+            created_entries = tape_entries.objects.bulk_create(entries_to_create)
+            print(f"Created {len(created_entries)} entries")
+            if tape_entries == TapeCorrelatorH5Dset:
+                file_entries = tape_entries.objects.filter(meta__in=meta_entries)
+            else:
+                file_entries = tape_entries.objects.filter(file__in=meta_entries)
+
+    return file_entries
+
+''' 
+    2pt Correlator Helper functions 
+'''
 def get_or_create_meta_entries(
         correlator:          str,
         configuration_range: List[int],
@@ -261,11 +486,11 @@ def get_or_create_disk_entries(meta_entries: List[CorrelatorMeta], name: str, pa
     if not file_entries.count() == meta_entries.count():
         entries_to_create = []
         for meta in meta_entries:
-            data = kwargs.copy()
-            data["name"] = name %{'CFG':meta.configuration}
-            data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
-            data["meta"] = meta
-            if not file_entries.filter(**data).first():
+            if not hasattr(meta, 'disk'):
+                data = kwargs.copy()
+                data["name"] = name %{'CFG':meta.configuration}
+                data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+                data["meta"] = meta
                 entries_to_create.append(DiskCorrelatorH5Dset(**data))
         
         created_entries = DiskCorrelatorH5Dset.objects.bulk_create(entries_to_create)
@@ -293,11 +518,11 @@ def get_or_create_tape_entries(meta_entries: List[CorrelatorMeta], name: str, pa
     if file_entries.count() != meta_entries.count():
         entries_to_create = []
         for meta in meta_entries:
-            data = kwargs.copy()
-            data["name"] = name %{'CFG':meta.configuration}
-            data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
-            data["meta"] = meta
-            if not file_entries.filter(**data).first():
+            if not hasattr(meta, 'tape'):
+                data = kwargs.copy()
+                data["name"] = name %{'CFG':meta.configuration}
+                data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+                data["meta"] = meta
                 entries_to_create.append(TapeCorrelatorH5Dset(**data))
         
         created_entries = TapeCorrelatorH5Dset.objects.bulk_create(entries_to_create)
@@ -350,6 +575,25 @@ def del_entries(
         ensemble=ensemble,
         stream=stream,
         source_set=source_set,
+    )
+    for de in meta_entries:
+        de.delete()
+
+def delete_ff4D_avg(
+        ensemble            : str,
+        stream              : str,
+        source_set          : str,
+        t_seps              : List[int],
+        configuration_range : List[int],
+    ) -> List[TSlicedSAveragedFormFactor4DFile]:
+    """Delete entries of TSlicedSAveragedFormFactor4DFile type
+    """
+    meta_entries = CorrelatorMeta.objects.filter(
+        ensemble=ensemble,
+        stream=stream,
+        source_set=source_set,
+        configuration__in=configuration_range,
+        t_separation__in=t_seps,
     )
     for de in meta_entries:
         de.delete()

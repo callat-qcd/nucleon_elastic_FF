@@ -92,6 +92,18 @@ else:
     t_seps = args.t_sep
 
 def check_ff_tslice(params,c51,srcs):
+    try:
+        ff_size = params['ff4D_size']
+    except:
+        print('area51 file does not have ff4D_size - using rough approximation')
+        n_curr  = len(params['curr_4d'])
+        n_flav  = len(params['flavs'])
+        n_spin  = len(params['spins'])
+        n_par   = len(params['particles'])
+        nt      = int(params['NT'])
+        nl      = int(params['NL'])
+        ff_size = n_curr * n_flav * n_spin * n_par *int(nt)*int(nl)**3 * 2*8
+        ff_size = (int(params['T_SEP'])+1)/nt * ff_size
     all_files = True
     all_sizes = []
     for s0 in srcs:
@@ -102,8 +114,7 @@ def check_ff_tslice(params,c51,srcs):
         else:
             all_sizes.append(os.path.getsize(file_4D))
     if all_files:
-        all_sizes_ratio = np.array(all_sizes) / all_sizes[0]
-        if not all(abs(r - 1) < 1.e-5 for r in all_sizes_ratio):
+        if any(s < ff_size for s in all_sizes):
             print('BAD FORMFAC_4D_TSLICE FILE SIZE(s)')
             all_files = False
             if params['exit_for_bad_size']:
@@ -111,6 +122,17 @@ def check_ff_tslice(params,c51,srcs):
     return all_files
 
 def check_ff(params,c51,srcs):
+    try:
+        ff_size = params['ff4D_size']
+    except:
+        print('area51 file does not have ff4D_size - using rough approximation')
+        n_curr  = len(params['curr_4d'])
+        n_flav  = len(params['flavs'])
+        n_spin  = len(params['spins'])
+        n_par   = len(params['particles'])
+        nt      = int(params['NT'])
+        nl      = int(params['NL'])
+        ff_size = n_curr * n_flav * n_spin * n_par *int(nt)*int(nl)**3 * 2*8
     all_files = True
     all_sizes = []
     for s0 in srcs:
@@ -121,8 +143,7 @@ def check_ff(params,c51,srcs):
         else:
             all_sizes.append(os.path.getsize(formfac_4D))
     if all_files:
-        all_sizes_ratio = np.array(all_sizes) / all_sizes[0]
-        if not all(abs(r - 1) < 1.e-5 for r in all_sizes_ratio):
+        if any(s < ff_size for s in all_sizes):
             print('BAD FORMFAC_4D FILE SIZE(s)')
             all_files = False
             if params['exit_for_bad_size']:
@@ -146,6 +167,14 @@ def tslice_ff(params,c51,srcs):
                 )
 
 def check_spec_4D_tslice(params,c51,srcs):
+    try:
+        s_size = params['spec4D_size']
+    except:
+        print('area51 file does not have spec4D_size - using rough approximation')
+        nt     = int(params['NT'])
+        nl     = int(params['NL'])
+        s_size = 2 * 2 *int(nt)*int(nl)**3 * 2*8
+        s_size = params['spec_4D_tslice_fact'] * s_size
     all_files = True
     all_sizes = []
     for s0 in srcs:
@@ -156,12 +185,21 @@ def check_spec_4D_tslice(params,c51,srcs):
         else:
             all_sizes.append(os.path.getsize(file_4D))
     if all_files:
-        if not all(size == all_sizes[0] for size in all_sizes):
+        if any(s < s_size for s in all_sizes):
             print('BAD SPEC_4D_TSLICE FILE SIZE(s)')
             all_files = False
+            if params['exit_for_bad_size']:
+                sys.exit()
     return all_files
 
 def check_spec_4D(params,c51,srcs):
+    try:
+        s_size = params['spec4D_size']
+    except:
+        print('area51 file does not have spec4D_size - using rough approximation')
+        nt     = int(params['NT'])
+        nl     = int(params['NL'])
+        s_size = 2 * 2 *int(nt)*int(nl)**3 * 2*8
     all_files = True
     all_sizes = []
     for s0 in srcs:
@@ -172,9 +210,11 @@ def check_spec_4D(params,c51,srcs):
         else:
             all_sizes.append(os.path.getsize(spec_file))
     if all_files:
-        if not all(size == all_sizes[0] for size in all_sizes):
+        if any(s < s_size for s in all_sizes):
             print('BAD SPEC_4D FILE SIZE(s)')
             all_files = False
+            if params['exit_for_bad_size']:
+                sys.exit()
     return all_files
 
 def tslice_spec(params,c51,srcs):
