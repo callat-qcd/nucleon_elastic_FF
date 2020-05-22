@@ -204,8 +204,123 @@ def collect_spec_ff_4D_tslice_src_avg(fs_type, params, db_entries):
                     t_path = c51.tape+'/'+params['ENS_S']+'/spec_4D_tslice/'+params['CFG']
                     hsi.cput(d_path+'/'+spec_4D_tslice_file, t_path+'/'+spec_4D_tslice_file)
 
+
+
+def check_ff_4D_tslice_src_avg(
+        params,            # a dictionary of information about the file names, locations, etc.
+        db_entries,        # the db querry
+        db_update_disk,    # list of disk updates
+        db_new_disk,       # list of new disk entries
+        db_update_tape,    # list of tape updates
+        db_new_tape,       # list of new tape entries
+        db_new_entry,      # list of new db entries
+        save_to_tape,      # list of files to save to tape
+        data_collect,      # list of files to try and collect
+        ):
+    f_type = 'formfac_4D_tslice_src_avg'
+    no = params['CFG']
+    disk_dir = params[f_type]
+    for tsep in params['t_seps']:
+        dt = str(tsep)
+        params['T_SEP'] = dt
+        # make file entry
+        f_dict = dict()
+        f_dict['ensemble']      = params['ENS_S'].split('_')[0]
+        f_dict['stream']        = params['STREAM']
+        f_dict['configuration'] = int(params['CFG'])
+        f_dict['source_set']    = params['SRC_SET']
+        f_dict['t_separation']  = tsep
+        f_name                  = (c51.names[f_type]+'.h5') % params
+        f_dict['name']          = f_name
+        # filter db for unique entry
+        entry = db_entries.filter(**f_dict).first()
+        if entry:# if it exists, then check if it exists on tape
+            # check tape
+            if hasattr(entry, 'tape'):
+                t_dict = dict()
+                t_dict['exists'] = entry.tape.exists
+            if hasattr(entry, 'tape') and (params['UPDATE'] or params['TAPE_UPDATE']):
+                t_dict = check_tape(c51.tape+'/'+params['ENS_S']+'/'+f_type+'/'+no, f_name)
+                if entry.tape.exists != t_dict['exists']:
+                    t_dict['file'] = entry
+                    db_update_tape.append((f_dict,t_dict))
+            elif not hasattr(entry, 'tape'):
+                t_dict = check_tape(c51.tape+'/'+params['ENS_S']+'/'+f_type+'/'+no, f_name)
+                t_dict['file'] = entry
+                db_new_tape.append(t_dict)
+            # check disk
+            if hasattr(entry, 'disk'):
+                d_dict = dict()
+                d_dict['exists'] = entry.disk.exists
+            if hasattr(entry, 'disk') and (params['UPDATE'] or params['DISK_UPDATE']):
+                d_dict = check_disk(disk_dir, f_name)
+                if entry.disk.exists != d_dict['exists']:
+                    d_dict['file'] = entry
+                    db_update_disk.append((f_dict,d_dict))
+            elif not hasattr(entry, 'disk'):
+                d_dict = check_disk(disk_dir, f_name)
+                d_dict['file'] = entry
+                db_new_disk.append(d_dict)
+        else:
+            t_dict = check_tape(c51.tape+'/'+params['ENS_S']+'/'+f_type+'/'+no, f_name)
+            d_dict = check_disk(disk_dir, f_name)
+            db_new_entry.append((f_dict,d_dict,t_dict))
+        # find files that exist on disk and not tape
+        if d_dict['exists'] and not t_dict['exists']:
+            save_to_tape.append([f_name, disk_dir, params['TAPE_DIR']])
+        if not d_dict['exists'] and (not t_dict['exists'] or params['DISK_UPDATE'] or params['UPDATE']):
+            data_collect.append(f_name)
+
+def check_ff_4D_tslice(
+        params,            # a dictionary of information about the file names, locations, etc.
+        db_entries,        # the db querry
+        db_update_disk,    # list of disk updates
+        db_new_disk,       # list of new disk entries
+        db_new_entry,      # list of new db entries
+        check_exists=False,# return existence if True
+        #data_collect,      # list of files to try and collect
+        ):
+    f_type = 'formfac_4D_tslice'
+    no = params['CFG']
+    disk_dir = params[f_type]
+    for tsep in params['t_seps']:
+        dt = str(tsep)
+        params['T_SEP'] = dt
+        # make file entry
+        f_dict = dict()
+        f_dict['ensemble']      = params['ENS_S'].split('_')[0]
+        f_dict['stream']        = params['STREAM']
+        f_dict['configuration'] = int(params['CFG'])
+        f_dict['source_set']    = params['SRC_SET']
+        f_dict['t_separation']  = tsep
+        f_name                  = (c51.names[f_type]+'.h5') % params
+        f_dict['name']          = f_name
+        # filter db for unique entry
+        entry = db_entries.filter(**f_dict).first()
+        if entry:# if it exists, then check if it exists on tape
+            # check disk
+            if hasattr(entry, 'disk'):
+                d_dict = dict()
+                d_dict['exists'] = entry.disk.exists
+            if hasattr(entry, 'disk') and (params['UPDATE'] or params['DISK_UPDATE']):
+                d_dict = check_disk(disk_dir, f_name)
+                if entry.disk.exists != d_dict['exists']:
+                    d_dict['file'] = entry
+                    db_update_disk.append((f_dict,d_dict))
+            elif not hasattr(entry, 'disk'):
+                d_dict = check_disk(disk_dir, f_name)
+                d_dict['file'] = entry
+                db_new_disk.append(d_dict)
+        else:
+            d_dict = check_disk(disk_dir, f_name)
+            db_new_entry.append((f_dict,d_dict))
+
+
+def collect_ff4D_tslice_src_avg(ff_list):
+    return None
+
 '''
-    FF 4D get or create db entrie functions
+    FF 4D helper functions
 '''
 def get_or_create_ff4D_tsliced_savg(
         params:              dict,
@@ -320,8 +435,106 @@ def get_or_create_spec4D_tsliced_savg(
     # Return all entries
     return meta_entries.prefetch_related('disk','tape')
 
+DiskEntries = TypeVar("DiskEntries")
+def get_or_create_disk_entries_new(meta_entries: List, disk_entries: DiskEntries, path: str, machine: str, name: Optional[str] = None,
+        )-> List[DiskEntries]:
+    """Returns queryset of DiskCorrelatorH5Dset entries for given CorrelatorMeta entries
+    
+    Creates entries in bulk with status does not exist if they do not exist in DB.
+    """
+    if disk_entries == DiskCorrelatorH5Dset:
+        file_entries = disk_entries.objects.filter(meta__in=meta_entries)
+    elif disk_entries in [DiskTSlicedSAveragedFormFactor4DFile, DiskTSlicedSAveragedSpectrum4DFile]:
+        file_entries = disk_entries.objects.filter(file__in=meta_entries)
+    else:
+        print('Disk Entry Error: we dont know what this is',disk_entries)
+        sys.exit()    
+
+    # Create entries if not present
+    kwargs = {
+        "path"    : path,
+        "machine" : machine,
+        "exists"  : False,
+    }
+    
+    if not file_entries.count() == meta_entries.count():
+        entries_to_create = []
+        for meta in meta_entries:
+            if not hasattr(meta, 'disk'):
+                data = kwargs.copy()
+                if disk_entries == DiskCorrelatorH5Dset:
+                    data["name"] = name %{'CFG':meta.configuration}
+                    data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+                    data["meta"] = meta
+                else:# disk_entries in [DiskTSlicedSAveragedFormFactor4DFile, DiskTSlicedSAveragedSpectrum4DFile]:
+                    data["path"] = data["path"] %{'ENS_S':meta.ensemble+'_'+meta.stream, 'CFG':str(meta.configuration)}
+                    data["file"] = meta
+                d_dict = check_disk(data['path'], meta.name)
+                for k in d_dict:
+                    data[k] = d_dict[k]
+                entries_to_create.append(disk_entries(**data))
+        
+        if entries_to_create:
+            created_entries = disk_entries.objects.bulk_create(entries_to_create)
+            print(f"Created {len(created_entries)} DISK entries")
+            if disk_entries == DiskCorrelatorH5Dset:
+                file_entries = disk_entries.objects.filter(meta__in=meta_entries)
+            else:
+                file_entries = disk_entries.objects.filter(file__in=meta_entries)
+
+    return file_entries
+
+TapeEntries = TypeVar("TapeEntries")
+def get_or_create_tape_entries_new(meta_entries: List, tape_entries: TapeEntries, path: str, machine: str, name: Optional[str] = None,
+        ) -> List[TapeEntries]:
+    """Returns queryset of TapeEntries entries for given CorrelatorMeta entries
+    
+    Creates entries in bulk with status does not exist if they do not exist in DB.
+    """
+    if tape_entries == TapeCorrelatorH5Dset:
+        file_entries = tape_entries.objects.filter(meta__in=meta_entries)
+    elif tape_entries in [TapeTSlicedSAveragedFormFactor4DFile, TapeTSlicedSAveragedSpectrum4DFile]:
+        file_entries = tape_entries.objects.filter(file__in=meta_entries)
+    else:
+        print('Tape Entry Error: we dont know what this is',tape_entries)
+        sys.exit()    
+    
+    # Create entries if not present
+    kwargs = {
+        "path"    : path,
+        "machine" : machine,
+        "exists"  : False,
+    }
+    
+    if file_entries.count() != meta_entries.count():
+        entries_to_create = []
+        for meta in meta_entries:
+            if not hasattr(meta, 'tape'):
+                data = kwargs.copy()
+                if tape_entries == TapeCorrelatorH5Dset:
+                    data["name"] = name %{'CFG':meta.configuration}
+                    data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+                    data["meta"] = meta
+                else:# tape_entries in [TapeTSlicedSAveragedFormFactor4DFile, TapeTSlicedSAveragedSpectrum4DFile]:
+                    data["path"] = data["path"] %{'ENS_S':meta.ensemble+'_'+meta.stream, 'CFG':str(meta.configuration)}
+                    data["file"] = meta
+                    t_dict = check_tape(data['path'], meta.name)
+                    for k in t_dict:
+                        data[k] = t_dict[k]
+                entries_to_create.append(tape_entries(**data))
+        
+        if entries_to_create:
+            created_entries = tape_entries.objects.bulk_create(entries_to_create)
+            print(f"Created {len(created_entries)} TAPE entries")
+            if tape_entries == TapeCorrelatorH5Dset:
+                file_entries = tape_entries.objects.filter(meta__in=meta_entries)
+            else:
+                file_entries = tape_entries.objects.filter(file__in=meta_entries)
+
+    return file_entries
+
 ''' 
-    2pt Correlator DB entry creation function
+    2pt Correlator Helper functions 
 '''
 def get_or_create_meta_entries(
         correlator:          str,
@@ -377,26 +590,17 @@ def get_or_create_meta_entries(
     # Return all entries
     return meta_entries.prefetch_related('disk','tape')
 
-''' Get or create DISK and TAPE functions that work with both 4D and CORR data files
-
-'''
-DiskEntries = TypeVar("DiskEntries")
-def get_or_create_disk_entries(meta_entries: List, disk_entries: DiskEntries, path: str, machine: str, name: Optional[str] = None,
-        )-> List[DiskEntries]:
+def get_or_create_disk_entries(meta_entries: List[CorrelatorMeta], name: str, path: str, machine: str,
+        )-> List[DiskCorrelatorH5Dset]:
     """Returns queryset of DiskCorrelatorH5Dset entries for given CorrelatorMeta entries
     
     Creates entries in bulk with status does not exist if they do not exist in DB.
     """
-    if disk_entries == DiskCorrelatorH5Dset:
-        file_entries = disk_entries.objects.filter(meta__in=meta_entries)
-    elif disk_entries in [DiskTSlicedSAveragedFormFactor4DFile, DiskTSlicedSAveragedSpectrum4DFile]:
-        file_entries = disk_entries.objects.filter(file__in=meta_entries)
-    else:
-        print('Disk Entry Error: we dont know what this is',disk_entries)
-        sys.exit()    
-
+    file_entries = DiskCorrelatorH5Dset.objects.filter(meta__in=meta_entries)
+    
     # Create entries if not present
     kwargs = {
+        "name"    : name,
         "path"    : path,
         "machine" : machine,
         "exists"  : False,
@@ -407,48 +611,31 @@ def get_or_create_disk_entries(meta_entries: List, disk_entries: DiskEntries, pa
         for meta in meta_entries:
             if not hasattr(meta, 'disk'):
                 data = kwargs.copy()
-                if disk_entries == DiskCorrelatorH5Dset:
-                    data["name"] = name %{'CFG':meta.configuration}
-                    data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
-                    data["meta"] = meta
-                else:# disk_entries in [DiskTSlicedSAveragedFormFactor4DFile, DiskTSlicedSAveragedSpectrum4DFile]:
-                    data["path"] = data["path"] %{'ENS_S':meta.ensemble+'_'+meta.stream, 'CFG':str(meta.configuration)}
-                    data["file"] = meta
-                    d_dict = check_disk(data['path'], meta.name)
-                    for k in d_dict:
-                        data[k] = d_dict[k]
-                entries_to_create.append(disk_entries(**data))
+                data["name"] = name %{'CFG':meta.configuration}
+                data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+                data["meta"] = meta
+                entries_to_create.append(DiskCorrelatorH5Dset(**data))
         
-        if entries_to_create:
-            created_entries = disk_entries.objects.bulk_create(entries_to_create)
-            print(f"Created {len(created_entries)} DISK entries")
-            if disk_entries == DiskCorrelatorH5Dset:
-                file_entries = disk_entries.objects.filter(meta__in=meta_entries)
-            else:
-                file_entries = disk_entries.objects.filter(file__in=meta_entries)
-
+        created_entries = DiskCorrelatorH5Dset.objects.bulk_create(entries_to_create)
+        print(f"Created {len(created_entries)} entries")
+        file_entries = DiskCorrelatorH5Dset.objects.filter(meta__in=meta_entries)
+    
     return file_entries
 
-TapeEntries = TypeVar("TapeEntries")
-def get_or_create_tape_entries(meta_entries: List, tape_entries: TapeEntries, path: str, machine: str, name: Optional[str] = None,
-        ) -> List[TapeEntries]:
-    """Returns queryset of TapeEntries entries for given CorrelatorMeta entries
+def get_or_create_tape_entries(meta_entries: List[CorrelatorMeta], name: str, path: str, machine: str,
+        ) -> List[TapeCorrelatorH5Dset]:
+    """Returns queryset of TapeCorrelatorH5Dset entries for given CorrelatorMeta entries
     
     Creates entries in bulk with status does not exist if they do not exist in DB.
     """
-    if tape_entries == TapeCorrelatorH5Dset:
-        file_entries = tape_entries.objects.filter(meta__in=meta_entries)
-    elif tape_entries in [TapeTSlicedSAveragedFormFactor4DFile, TapeTSlicedSAveragedSpectrum4DFile]:
-        file_entries = tape_entries.objects.filter(file__in=meta_entries)
-    else:
-        print('Tape Entry Error: we dont know what this is',tape_entries)
-        sys.exit()    
+    file_entries = TapeCorrelatorH5Dset.objects.filter(meta__in=meta_entries)
     
     # Create entries if not present
     kwargs = {
-        "path"    : path,
-        "machine" : machine,
-        "exists"  : False,
+        "name": name,
+        "path": path,
+        "machine": machine,
+        "exists": False,
     }
     
     if file_entries.count() != meta_entries.count():
@@ -456,28 +643,16 @@ def get_or_create_tape_entries(meta_entries: List, tape_entries: TapeEntries, pa
         for meta in meta_entries:
             if not hasattr(meta, 'tape'):
                 data = kwargs.copy()
-                if tape_entries == TapeCorrelatorH5Dset:
-                    data["name"] = name %{'CFG':meta.configuration}
-                    data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
-                    data["meta"] = meta
-                else:# tape_entries in [TapeTSlicedSAveragedFormFactor4DFile, TapeTSlicedSAveragedSpectrum4DFile]:
-                    data["path"] = data["path"] %{'ENS_S':meta.ensemble+'_'+meta.stream, 'CFG':str(meta.configuration)}
-                    data["file"] = meta
-                    t_dict = check_tape(data['path'], meta.name)
-                    for k in t_dict:
-                        data[k] = t_dict[k]
-                entries_to_create.append(tape_entries(**data))
+                data["name"] = name %{'CFG':meta.configuration}
+                data["dset"] = f"DUMMY_PLACE_HOLDER_H5_PATH"
+                data["meta"] = meta
+                entries_to_create.append(TapeCorrelatorH5Dset(**data))
         
-        if entries_to_create:
-            created_entries = tape_entries.objects.bulk_create(entries_to_create)
-            print(f"Created {len(created_entries)} TAPE entries")
-            if tape_entries == TapeCorrelatorH5Dset:
-                file_entries = tape_entries.objects.filter(meta__in=meta_entries)
-            else:
-                file_entries = tape_entries.objects.filter(file__in=meta_entries)
-
+        created_entries = TapeCorrelatorH5Dset.objects.bulk_create(entries_to_create)
+        print(f"Created {len(created_entries)} entries")
+        file_entries = TapeCorrelatorH5Dset.objects.filter(meta__in=meta_entries)
+    
     return file_entries
-
 
 def querry_corr_disk_tape(meta_entries,corr,db_filter,dt='tape',debug=False):
     has_dt = True
@@ -504,7 +679,7 @@ def querry_corr_disk_tape(meta_entries,corr,db_filter,dt='tape',debug=False):
             sys.exit('unrecognized disk/tape options: %s' %dt)
     return has_dt
 
-def del_corr_entries(
+def del_entries(
         correlator:          str,
         configuration_range: List[int],
         ensemble:            str,
@@ -512,7 +687,9 @@ def del_corr_entries(
         source_set:          str,
         sources:             Dict[int,List[str]],
     ) -> List[CorrelatorMeta]:
-    """ Delete entries of type CorrelatorMeta
+    """Returns queryset of CorrelatorMeta entries for given input
+
+    Creates entries in bulk if they do not exist.
     """
     # Pull all relevant meta entries to local python script
     meta_entries = CorrelatorMeta.objects.filter(
@@ -561,3 +738,25 @@ def delete_spec4D_avg(
     for de in meta_entries:
         de.delete()
 
+
+'''
+def get_corr_information(
+        corr: str, configuration: int, source: str
+    ) -> Union[CorrelatorMeta, None]:
+    """Looks up if a given correlator can be found on disk or tape.
+    
+    Returns the corresponding object if found, else None.
+    If both disk and tape object exists, return Disk object first.
+    """
+    meta = CorrelatorMeta.objects.filter(
+        corr=corr, configuration=configuration, source=source
+        )
+
+    #if meta is not None:
+    #    if hasattr(meta, "disk") and meta.disk.exists:
+    #        obj = meta.disk
+    #    elif hasattr(meta, "tape") and meta.tape.exists:
+    #        obj = meta.tape
+
+    return meta
+'''

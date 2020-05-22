@@ -19,6 +19,11 @@ from nucleon_elastic_ff.data.h5io import get_dsets
 from nucleon_elastic_ff.data.scripts.h5migrate import dset_migrate as h5migrate
 import lattedb_ff_disk_tape_functions as lattedb_ff
 import collect_corr_utils as collect_utils
+from lattedb.project.formfac.models.data.correlator import (
+    CorrelatorMeta,
+    DiskCorrelatorH5Dset,
+    TapeCorrelatorH5Dset
+)
 # tape utils from Evan's hpss module
 import hpss.hsi as hsi
 # MDWF on HISQ info
@@ -148,15 +153,23 @@ for corr in corrs:
     print(corr,': meta')
     meta_entries[corr] = lattedb_ff.get_or_create_meta_entries(corr, cfgs_run, ens, stream, src_set, srcs)
     print(corr,': tape')
-    tape_entries[corr] = lattedb_ff.get_or_create_tape_entries(meta_entries[corr],\
-        name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=data_dir, machine=c51.machine)
+    tape_entries[corr] = lattedb_ff.get_or_create_tape_entries(
+        meta_entries = meta_entries[corr],
+        tape_entries = TapeCorrelatorH5Dset, 
+        path         = tape_dir, 
+        machine      = c51.machine, 
+        name         = ens_s+'_%(CFG)s_srcs'+src_set+'.h5')
     print(corr,': disk')
-    disk_entries[corr] = lattedb_ff.get_or_create_disk_entries(meta_entries[corr],\
-        name=ens_s+'_%(CFG)s_srcs'+src_set+'.h5', path=tape_dir, machine=c51.machine)
+    disk_entries[corr] = lattedb_ff.get_or_create_disk_entries(
+        meta_entries = meta_entries[corr],
+        disk_entries = DiskCorrelatorH5Dset, 
+        path         = data_dir, 
+        machine      = c51.machine, 
+        name         = ens_s+'_%(CFG)s_srcs'+src_set+'.h5')
 
 if args.delete:
     for corr in corrs:
-        lattedb_ff.del_entries(corr, cfgs_run, ens, stream, src_set, srcs)
+        lattedb_ff.del_corr_entries(corr, cfgs_run, ens, stream, src_set, srcs)
     sys.exit()
 
 

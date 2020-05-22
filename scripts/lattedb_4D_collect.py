@@ -79,8 +79,12 @@ else:
 # LATTEDB imports
 if args.f_type == 'formfac':
     f_type = 'formfac_4D_tslice_src_avg'
+elif args.f_type == 'spec':
+    f_type = 'spec_4D_tslice_avg'
+elif args.f_type == 'all':
+    f_type = 'all'
 else:
-    f_type = None
+    sys.exit('you forgot to specify what type of data to collect, spec or formfac')
 import lattedb_ff_disk_tape_functions as lattedb_ff
 from lattedb.project.formfac.models import (
     TSlicedSAveragedFormFactor4DFile,
@@ -89,9 +93,13 @@ from lattedb.project.formfac.models import (
     TSlicedFormFactor4DFile,
     DiskTSlicedFormFactor4DFile,
     FormFactor4DFile,
-    DiskFormFactor4DFile
+    DiskFormFactor4DFile,
+    TSlicedSAveragedSpectrum4DFile,
+    TapeTSlicedSAveragedSpectrum4DFile,
+    DiskTSlicedSAveragedSpectrum4DFile,
+    TSlicedSpectrum4DFile,
+    DiskTSlicedSpectrum4DFile,
 )
-
 
 # CREATE CONFIG AND SRC LISTS
 if 'si' in params and 'sf' in params and 'ds' in params:
@@ -155,273 +163,59 @@ tape_entries = dict()
 disk_entries = dict()
 
 print('checking lattedb entries for %s' %f_type)
-if f_type == 'formfac_4D_tslice_src_avg':
-    meta_entries[f_type] = lattedb_ff.get_or_create_ff4D_tsliced_savg(params, cfgs, ens, stream, src_set)
-    disk_dir = c51.base_dir+'/formfac_4D_tslice_src_avg/%(CFG)s'
-    tape_dir = c51.tape+'/'+ens_s+'/'+f_type+'/%(CFG)s'
-
-    disk_entries[f_type] = lattedb_ff.get_or_create_disk_entries_new(meta_entries[f_type], \
-        disk_entries=DiskTSlicedSAveragedFormFactor4DFile, path=disk_dir, machine=c51.machine)
-    tape_entries[f_type] = lattedb_ff.get_or_create_tape_entries_new(meta_entries[f_type], \
-        TapeTSlicedSAveragedFormFactor4DFile, path=tape_dir, machine=c51.machine)
-
+if f_type in ['formfac_4D_tslice_src_avg', 'all']:
     if args.delete:
         delete_ff4D_avg(ens, stream, src_set, params['t_seps'], cfgs)
         sys.exit()
+    fs_type = 'formfac_4D_tslice_src_avg'
+    meta_entries[fs_type] = lattedb_ff.get_or_create_ff4D_tsliced_savg(params, cfgs, ens, stream, src_set)
+    disk_dir = c51.base_dir+'/'+fs_type+'/%(CFG)s'
+    tape_dir = c51.tape+'/'+ens_s+'/'+fs_type+'/%(CFG)s'
 
-    for cfg in cfgs:
-        no = str(cfg)
-        params['CFG'] = no
-        params = c51.ensemble(params)
-        for dt in params['t_seps']:
-            params['T_SEP'] = str(dt)
-            lattedb_ff.collect_ff_4D_tslice_src_avg(params, meta_entries[f_type])
+    disk_entries[fs_type] = lattedb_ff.get_or_create_disk_entries(
+        meta_entries = meta_entries[fs_type],
+        disk_entries = DiskTSlicedSAveragedFormFactor4DFile, 
+        path         = disk_dir, 
+        machine      = c51.machine
+    )
+    tape_entries[fs_type] = lattedb_ff.get_or_create_tape_entries(
+        meta_entries = meta_entries[fs_type],
+        tape_entries = TapeTSlicedSAveragedFormFactor4DFile, 
+        path         = tape_dir, 
+        machine      = c51.machine
+    )
 
-sys.exit()
+if f_type in ['spec_4D_tslice_avg', 'all']:
+    if args.delete:
+        delete_spec4D_avg(ens, stream, src_set, cfgs)
+        sys.exit()
+    fs_type = 'spec_4D_tslice_avg'
+    meta_entries[fs_type] = lattedb_ff.get_or_create_spec4D_tsliced_savg(params, cfgs, ens, stream, src_set)
+    disk_dir = c51.base_dir+'/'+fs_type+'/%(CFG)s'
+    tape_dir = c51.tape+'/'+ens_s+'/'+fs_type+'/%(CFG)s'
 
+    disk_entries[fs_type] = lattedb_ff.get_or_create_disk_entries(
+        meta_entries = meta_entries[fs_type],
+        disk_entries = DiskTSlicedSAveragedSpectrum4DFile, 
+        path         = disk_dir, 
+        machine      = c51.machine
+    )
+    tape_entries[fs_type] = lattedb_ff.get_or_create_tape_entries(
+        meta_entries = meta_entries[fs_type],
+        tape_entries = TapeTSlicedSAveragedSpectrum4DFile, 
+        path         = tape_dir, 
+        machine      = c51.machine
+    )
 
-if f_type == 'formfac_4D_tslice_src_avg':
-    latte_file['formfac_4D_tslice_src_avg'] = models.TSlicedSAveragedFormFactor4DFile
-    latte_disk['formfac_4D_tslice_src_avg'] = models.DiskTSlicedSAveragedFormFactor4DFile
-    latte_tape['formfac_4D_tslice_src_avg'] = models.TapeTSlicedSAveragedFormFactor4DFile
-
-    latte_file['formfac_4D_tslice'] = models.TSlicedFormFactor4DFile
-    latte_disk['formfac_4D_tslice'] = models.DiskTSlicedFormFactor4DFile
-
-    latte_file['formfac_4D'] = models.FormFactor4DFile
-    latte_disk['formfac_4D'] = models.DiskFormFactor4DFile
-
-elif f_type in ['prop','seqprop','spec','spec_4D','spec_4D_tslice','spec_4D_tslice_avg']:
-    sys.exit('not yet supported file type: '+str(f_type))
-else:
-    sys.exit('unrecognized file type: '+str(f_type))
-
-src_type = f_type in ['prop','spec','spec_4D','spec_4D_tslice','formfac','formfac_4D','formfac_4D_tslice']
-
-
-# QUERRY DB
-if f_type == 'formfac_4D_tslice_src_avg':
-    db_entries = latte_file[f_type].objects.filter(
-        ensemble      = ens,
-        stream        = stream,
-        source_set    = src_set,
-        configuration__in = cfgs
-        ).prefetch_related('disk').prefetch_related('tape')
-
-if args.debug:
-    print(db_entries.to_dataframe(fieldnames=['ensemble','stream','configuration','source_set','t_separation','name','last_modified']))
-
-# LOOP OVER FILES to check
-print('checking database entries')
-db_update_disk = []
-db_new_disk    = []
-db_update_tape = []
-db_new_tape    = []
-db_new_entry   = []
-save_to_tape   = []
-data_collect   = []
-
-if args.disk_update or args.update:
-    disk_entries = db_entries.all()
-else:
-    disk_entries = db_entries.filter(Q(disk__exists=False) | Q(disk__isnull=True))
-if args.tape_update or args.update:
-    tape_entries = db_entries.all()
-else:
-    tape_entries = db_entries.filter(Q(tape__exists=False) | Q(tape__isnull=True))
-
+# loop over cfgs and try and collect and report missing
 for cfg in cfgs:
-    sys.stdout.write('    cfg = %d\r' %cfg)
-    sys.stdout.flush()
     no = str(cfg)
     params['CFG'] = no
     params = c51.ensemble(params)
-    params['RUN_DIR'] = params['prod']
-    params['TAPE_DIR'] = c51.tape+'/'+ens_s+'/'+f_type+'/'+no
-    params['UPDATE'] = args.update
-    params['DISK_UPDATE'] = args.disk_update
-    params['TAPE_UPDATE'] = args.tape_update
-    # if the type of file we are checking has srcs (not src_averaged), then add this info
-    if src_type:
-        for s0 in srcs[cfg]:
-            src = s0
-            # complete this logic chain
-    else:# src averaged file types
-        params['SRC'] = 'src_avg'
-        if f_type == 'formfac_4D_tslice_src_avg':
-            lattedb_ff.check_ff_4D_tslice_src_avg(params, db_entries, 
-                db_update_disk, db_new_disk, db_update_tape, db_new_tape, db_new_entry, save_to_tape, data_collect)
-
-# bulk create all completely new entries
-#print(db_new_entry)
-try:
-    print('pushing %d new entries' %len(db_new_entry))
-    all_f = []
-    all_d = []
-    all_t = []
-    for ff,dd,tt in db_new_entry:
-        f = latte_file[f_type](**ff)
-        all_f.append(f)
-    print('  pushing file entries')
-    latte_file[f_type].objects.bulk_create(all_f)
-    for i,f in enumerate(all_f):
-        d = latte_disk[f_type](file=f,**db_new_entry[i][1])
-        all_d.append(d)
-        t = latte_tape[f_type](file=f,**db_new_entry[i][2])
-        all_t.append(t)
-    print('  pushing disk entries')
-    latte_disk[f_type].objects.bulk_create(all_d)
-    print('  pushing tape entries')
-    latte_tape[f_type].objects.bulk_create(all_t)
-except Exception as e:
-    print('you messed up')
-    print(e)
-
-# bulk create tape entries for pre-existing file entries
-try:
-    print('pushing %d new TAPE entries for existing file entries' %len(db_new_tape))
-    tape_push = []
-    for tt in db_new_tape:
-        tape_push.append(latte_tape[f_type](**tt))
-    latte_tape[f_type].objects.bulk_create(tape_push)
-except Exception as e:
-    print(e)
-    print('you messed up bulk TAPE create')
-
-# bulk create tape entries for pre-existing file entries
-try:
-    print('pushing %d new DISK entries for existing file entries' %len(db_new_disk))
-    disk_push = []
-    for dd in db_new_disk:
-        disk_push.append(latte_disk[f_type](**dd))
-    latte_disk[f_type].objects.bulk_create(disk_push)
-except Exception as e:
-    print(e)
-    print('you messed up bulk DISK create')
-
-# bulk update disk
-print('updating %d DISK entries for existing file entries' %len(db_update_disk))
-if len(db_update_disk) > 0:
-    disk_push = []
-    for ff,dd in tqdm(db_update_disk):
-        # this is slow cause we querry the DB for each entry
-        f = db_entries.filter(**ff).first()
-        d = f.disk
-        for k,v in dd.items():
-            setattr(d,k,v)
-        disk_push.append(d)
-    latte_disk[f_type].objects.bulk_update(disk_push,fields=list(dd.keys()))
-
-# bulk update tape
-print('updating %d TAPE entries for existing file entries' %len(db_update_tape))
-if len(db_update_tape) > 0:
-    tape_push = []
-    for ff,tt in tqdm(db_update_tape):
-        # this is slow cause we querry the DB for each entry
-        f = db_entries.filter(**ff).first()
-        t = f.tape
-        for k,v in tt.items():
-            setattr(t,k,v)
-        tape_push.append(t)
-    latte_tape[f_type].objects.bulk_update(tape_push,fields=list(tt.keys()))
-
-# save to tape
-if args.save_tape:
-    print('saving %d files to tape' %(len(save_to_tape)))
-    for f in save_to_tape:
-        #os.chdir(f[1])
-        #os.system('hsi -P "mkdir -p %s; chmod ug+rwx %s"' %(f[2],f[2]))
-        #os.system('hsi -P "cd %s; cput %s"' %(f[2],f[0]))
-        #os.system('hsi -P chmod ug+rw %s' %(f[2]+'/'+f[0]))
-        hsi.cput(f[1]+'/'+f[0],f[2]+'/'+f[0])
-else:
-    print('skipping %d files to save to tape' %(len(save_to_tape)))
-
-# collect data
-if args.data:
-    print('data collect')
-    if f_type == 'formfac_4D_tslice_src_avg':
-        # try to run avg_4D which will also run tslice if all formfac_4D files are present
-        # first, make a list of cfgs and tseps
-        cfg_tsep_lst = dict()
-        for f in data_collect:
-            cfg = int(f.split('_')[7])
-            tsep = int(f.split('_dt')[1].split('_')[0])
-            if cfg not in cfg_tsep_lst:
-                cfg_tsep_lst[cfg] = []
-            if tsep not in cfg_tsep_lst[cfg]:
-                cfg_tsep_lst[cfg].append(tsep)
-        # loop over cfg and tsep values and try and avg
-        for cfg in cfg_tsep_lst:
-            params['CFG'] = str(cfg)
-            rerun=False
-            for dt in cfg_tsep_lst[cfg]:
-                params['T_SEP'] = dt
-                if args.bad_size:
-                    bad_size = '--bad_size'
-                else:
-                    bad_size = ''
-                os.system(c51.python+' %s/avg_4D.py formfac --cfgs %d -t %d --src_set %s %s %s %s' \
-                          %(c51.script_dir, cfg, dt, params['si'],params['sf'],params['ds'], bad_size))
-                ff_file = params[f_type]+'/'+ (c51.names[f_type] % params)+'.h5'
-                if os.path.exists(ff_file):
-                    rerun=True
-            if args.rerun and rerun:
-                os.system(c51.python+' %s/%s %s --cfgs %d --src_set %s %s %s -r ' \
-                          %(c51.script_dir, script, 'formfac', cfg, params['si'],params['sf'],params['ds']))
-
-        tape_update = []
-        tape_new    = []
-        disk_update = []
-        disk_new    = []
-        tmp_new     = []
-        tmp_save    = []
-        tmp_collect = []
-        for f in data_collect:
-            collected_entry = latte_file[f_type].objects.filter(name = f).prefetch_related('disk').prefetch_related('tape')
-            cfg = int(f.split('_')[7])
-            no  = str(cfg)
-            params['CFG'] = no
-            params['SRC'] = 'src_avg'
-            params['t_seps'] = [dt]
-            lattedb_ff.check_ff_4D_tslice_src_avg(params, collected_entry, 
-                disk_update, disk_new, tape_update, tape_new, tmp_new, tmp_save, tmp_collect)
-        if len(tape_new) > 0:
-            try:
-                tape_push = []
-                for tt in db_new_tape:
-                    tape_push.append(latte_tape[f_type](**tt))
-                latte_tape[f_type].objects.bulk_create(tape_push)
-            except Exception as e:
-                print(e)
-                print('you messed up bulk TAPE create')
-        if len(disk_new) > 0:
-            try:
-                disk_push = []
-                for dd in db_new_disk:
-                    disk_push.append(latte_disk[f_type](**dd))
-                latte_disk[f_type].objects.bulk_create(disk_push)
-            except Exception as e:
-                print(e)
-                print('you messed up bulk DISK create')
-        if len(disk_update) > 0:
-            disk_push = []
-            for ff,dd in tqdm(db_update_disk):
-                # this is slow cause we querry the DB for each entry
-                f = db_entries.filter(**ff).first()
-                d = f.disk
-                for k,v in dd.items():
-                    setattr(d,k,v)
-                disk_push.append(d)
-            latte_disk[f_type].objects.bulk_update(disk_push,fields=list(dd.keys()))
-        if len(tape_update) > 0:
-            tape_push = []
-            for ff,tt in tqdm(db_update_tape):
-            # this is slow cause we querry the DB for each entry
-                f = db_entries.filter(**ff).first()
-                t = f.tape
-                for k,v in tt.items():
-                    setattr(t,k,v)
-                tape_push.append(t)
-            latte_tape[f_type].objects.bulk_update(tape_push,fields=list(tt.keys()))
-
+    params['SOURCES'] = srcs[cfg]
+    if f_type in ['spec_4D_tslice_avg', 'all']:
+        lattedb_ff.collect_spec_ff_4D_tslice_src_avg('spec', params, meta_entries['spec_4D_tslice_avg'])
+    if f_type in ['formfac_4D_tslice_src_avg', 'all']:
+        for dt in params['t_seps']:
+            params['T_SEP'] = str(dt)
+            lattedb_ff.collect_spec_ff_4D_tslice_src_avg('formfac', params, meta_entries['formfac_4D_tslice_src_avg'])
