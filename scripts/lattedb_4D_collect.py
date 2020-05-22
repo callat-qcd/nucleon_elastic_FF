@@ -49,6 +49,7 @@ parser.add_argument('-t','--t_sep',  nargs='+',type=int,help='values of t_sep [d
 parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific current or currents? [A3 V4 ...]')
 parser.add_argument('--src_set',     nargs=3,type=int,help='specify si sf ds')
 parser.add_argument('-v',            default=True ,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--collect',     default=True ,action='store_const',const=True ,help='collect data? [%(default)s]')
 parser.add_argument('--update',      default=False,action='store_const',const=True ,help='update disk and tape entries? [%(default)s]')
 parser.add_argument('--disk_update', default=True ,action='store_const',const=False,help='update disk=exists entries? [%(default)s]')
 parser.add_argument('--tape_update', default=True ,action='store_const',const=False,help='update tape=exists entries? [%(default)s]')
@@ -56,7 +57,6 @@ parser.add_argument('--tape_get'   , default=False,action='store_const',const=Tr
 parser.add_argument('--save_tape',   default=True ,action='store_const',const=False,help='save files to tape? [%(default)s]')
 parser.add_argument('--debug',       default=False,action='store_const',const=True ,help='debug? [%(default)s]')
 parser.add_argument('--data',        default=True ,action='store_const',const=False,help='collect missing data? [%(default)s]')
-parser.add_argument('-r','--rerun',  default=True ,action='store_const',const=False,help='rerun lattedb after data collection? [%(default)s]')
 parser.add_argument('--bad_size',    default=False,action='store_const',const=True, help='exit if bad file size encountered? [%(default)s]')
 parser.add_argument('--delete',      default=False,action='store_const',const=True,help='delete entries? [%(default)s]')
 args = parser.parse_args()
@@ -64,11 +64,9 @@ print('Arguments passed')
 print(args)
 print('')
 
-tape_lst = ['formfac_4D_tslice_src_avg','spec_4D_tslice','spec_4D_tslice_avg']
-
 #
-params['TAPE_GET'] = args.tape_get
-params['UPDATE']   = args.update
+params['TAPE_GET']    = args.tape_get
+params['UPDATE']      = args.update
 params['DISK_UPDATE'] = args.disk_update
 params['TAPE_UPDATE'] = args.tape_update
 if args.bad_size:
@@ -208,14 +206,32 @@ if f_type in ['spec_4D_tslice_avg', 'all']:
     )
 
 # loop over cfgs and try and collect and report missing
+missing_spec_4D = []
+missing_ff_4D   = []
 for cfg in cfgs:
     no = str(cfg)
     params['CFG'] = no
     params = c51.ensemble(params)
     params['SOURCES'] = srcs[cfg]
     if f_type in ['spec_4D_tslice_avg', 'all']:
-        lattedb_ff.collect_spec_ff_4D_tslice_src_avg('spec', params, meta_entries['spec_4D_tslice_avg'])
+        if args.collect:
+            lattedb_ff.collect_spec_ff_4D_tslice_src_avg('spec', params, meta_entries['spec_4D_tslice_avg'])
+        for entry in meta_entries['spec_4D_tslice_avg']:
+            if not entry.tape.exists:
+                missing_spec_4D.append('spec_4D_tslice_avg/'+no+'/'+entry.name)
+
     if f_type in ['formfac_4D_tslice_src_avg', 'all']:
-        for dt in params['t_seps']:
-            params['T_SEP'] = str(dt)
-            lattedb_ff.collect_spec_ff_4D_tslice_src_avg('formfac', params, meta_entries['formfac_4D_tslice_src_avg'])
+        if args.collect:
+            for dt in params['t_seps']:
+                params['T_SEP'] = str(dt)
+                lattedb_ff.collect_spec_ff_4D_tslice_src_avg('formfac', params, meta_entries['formfac_4D_tslice_src_avg'])
+        for entry in meta_entries['formfac_4D_tslice_src_avg']:
+            missing_ff_4D.append('formfac_4D_tslice_src_avg/'+no+'/'+entry.name)
+fs = open('missing_spec_4D_'+ens_s+'.lst','w')
+for entry in missing_spec_4D:
+    fs.write(entry+'\n')
+fs.close()
+ff = open('missing_ff_4D_'+ens_s+'.lst','w')
+for entry in missing_ff_4D:
+    ff.write(entry+'\n')
+ff.close()
