@@ -43,13 +43,13 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
-parser.add_argument('f_type',        type=str,help='what data type to average [formfac (soon to come spec)]?')
-parser.add_argument('--cfgs',        nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('cfgs',          nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('--f_type',      type=str,default='all',help='what data type to average [formfac (soon to come spec)]?')
 parser.add_argument('-t','--t_sep',  nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific current or currents? [A3 V4 ...]')
 parser.add_argument('--src_set',     nargs=3,type=int,help='specify si sf ds')
 parser.add_argument('-v',            default=True ,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--collect',     default=True ,action='store_const',const=True ,help='collect data? [%(default)s]')
+parser.add_argument('--collect',     default=True ,action='store_const',const=False,help='collect data? [%(default)s]')
 parser.add_argument('--update',      default=False,action='store_const',const=True ,help='update disk and tape entries? [%(default)s]')
 parser.add_argument('--disk_update', default=True ,action='store_const',const=False,help='update disk=exists entries? [%(default)s]')
 parser.add_argument('--tape_update', default=True ,action='store_const',const=False,help='update tape=exists entries? [%(default)s]')
@@ -208,30 +208,51 @@ if f_type in ['spec_4D_tslice_avg', 'all']:
 # loop over cfgs and try and collect and report missing
 missing_spec_4D = []
 missing_ff_4D   = []
+if args.collect:
+    for cfg in cfgs:
+        no = str(cfg)
+        params['CFG'] = no
+        params = c51.ensemble(params)
+        params['SOURCES'] = srcs[cfg]
+        if f_type in ['spec_4D_tslice_avg', 'all']:
+            lattedb_ff.collect_spec_ff_4D_tslice_src_avg('spec', params, meta_entries['spec_4D_tslice_avg'])
+
+        if f_type in ['formfac_4D_tslice_src_avg', 'all']:
+            for dt in params['t_seps']:
+                params['T_SEP'] = str(dt)
+                lattedb_ff.collect_spec_ff_4D_tslice_src_avg('formfac', params, meta_entries['formfac_4D_tslice_src_avg'])
+    fs_type = 'formfac_4D_tslice_src_avg'
+    meta_entries[fs_type] = lattedb_ff.get_or_create_ff4D_tsliced_savg(params, cfgs, ens, stream, src_set)
+    fs_type = 'spec_4D_tslice_avg'
+    meta_entries[fs_type] = lattedb_ff.get_or_create_spec4D_tsliced_savg(params, cfgs, ens, stream, src_set)
+
 for cfg in cfgs:
     no = str(cfg)
     params['CFG'] = no
     params = c51.ensemble(params)
     params['SOURCES'] = srcs[cfg]
-    if f_type in ['spec_4D_tslice_avg', 'all']:
-        if args.collect:
-            lattedb_ff.collect_spec_ff_4D_tslice_src_avg('spec', params, meta_entries['spec_4D_tslice_avg'])
-        for entry in meta_entries['spec_4D_tslice_avg']:
+    f_dict = dict()
+    f_dict['ensemble']      = ens
+    f_dict['stream']        = stream
+    f_dict['configuration'] = cfg
+    f_dict['source_set']    = params['SRC_SET']
+    entries = meta_entries['spec_4D_tslice_avg'].filter(**f_dict)
+    for entry in entries:
+        if not entry.tape.exists:
+            missing_spec_4D.append('spec_4D_tslice_avg/'+no+'/'+entry.name)
+    for dt in params['t_seps']:
+        params['T_SEP'] = str(dt)
+        f_dict['t_separation'] = dt
+        entries = meta_entries['formfac_4D_tslice_src_avg'].filter(**f_dict)
+        for entry in entries:
             if not entry.tape.exists:
-                missing_spec_4D.append('spec_4D_tslice_avg/'+no+'/'+entry.name)
+                missing_ff_4D.append('formfac_4D_tslice_src_avg/'+no+'/'+entry.name)
 
-    if f_type in ['formfac_4D_tslice_src_avg', 'all']:
-        if args.collect:
-            for dt in params['t_seps']:
-                params['T_SEP'] = str(dt)
-                lattedb_ff.collect_spec_ff_4D_tslice_src_avg('formfac', params, meta_entries['formfac_4D_tslice_src_avg'])
-        for entry in meta_entries['formfac_4D_tslice_src_avg']:
-            missing_ff_4D.append('formfac_4D_tslice_src_avg/'+no+'/'+entry.name)
-fs = open('missing_spec_4D_'+ens_s+'.lst','w')
+fs = open('missing_spec_4D_'+ens_s+'_Srcs'+src_set+'.lst','w')
 for entry in missing_spec_4D:
     fs.write(entry+'\n')
 fs.close()
-ff = open('missing_ff_4D_'+ens_s+'.lst','w')
+ff = open('missing_ff_4D_'+ens_s+'_Srcs'+src_set+'.lst','w')
 for entry in missing_ff_4D:
     ff.write(entry+'\n')
 ff.close()
