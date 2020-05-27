@@ -15,6 +15,17 @@ fmt = '%Y-%m-%d %H:%M:%S'
 sys.path.append(os.path.join(os.path.dirname(__file__)))
 sys.path.append(os.path.join(os.path.dirname(__file__),'area51_files'))
 # h5 and lattedb utils
+# modify logging info and location
+import logging
+from nucleon_elastic_ff.utilities import set_up_logger
+LOGGER = set_up_logger("nucleon_elastic_ff") # get the logger for the module
+fh = [h for h in LOGGER.handlers if isinstance(h, logging.FileHandler)][0] # get the file logger
+LOGGER.removeHandler(fh) # remove the file logger
+new_fh = logging.FileHandler(c51.scratch+'/production/'+ens_s+'/lattedb_corr_'+ens_s+'_Srcs'+src_set+'.log')
+new_fh.setLevel(logging.INFO)
+new_fh.setFormatter(fh.formatter)
+LOGGER.addHandler(new_fh)
+
 from nucleon_elastic_ff.data.h5io import get_dsets
 from nucleon_elastic_ff.data.scripts.h5migrate import dset_migrate as h5migrate
 import lattedb_ff_disk_tape_functions as lattedb_ff
