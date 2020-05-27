@@ -103,7 +103,7 @@ def ensemble(params):
     ''' DIRECTORIES '''
     params['METAQ_DIR']   = metaq_dir
     dirs    = ['cfgs_flow','corrupt','src','quda_resource']
-    dirs_no = ['xml','stdout','prop','spec','spec_4D','seqsrc','seqprop','formfac','formfac_4D','hisq_spec','prop_strange','hyperspec','mixed']
+    dirs_no = ['xml','stdout','prop','spec','spec_4D','seqsrc','seqprop','formfac','formfac_4D','hisq_spec','prop_strange','hyperspec','mixed','pipi_scat']
     for d in dirs:
         params[d] = params['prod']+'/'+d
     for d in dirs_no:
@@ -151,3 +151,5 @@ names['formfac_4D_tslice_src_avg'] = names['formfac'].replace('formfac','formfac
 
 names['mixed_corr']       = 'dwf_hisq_spec_%(ENS_S)s_wflow%(FLOW_TIME)s_M5%(M5)s_L5%(L5)s'
 names['mixed_corr']      += '_a%(alpha5)s_cfg_%(CFG)s_src%(SRC)s_%(SMR)s_ml%(MQ_L)s_ms%(MQ_S)s.corr'
+names['pipi_scat']         = 'pipi_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+names['pipi_scat']        += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC0)s_%(SRC1)s'

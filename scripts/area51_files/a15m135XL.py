@@ -8,7 +8,7 @@ params['tuning_mq'] = False
 params['tuning_ms'] = False
 params['run_ff'] = True
 params['run_strange'] = True
-
+params['KPI_SCAT'] = True
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
 #params['si'] = 16

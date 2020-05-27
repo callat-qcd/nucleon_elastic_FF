@@ -682,3 +682,39 @@ stag_src_write = '''<elem>
 
 '''
 
+pipi_scat='''
+<elem>
+  <Name>PIPI_SCATTERING</Name>
+  <PipiParams>
+    <p2_max>4</p2_max>
+    <ptot2_max>4</ptot2_max>
+    <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
+    <obj_path>/%(PIPI_SCAT_OBJ_PATH)s</obj_path>
+  </PipiParams>
+  <NamedObject>
+    <light_prop_1>%(LIGHT1)s</light_prop_1>
+    <light_prop_2>%(LIGHT2)s</light_prop_2>
+  </NamedObject>
+</elem>
+
+'''
+
+pipi_kpi_scat='''
+<elem>
+  <Name>PIPI_SCATTERING</Name>
+  <PipiParams>
+    <p2_max>4</p2_max>
+    <ptot2_max>4</ptot2_max>
+    <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
+    <obj_path>/%(PIPI_SCAT_OBJ_PATH)s</obj_path>
+  </PipiParams>
+  <NamedObject>
+    <light_prop_1>%(LIGHT1)s</light_prop_1>
+    <light_prop_2>%(LIGHT2)s</light_prop_2>
+    <strange_prop_1>%(STRANGE1)s</strange_prop_1>
+    <strange_prop_2>%(STRANGE2)s</strange_prop_2>
+  </NamedObject>
+</elem>
+
+'''
+
