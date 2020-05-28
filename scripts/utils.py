@@ -40,6 +40,13 @@ def check_file(f_name,f_size,time_delete,bad_file_dir,debug=False):
                 shutil.move(f_name,bad_file_dir+'/'+f_name.split('/')[-1])
     return os.path.exists(f_name)
 
+def check_time_mv_file(f, grace_time, new_dir):
+    now = time.time()
+    file_time = os.stat(f).st_mtime
+    if (now-file_time)/60 > grace_time:
+        print('MOVING to CORRUPT:', f)
+        shutil.move(f, new_dir+'/'+f.split('/')[-1])
+
 def parse_cfg_argument(cfg_arg, params):
     allowed_cfgs = range(params['cfg_i'],params['cfg_f']+1,params['cfg_d'])
     if not cfg_arg:

@@ -75,16 +75,6 @@ else:
     params['bad_size'] = ''
 
 # LATTEDB imports
-# modify logging info and location
-import logging
-from nucleon_elastic_ff.utilities import set_up_logger
-LOGGER = set_up_logger("nucleon_elastic_ff") # get the logger for the module
-fh = [h for h in LOGGER.handlers if isinstance(h, logging.FileHandler)][0] # get the file logger
-LOGGER.removeHandler(fh) # remove the file logger
-new_fh = logging.FileHandler(c51.scratch+'/production/'+ens_s+'/lattedb_4D_'+ens_s+'_Srcs'+src_set+'.log')
-new_fh.setLevel(logging.INFO)
-new_fh.setFormatter(fh.formatter)
-LOGGER.addHandler(new_fh)
 
 if args.f_type == 'formfac':
     f_type = 'formfac_4D_tslice_src_avg'
@@ -128,6 +118,17 @@ if args.src_set:# override src index in sources and area51 files for collection
     params['ds'] = args.src_set[2]
 src_set = "%d-%d" %(params['si'],params['sf'])
 params['SRC_SET'] = src_set
+
+# modify logging info and location
+import logging
+from nucleon_elastic_ff.utilities import set_up_logger
+LOGGER = set_up_logger("nucleon_elastic_ff") # get the logger for the module
+fh = [h for h in LOGGER.handlers if isinstance(h, logging.FileHandler)][0] # get the file logger
+LOGGER.removeHandler(fh) # remove the file logger
+new_fh = logging.FileHandler(c51.scratch+'/production/'+ens_s+'/lattedb_4D_'+ens_s+'_Srcs'+src_set+'.log')
+new_fh.setLevel(logging.INFO)
+new_fh.setFormatter(fh.formatter)
+LOGGER.addHandler(new_fh)
 
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)

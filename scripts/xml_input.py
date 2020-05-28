@@ -1,3 +1,79 @@
+import c51_mdwf_hisq as c51
+
+def make_coherent_ff_xml(xmlini, params_in, prop_name, prop_file, dt, flav_spin):
+    params = {k:v for k,v in params_in.items()}
+    fin = open(xmlini, 'w')
+    fin.write(head)
+    ''' read all props '''
+    params['OBJ_ID']    = prop_name
+    params['OBJ_TYPE']  = 'LatticePropagator'
+    if '.h5' not in prop_file:
+        params['LIME_FILE'] = prop_file
+        fin.write(qio_read % params)
+    else:
+        params['H5_FILE'] = prop_file
+        if ens == 'a12m130':
+            if params['si'] in [0, 8]:
+                params['H5_PATH'] = '48_64'
+                params['H5_OBJ_NAME'] = 'prop1'
+            else:
+                params['H5_PATH'] = ''
+                params['H5_OBJ_NAME'] = 'prop'
+        else:
+            params['H5_PATH'] = ''
+            params['H5_OBJ_NAME'] = 'prop'
+        fin.write(hdf5_read % params)
+    ''' read all seq props and do contractions '''
+    for particle in params['particles']:
+        params['PARTICLE'] = particle
+        if '_np' in particle:
+            t_sep = '-'+dt
+        else:
+            t_sep = dt
+        params['T_SEP'] = t_sep
+        for fs in flav_spin:
+            flav,snk_spin,src_spin= fs.split('_')
+            params['FLAV']        = flav
+            params['SOURCE_SPIN'] = snk_spin
+            params['SINK_SPIN']   = src_spin
+            spin                  = snk_spin+'_'+src_spin
+            params['FLAV_SPIN']   = fs
+            seqprop_name          = c51.names['seqprop'] %params
+            seqprop_file          = params['seqprop']+'/'+seqprop_name+'.'+params['SP_EXTENSION']
+            params['LIME_FILE']   = seqprop_file
+            params['OBJ_ID']      = seqprop_name
+            params['SEQPROP_'+fs] = seqprop_name
+            fin.write(qio_read % params)
+
+        params['PROP_NAME'] = prop_name
+        ''' make 3pt contractions '''
+        params['CURR_4D'] = ''
+        for ci,curr in enumerate(params['curr_4d']):
+            params['CURR_4D'] += '        <elem>'+curr+'</elem>'
+            if ci < len(params['curr_4d']) -1:
+                params['CURR_4D'] += '\n'
+        params['CURR_0P'] = ''
+        for ci,curr in enumerate(params['curr_0p']):
+            params['CURR_0P'] += '        <elem>'+curr+'</elem>'
+            if ci < len(params['curr_0p']) -1:
+                params['CURR_0P'] += '\n'
+        fin.write(lalibe_formfac % params)
+        ''' erase seqprops to reduce memory footprint '''
+        for fs in flav_spin:
+            fin.write(qio_erase %{'OBJ_ID':params['SEQPROP_'+fs]})
+
+    fin.write(tail % params)
+    fin.close()
+
+
+
+
+
+
+
+
+
+
 head='''<?xml version="1.0"?>
 <lalibe>
 <Param>
