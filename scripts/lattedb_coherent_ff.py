@@ -157,26 +157,32 @@ coherent_ff_size_4d = n_curr * n_flav * n_spin * n_par *int(nt)*int(nl)**3 * 2*8
 meta_entries = dict()
 tape_entries = dict()
 
-f_type = 'formfac_4D_tslice_src_avg'
-meta_entries[f_type] = lattedb_ff.get_or_create_ff4D_tsliced_savg(params, cfgs, ens, stream, src_set)
-tape_dir = c51.tape+'/'+ens_s+'/'+f_type+'/%(CFG)s'
-tape_entries[f_type] = lattedb_ff.get_or_create_tape_entries(
-    meta_entries = meta_entries[f_type], 
-    tape_entries = TapeTSlicedSAveragedFormFactor4DFile,
-    path         = tape_dir,
-    machine      = c51.machine
-)
+try:
+    f_type = 'formfac_4D_tslice_src_avg'
+    meta_entries[f_type] = lattedb_ff.get_or_create_ff4D_tsliced_savg(params, cfgs, ens, stream, src_set)
+    tape_dir = c51.tape+'/'+ens_s+'/'+f_type+'/%(CFG)s'
+    tape_entries[f_type] = lattedb_ff.get_or_create_tape_entries(
+        meta_entries = meta_entries[f_type], 
+        tape_entries = TapeTSlicedSAveragedFormFactor4DFile,
+        path         = tape_dir,
+        machine      = c51.machine
+    )
 
-for dt in params['t_seps']:
-    corr = 'ff_tsep_'+str(dt)
-    meta_entries[corr] = lattedb_ff.get_or_create_meta_entries(corr, cfgs, ens, stream, src_set, srcs)
-    tape_entries[corr] = lattedb_ff.get_or_create_tape_entries(
-        meta_entries = meta_entries[corr],
-        tape_entries = TapeCorrelatorH5Dset,
-        path         = c51.tape+'/'+ens_s+'/data',
-        machine      = c51.machine,
-        name         = ens_s+'_%(CFG)s_srcs'+src_set+'.h5'
-        )
+    for dt in params['t_seps']:
+        corr = 'ff_tsep_'+str(dt)
+        meta_entries[corr] = lattedb_ff.get_or_create_meta_entries(corr, cfgs, ens, stream, src_set, srcs)
+        tape_entries[corr] = lattedb_ff.get_or_create_tape_entries(
+            meta_entries = meta_entries[corr],
+            tape_entries = TapeCorrelatorH5Dset,
+            path         = c51.tape+'/'+ens_s+'/data',
+            machine      = c51.machine,
+            name         = ens_s+'_%(CFG)s_srcs'+src_set+'.h5'
+            )
+    have_lattedb = True
+except:
+    print('not able to connect to lattedb - will directly access tape')
+    have_lattedb = False
+
 
 ''' logic loop
 for cfg in cfgs:
@@ -224,11 +230,22 @@ for c in cfgs:
                 ff_4D_tslice   = params['formfac_4D_tslice'] +'/'+ (c51.names['formfac_4D_tslice'] % params) +'.h5'
                 ff_4D_avg_name = (c51.names['formfac_4D_tslice_src_avg'] % params).replace(s0,'src_avg') +'.h5'
                 ff_4D_avg_file = params['formfac_4D_tslice_src_avg'] +'/'+ ff_4D_avg_name
-                ff_dict.update({'source':s0, 'correlator':'ff_tsep_'+dt})
-                ff_4D_dict.update({'name':ff_4D_avg_name})
-                db_ff = meta_entries['ff_tsep_'+dt].filter(**ff_dict).first()
-                db_4D = meta_entries['formfac_4D_tslice_src_avg'].filter(**ff_4D_dict).first()
-                have_tape = db_ff.tape.exists and db_4D.tape.exists
+                if have_lattedb:
+                    ff_dict.update({'source':s0, 'correlator':'ff_tsep_'+dt})
+                    ff_4D_dict.update({'name':ff_4D_avg_name})
+                    db_ff = meta_entries['ff_tsep_'+dt].filter(**ff_dict).first()
+                    db_4D = meta_entries['formfac_4D_tslice_src_avg'].filter(**ff_4D_dict).first()
+                    have_tape = db_ff.tape.exists and db_4D.tape.exists
+                else:
+                    db_4D_tape = lattedb_ff.check_tape(c51.tape+'/'+ens_s+'/formfac_4D_tslice_src_avg/'+no, ff_4D_avg_name)
+                    h5_file_name = ens_s+'_'+no+'_srcs'+src_set+'.h5'
+                    h5_tape_dict = lattedb_ff.check_tape(c51.tape+'/'+ens_s+'/data',h5_file_name)
+                    '''
+                    if disk file exists and date = tape file - just querry disk file
+                    if disk file does not exist and tape exists - pull tape and check
+                    if disk file exists and is newer than tape - migrate - pull tape, check tape
+                    '''
+                    have_tape = db_4D_tape['exists']
                 if not have_tape:
                     have_tape_all_src = False
                 if args.verbose:

@@ -91,6 +91,110 @@ def check_disk(d_path,d_file):
         d_dict['date_modified'] = None
     return d_dict
 
+def corr_compare_tape_disk(h5_file, tape_dir, disk_dir, tmp_disk_dir, d_sets, atol, rtol, tape_push=False):
+    ''' We want to compare h5 data files on tape and disk to decide if we should update
+        input: 
+            h5_file       name of h5 file
+            tape_dir      location on tape
+            disk_dir      location of disk dir where files are pushed/pulled from tape
+            tmp_disk_dir  location of temporary disk_dir where new data is collected
+            d_sets        list of data sets to inquire of existence in file
+            tape_push     push disk file to tape
+
+        t_e = exists on tape or not
+        d_e = exists on disk or not
+
+        t_e  d_e  date   action
+        --------------------------------------------------
+        n    n    --     collect = true
+        n    y    --     if data in disk: push to tape, collect = false
+                         else: push to tape, collect = true
+        y    n    --     pull, if data in file: collect = false
+                               else: collect = true
+        y    y    t=d    if data in disk: collect = true
+                         else: collect = false
+        y    y    t!=d   pull, h5_compare d_sets, equilibrate or raise exception
+    '''
+    t_dict     = check_tape(tape_dir, h5_file)
+    d_dict     = check_disk(disk_dir, h5_file)
+    tmp_d_dict = check_dist(tmp_disk_dir, h5_file)
+    d_file     = disk_dir +'/'+ h5_file
+    tmp_d_file = tmp_disk_dir +'/'+ h5_file
+    collect    = False
+
+    # do we need to synchronize disk and tmp_disk?
+    if d_dict['exists'] or tmp_d_dict['exists']:
+        sync_disk_files(tmp_disk_dir, h5_file, disk_dir, h5_file, atol, rtol)
+        d_dict = check_disk(disk_dir, h5_file)
+        if not t_dict['exists'] and tape_push:
+            hsi.cput(d_file, tape_dir+'/'+h5_file)
+
+    # if tape does not exist, see if disk files exist
+    if not t_dict['exists']:
+        if d_dict['exists']:
+            check_disk = True
+        else:
+            check_disk = False
+            collect = True
+    # if tape does exist, we have to synchronize with disk files or pull
+    else:
+        check_disk = True
+        if sync_disk:
+            sync_tape_disk = True
+        else:
+            sync_tape_disk = False
+            hsi.cget(disk_dir, tape_dir +'/'+ h5_file)
+
+    # if sync_tape_disk, mv disk to tmp_disk since we just synchronized
+    if sync_tape_disk:
+        # get meta info on disk_file again
+        d_dict = check_disk(disk_dir, h5_file)
+        if d_dict['date_modified'] != t_dict['date_modified']:
+            # move file to temp location and pull from tape
+            shutil.move(d_file, tmp_d_file)
+            hsi.cget(disk_dir, tape_dir +'/'+ h5_file)
+            # then check if any data in tmp_disk is not in disk
+            with h5py.File(d_disk,'r') as f5_disk:
+                dsets_disk = get_dsets(f5_disk, load_dsets=False)
+            with h5py.File(tmp_d_disk,'r') as f5_tmp_disk:
+                dsets_tmp_disk = get_dsets(f5_tmp_disk, load_dsets=False)
+            new_data = [dset for dset in dsets_tmp_disk if dset not in dsets_disk]
+            # an empty list is false
+            if new_data:
+                try:
+                    h5_dset_migrate(tmp_d_file, d_file, atol=atol, rtol=rtol)
+                    # then store back to tape
+                    hsi.cput(d_file, tape_dir +'/'+ h5_file)
+                except Exception as e:
+                    print(e)
+
+    # check disk_dir/h5_file for data
+    if check_disk:
+        with h5py.File(disk_dir+'/'+h5_file,'r') as f5_tmp:
+            dsets_tmp  = get_dsets(f5_tmp, load_dsets=False)
+        have_dsets = True
+        for dset in d_sets:
+            if dset not in dsets_tmp:
+                have_dsets = False
+        if not have_dsets:
+            collect = True
+
+    return collect
+
+def sync_disk_files(path_src,file_src,path_dest,file_dest, atol, rtol):
+    src_dict  = check_disk(path_src, file_src)
+    dest_dict = check_disk(path_dest, file_dest)
+    if src_dict['exists'] and dest_dict['exists']:
+        if src_dict['date_modified'] != dest_dict['date_modified']:
+            h5_dset_migrate(path_src+'/'+file_src, path_dest+'/'+file_dest, atol=atol, rtol=rtol)
+    if not dest_dict['exists'] and src_dict['exists']:
+        # copy2 preserves metadata, such as timestamp
+        shutil.copy2(path_src+'/'+file_src, path_dest+'/'+file_dest)
+
+def sync_tape_disk(tape_dict,tape_file,disk_dict,disk_file,atol,rtol):
+    print('complete me')    
+
+
 def collect_ff_4D_tslice_src_avg(params, db_entries):
     f_type = 'formfac_4D_tslice_src_avg'
     disk_dir = params[f_type]

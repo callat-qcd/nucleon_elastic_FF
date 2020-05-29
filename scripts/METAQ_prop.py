@@ -15,6 +15,8 @@ import c51_mdwf_hisq as c51
 import sources
 import utils
 import scheduler
+# tape utils from Evan's hpss module
+import hpss.hsi as hsi
 
 ens,stream = c51.ens_base()
 ens_s = ens+'_'+stream
@@ -31,18 +33,20 @@ params['METAQ_PROJECT'] = 'prop_'+ens_s
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] cfg numbers')
-parser.add_argument('-s','--src',type=str)
-parser.add_argument('-o',default=False,action='store_const',const=True,\
-    help='overwrite xml and metaq files? [%(default)s]')
+parser.add_argument('cfgs'           , nargs='+',type=int,help='start [stop] cfg numbers')
+parser.add_argument('-s','--src'     , type=str)
+parser.add_argument('--src_set'      , nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('-o'             , default=False,action='store_const',const=True,\
+                    help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('--mtype',default='gpu',help='specify metaq dir [%(default)s]')
-parser.add_argument('-p',default=False,action='store_const',const=True,\
-    help='put task.sh in priority queue? [%(default)s]')
-parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
-    help='run with verbose output? [%(default)s]')
-parser.add_argument('--force',default=False,action='store_const',const=True,\
-    help='force create props? [%(default)s]')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('-p'             , default=False,action='store_const',const=True,\
+                    help='put task.sh in priority queue? [%(default)s]')
+parser.add_argument('-v','--verbose' , default=True,action='store_const',const=False,\
+                    help='run with verbose output? [%(default)s]')
+parser.add_argument('--force'        , default=False,action='store_const',const=True,\
+                    help='force create props? [%(default)s]')
+parser.add_argument('--push_props'   , default=False,action='store_const',const=True,\
+                    help='push props to tape? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)

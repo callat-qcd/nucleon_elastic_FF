@@ -27,7 +27,7 @@ new_fh.setFormatter(fh.formatter)
 LOGGER.addHandler(new_fh)
 
 from nucleon_elastic_ff.data.h5io import get_dsets
-from nucleon_elastic_ff.data.scripts.h5migrate import dset_migrate as h5migrate
+from nucleon_elastic_ff.data.scripts.h5migrate import dset_migrate as h5_dset_migrate
 import lattedb_ff_disk_tape_functions as lattedb_ff
 import collect_corr_utils as collect_utils
 from lattedb.project.formfac.models.data.correlator import (
@@ -221,12 +221,12 @@ for cfg in cfgs_run:
                         if params['debug']:
                             print('TAPE:',tape_dict['date_modified'])
                             print('DISK:',disk_dict['date_modified'])
-                        print('  h5migrate from disk to tmp_disk, then pull from tape\n')
+                        print('  h5_dset_migrate from disk to tmp_disk, then pull from tape\n')
                     # copy data_file to tmp_data_file
                     # get file from tape
                     if not os.path.exists(h5_tmp):
                         os.system('touch '+h5_tmp)
-                    h5migrate(h5_full, h5_tmp, atol=0.0, rtol=1e-10)
+                    h5_dset_migrate(h5_full, h5_tmp, atol=0.0, rtol=1e-10)
                     # use get which overwrites disk file with tape file
                     # shutil.move(h5_full, bad_date_data_dir+'/'+h5_full.split('/')[-1])
                     hsi.cget(data_dir, tape_file)
@@ -249,32 +249,32 @@ for cfg in cfgs_run:
         else:
             dsets_tmp = dict()
         # if disk entries do not exist - collect data and migrate
-        h5_migrate = False
+        migrate_h5_data = False
         params['h5_spec_path'] = val_p+'/spec'
         params['ff_path'] = val_p+'/formfac'
         for corr in corrs:
             if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='disk', debug=args.debug):
                 params['corr'] = corr
                 if 'mres' in corr or 'phi' in corr:
-                    if not collect_utils.get_res_phi(params,dsets_full):
+                    if not collect_utils.get_res_phi(params, dsets_full):
                         if collect_utils.get_res_phi(params, dsets_tmp, h5_file=h5_tmp, collect=True):
-                            h5_migrate = True
+                            migrate_h5_data = True
                 elif 'spec' in corr:
                     if not collect_utils.get_spec(params, dsets_full):
                         if collect_utils.get_spec(params, dsets_tmp, h5_file=h5_tmp, collect=True):
-                            h5_migrate = True
+                            migrate_h5_data = True
                 elif 'ff' in corr:
                     for tsep in params['t_seps']:
                         params['corr'] = 'ff_tsep_'+str(tsep)
                         params['T_SEP'] = tsep
                         if not collect_utils.get_formfac(params, dsets_full):
                             if collect_utils.get_formfac(params, dsets_tmp, h5_file=h5_tmp, collect=True):
-                                h5_migrate = True
-        if h5_migrate:
+                                migrate_h5_data = True
+        if migrate_h5_data:
             if not os.path.exists(h5_full):
                 os.system('touch '+h5_full)
-            h5migrate(h5_tmp, h5_full, atol=0.0, rtol=1e-10)
-        if h5_migrate or args.update_db:
+            h5_dset_migrate(h5_tmp, h5_full, atol=0.0, rtol=1e-10)
+        if migrate_h5_data or args.update_db:
             # load updated dsets on disk
             if os.path.exists(h5_full):
                 with h5py.File(h5_full,'r') as f5_full:
@@ -324,7 +324,7 @@ for cfg in cfgs_run:
                 lattedb_ff.corr_disk_tape_update(disk_updates,dt='disk', debug=args.debug)
             # push to tape
             try:
-                if h5_migrate:
+                if migrate_h5_data:
                     hsi.cput(h5_full, tape_dir+'/'+h5_full.split('/')[-1])
                 print('updating TAPE entries %d' %(len(tape_updates)))
                 if len(tape_updates) > 0:
