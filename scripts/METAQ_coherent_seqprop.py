@@ -289,7 +289,7 @@ for c in cfgs_run:
                                     params['T_SEP']     = dt
                                     params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                                     params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
-                                    params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_coherent_formfac.py '+params['CFG']
+                                    params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/lattedb_coherent_ff.py '+params['CFG']
                                     params['CLEANUP']  += ' '+src_args+' -t '+params['T_SEP']+' -s '+s0+' '+redo+' '+params['PRIORITY']+'\n'
                                     params['CLEANUP']  += '    sleep 5\n'
                                     params['CLEANUP']  += 'else\n'
