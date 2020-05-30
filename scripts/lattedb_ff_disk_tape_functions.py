@@ -1,4 +1,5 @@
-import os, sys
+import os, sys, shutil
+import h5py
 from datetime import datetime
 import pytz
 from tzlocal import get_localzone
@@ -11,6 +12,9 @@ import c51_mdwf_hisq as c51
 import hpss.hsi as hsi
 
 from typing import Union, List, Dict, Optional, TypeVar
+
+from nucleon_elastic_ff.data.h5io import get_dsets
+from nucleon_elastic_ff.data.scripts.h5migrate import dset_migrate as h5_dset_migrate
 from lattedb.project.formfac.models import (
     TSlicedSAveragedFormFactor4DFile,
     DiskTSlicedSAveragedFormFactor4DFile,
@@ -117,83 +121,84 @@ def corr_compare_tape_disk(h5_file, tape_dir, disk_dir, tmp_disk_dir, d_sets, at
     '''
     t_dict     = check_tape(tape_dir, h5_file)
     d_dict     = check_disk(disk_dir, h5_file)
-    tmp_d_dict = check_dist(tmp_disk_dir, h5_file)
+    tmp_d_dict = check_disk(tmp_disk_dir, h5_file)
     d_file     = disk_dir +'/'+ h5_file
     tmp_d_file = tmp_disk_dir +'/'+ h5_file
-    collect    = False
+    have_dsets = True
 
     # do we need to synchronize disk and tmp_disk?
     if d_dict['exists'] or tmp_d_dict['exists']:
+        print('\nSYNCING DISK AND TMP DISK FILES')        
         sync_disk_files(tmp_disk_dir, h5_file, disk_dir, h5_file, atol, rtol)
         d_dict = check_disk(disk_dir, h5_file)
         if not t_dict['exists'] and tape_push:
             hsi.cput(d_file, tape_dir+'/'+h5_file)
 
-    # if tape does not exist, see if disk files exist
+    # if tape DOES NOT exist, see if disk files exist
     if not t_dict['exists']:
         if d_dict['exists']:
-            check_disk = True
+            query_disk_file = True
         else:
-            check_disk = False
-            collect = True
-    # if tape does exist, we have to synchronize with disk files or pull
+            query_disk_file = False
+            have_dsets = False
+    # if tape DOES exist, we have to synchronize with disk files or pull
     else:
-        check_disk = True
-        if sync_disk:
-            sync_tape_disk = True
+        query_disk_file = True
+        if t_dict['exists']:
+            print('\nSYNCING TAPE AND DISK FILES')
+            sync_tape_disk(t_dict, h5_file, d_dict, h5_file, tmp_d_dict, atol, rtol, tape_push)
         else:
-            sync_tape_disk = False
+            print('\nPULLING FROM TAPE: %s' %h5_file)
             hsi.cget(disk_dir, tape_dir +'/'+ h5_file)
-
-    # if sync_tape_disk, mv disk to tmp_disk since we just synchronized
-    if sync_tape_disk:
-        # get meta info on disk_file again
-        d_dict = check_disk(disk_dir, h5_file)
-        if d_dict['date_modified'] != t_dict['date_modified']:
-            # move file to temp location and pull from tape
-            shutil.move(d_file, tmp_d_file)
-            hsi.cget(disk_dir, tape_dir +'/'+ h5_file)
-            # then check if any data in tmp_disk is not in disk
-            with h5py.File(d_disk,'r') as f5_disk:
-                dsets_disk = get_dsets(f5_disk, load_dsets=False)
-            with h5py.File(tmp_d_disk,'r') as f5_tmp_disk:
-                dsets_tmp_disk = get_dsets(f5_tmp_disk, load_dsets=False)
-            new_data = [dset for dset in dsets_tmp_disk if dset not in dsets_disk]
-            # an empty list is false
-            if new_data:
-                try:
-                    h5_dset_migrate(tmp_d_file, d_file, atol=atol, rtol=rtol)
-                    # then store back to tape
-                    hsi.cput(d_file, tape_dir +'/'+ h5_file)
-                except Exception as e:
-                    print(e)
 
     # check disk_dir/h5_file for data
-    if check_disk:
+    if query_disk_file:
+        print('\nCHECKING DISK FILE FOR FF D_SETS: %s' %h5_file)
         with h5py.File(disk_dir+'/'+h5_file,'r') as f5_tmp:
             dsets_tmp  = get_dsets(f5_tmp, load_dsets=False)
-        have_dsets = True
         for dset in d_sets:
             if dset not in dsets_tmp:
                 have_dsets = False
-        if not have_dsets:
-            collect = True
+                print(dset)
 
-    return collect
+    return have_dsets
 
 def sync_disk_files(path_src,file_src,path_dest,file_dest, atol, rtol):
     src_dict  = check_disk(path_src, file_src)
     dest_dict = check_disk(path_dest, file_dest)
     if src_dict['exists'] and dest_dict['exists']:
         if src_dict['date_modified'] != dest_dict['date_modified']:
+            print('DATES DO NOT MATCH - comparing d_sets')
             h5_dset_migrate(path_src+'/'+file_src, path_dest+'/'+file_dest, atol=atol, rtol=rtol)
     if not dest_dict['exists'] and src_dict['exists']:
         # copy2 preserves metadata, such as timestamp
         shutil.copy2(path_src+'/'+file_src, path_dest+'/'+file_dest)
 
-def sync_tape_disk(tape_dict,tape_file,disk_dict,disk_file,atol,rtol):
-    print('complete me')    
-
+def sync_tape_disk(tape_dict, t_file_name, disk_dict, d_file_name, tmp_disk_dict, atol, rtol, tape_push):
+    d_file     = disk_dict['path']     +'/'+ d_file_name
+    tmp_d_file = tmp_disk_dict['path'] +'/'+ d_file_name
+    t_file     = tape_dict['path']     +'/'+ t_file_name
+    if disk_dict['date_modified'] != tape_dict['date_modified']:
+        print('TAPE AND DISK TIME do not match - pulling from tape to compare')
+        # move file to temp location and pull from tape
+        shutil.move(d_file, tmp_d_file)
+        hsi.cget(disk_dict['path'], t_file)
+        # then check if any data in tmp_disk is not in disk
+        with h5py.File(d_file,'r') as f5_disk:
+            dsets_disk = get_dsets(f5_disk, load_dsets=False)
+        with h5py.File(tmp_d_file,'r') as f5_tmp_disk:
+            dsets_tmp_disk = get_dsets(f5_tmp_disk, load_dsets=False)
+        new_data = [dset for dset in dsets_tmp_disk if dset not in dsets_disk]
+        # an empty list is False
+        if new_data:
+            try:
+                h5_dset_migrate(tmp_d_file, d_file, atol=atol, rtol=rtol)
+                if tape_push:
+                    hsi.cput(d_file, t_file)
+            except Exception as e:
+                print(e)
+    else:
+        print('TAPE AND DISK TIMES MATCH - no need to pull')
 
 def collect_ff_4D_tslice_src_avg(params, db_entries):
     f_type = 'formfac_4D_tslice_src_avg'

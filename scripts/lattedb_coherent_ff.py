@@ -16,6 +16,8 @@ import sources
 import utils
 import scheduler
 
+import collect_corr_utils as collect_utils
+
 import lattedb_ff_disk_tape_functions as lattedb_ff
 from lattedb.project.formfac.models import (
     TSlicedSAveragedFormFactor4DFile,
@@ -45,6 +47,8 @@ parser.add_argument('-s','--src'      , type=str)
 parser.add_argument('--mtype'         , default='cpu',help='specify metaq dir [%(default)s]')
 parser.add_argument('-t','--t_sep'    , nargs='+',type=int,help='values of t_sep [default = all]')
 parser.add_argument('--src_set'       , nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('-r','--rtol'     , type=float, default=1.e-8, help='relative tolerance used to compare h5 files [%(default)s]')
+parser.add_argument('-a','--atol'     , type=float, default=0., help='absolute tolerance used to compare h5 files [%(default)s]')
 parser.add_argument('-o'              , default=False,action='store_const',const=True, \
                     help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('--redo'          , default=False,action='store_const',const=True, \
@@ -64,9 +68,14 @@ print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
 print('')
 
-'''
-    RUN PARAMETER SET UP
-'''
+''' DATA collection directories '''
+data_dir     = c51.data_dir % params
+tmp_data_dir = c51.tmp_data_dir % params
+tape_dir     = c51.tape+'/'+ens_s+'/data'
+# if we are collecting data - no need to push during data query for non-lattedb interface
+tape_push    = not args.collect
+
+''' RUN PARAMETER SET UP '''
 if 'si' in params and 'sf' in params and 'ds' in params:
     tmp_params = dict()
     tmp_params['si'] = params['si']
@@ -110,8 +119,12 @@ print('srcs:',src_set)
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
+val_p = val.replace('.','p')
+
 ''' for now - just doing the light quark '''
 params['MQ'] = params['MV_L']
+
+params['ff_path'] = val_p+'/formfac'
 
 if args.t_sep == None:
     t_seps  = params['t_seps']
@@ -160,11 +173,11 @@ tape_entries = dict()
 try:
     f_type = 'formfac_4D_tslice_src_avg'
     meta_entries[f_type] = lattedb_ff.get_or_create_ff4D_tsliced_savg(params, cfgs, ens, stream, src_set)
-    tape_dir = c51.tape+'/'+ens_s+'/'+f_type+'/%(CFG)s'
+    tape_dir_4D = c51.tape+'/'+ens_s+'/'+f_type+'/%(CFG)s'
     tape_entries[f_type] = lattedb_ff.get_or_create_tape_entries(
         meta_entries = meta_entries[f_type], 
         tape_entries = TapeTSlicedSAveragedFormFactor4DFile,
-        path         = tape_dir,
+        path         = tape_dir_4D,
         machine      = c51.machine
     )
 
@@ -230,6 +243,7 @@ for c in cfgs:
                 ff_4D_tslice   = params['formfac_4D_tslice'] +'/'+ (c51.names['formfac_4D_tslice'] % params) +'.h5'
                 ff_4D_avg_name = (c51.names['formfac_4D_tslice_src_avg'] % params).replace(s0,'src_avg') +'.h5'
                 ff_4D_avg_file = params['formfac_4D_tslice_src_avg'] +'/'+ ff_4D_avg_name
+                #if False:
                 if have_lattedb:
                     ff_dict.update({'source':s0, 'correlator':'ff_tsep_'+dt})
                     ff_4D_dict.update({'name':ff_4D_avg_name})
@@ -237,19 +251,29 @@ for c in cfgs:
                     db_4D = meta_entries['formfac_4D_tslice_src_avg'].filter(**ff_4D_dict).first()
                     have_tape = db_ff.tape.exists and db_4D.tape.exists
                 else:
+                    d_sets = []
+                    for particle in params['particles']:
+                        params['PARTICLE'] = particle
+                        if '_np' in particle:
+                            params['T_SEP'] = '-'+dt
+                        else:
+                            params['T_SEP'] = dt
+                        for fs in flav_spin:
+                            params['FLAV_SPIN'] = fs
+                            for curr in params['curr_4d']:
+                                params['CURRENT'] = curr
+                                d_sets.append(collect_utils.ff_dset(params) % params)
+                    ff_collect_name = ens_s+'_'+no+'_srcs'+src_set+'.h5'
+                    have_ff = lattedb_ff.corr_compare_tape_disk(ff_collect_name, tape_dir, data_dir, tmp_data_dir, d_sets, 
+                                                                args.atol, args.rtol, tape_push=tape_push)
                     db_4D_tape = lattedb_ff.check_tape(c51.tape+'/'+ens_s+'/formfac_4D_tslice_src_avg/'+no, ff_4D_avg_name)
-                    h5_file_name = ens_s+'_'+no+'_srcs'+src_set+'.h5'
-                    h5_tape_dict = lattedb_ff.check_tape(c51.tape+'/'+ens_s+'/data',h5_file_name)
-                    '''
-                    if disk file exists and date = tape file - just querry disk file
-                    if disk file does not exist and tape exists - pull tape and check
-                    if disk file exists and is newer than tape - migrate - pull tape, check tape
-                    '''
-                    have_tape = db_4D_tape['exists']
+                    have_tape = db_4D_tape['exists'] and have_ff
+                # restore T_SEP for other file names
+                params['T_SEP'] = dt
+                #sys.exit()
+
                 if not have_tape:
                     have_tape_all_src = False
-                if args.verbose:
-                    print("formfac: cfg = %4d  tsep = %2s  src = %13s  on_tape = %s" %(c,dt,s0,have_tape))
                 if not have_tape:
                     # do files exists on disk?
                     have_4D_processed = os.path.exists(ff_4D_tslice) or os.path.exists(ff_4D_avg_file)
@@ -355,7 +379,9 @@ for c in cfgs:
                         if not (os.path.exists(ff_file) and os.path.exists(ff_4D_file)):
                             print('    exists',os.path.exists(ff_file), ff_file)
                             print('    exists',os.path.exists(ff_4D_file), ff_4D_file)
-
+                else:
+                    if args.verbose:
+                        print("formfac: cfg = %4d  tsep = %2s  src = %13s  on_tape = %s" %(c,dt,s0,have_tape))
             if have_disk_all_src and not have_tape_all_src and args.collect:
                 print('collect data')
 
