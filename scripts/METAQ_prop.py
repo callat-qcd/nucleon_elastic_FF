@@ -17,9 +17,13 @@ import utils
 import scheduler
 # tape utils from Evan's hpss module
 import hpss.hsi as hsi
+# to check disk
+from lattedb_ff_disk_tape_functions import check_tape
 
 ens,stream = c51.ens_base()
 ens_s = ens+'_'+stream
+
+tape_dir = c51.tape+'/'+ens_s
 
 area51 = importlib.import_module(ens)
 params = area51.params
@@ -45,8 +49,8 @@ parser.add_argument('-v','--verbose' , default=True,action='store_const',const=F
                     help='run with verbose output? [%(default)s]')
 parser.add_argument('--force'        , default=False,action='store_const',const=True,\
                     help='force create props? [%(default)s]')
-parser.add_argument('--push_props'   , default=False,action='store_const',const=True,\
-                    help='push props to tape? [%(default)s]')
+parser.add_argument('--tape'         , default=False,action='store_const',const=True,\
+                    help='push/pull props to/from tape? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -73,7 +77,7 @@ if args.src_set:# override src index in sources and area51 files for collection
     src_args = '--src_set %d %d %d ' %(args.src_set[0],args.src_set[1],args.src_set[2])
 else:
     src_args = ''
-src_ext = "%d-%d" %(params['si'],params['sf'])
+src_set = "%d-%d" %(params['si'],params['sf'])
 
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,args.src,params)
 
@@ -88,7 +92,7 @@ nt = int(params['NT'])
 nl = int(params['NL'])
 
 print('running ',cfgs_run[0],'-->',cfgs_run[-1])
-print('srcs:',src_ext)
+print('srcs:',src_set)
 #time.sleep(1)
 
 smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
@@ -116,6 +120,8 @@ params['C_RS']        = params['gpu_c_rs']
 params['L_GPU_CPU']   = params['gpu_latency']
 params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
+props_to_pull_tape = []
+
 for c in cfgs_run:
     no = str(c)
     params['CFG'] = no
@@ -139,7 +145,7 @@ for c in cfgs_run:
             spec_file    = params['spec'] +'/'+ spec_name+'.h5'
             spec_file_4D = spec_file.replace('spec_','spec_4D_').replace('/spec/','/spec_4D/')
             spec_exists  = os.path.exists(spec_file) and os.path.exists(spec_file_4D)
-            if not spec_exists or args.force:
+            if not spec_exists or (args.force or args.tape):
                 prop_name = c51.names['prop'] % params
                 prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
                 ''' make sure prop is correct size '''
@@ -150,8 +156,18 @@ for c in cfgs_run:
                     file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                 utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
                 prop_exists = os.path.exists(prop_file)
+                # check on tape
+                if not prop_exists:
+                    t_dict = check_tape(tape_dir+'/prop/'+no, prop_name+'.'+params['SP_EXTENSION'])
+                    if t_dict['exists'] and not prop_exists and args.tape:
+                        hsi.cget(params['prop'], tape_dir+'/prop/'+no, prop_name+'.'+params['SP_EXTENSION'])
+                        prop_exists = os.path.exists(prop_file)
+                    elif t_dict['exists'] and not prop_exists and not args.tape:
+                        props_to_pull_tape.append(no+'/'+prop_name+'.'+params['SP_EXTENSION'])
+                elif prop_exists and args.tape:
+                    hsi.cput(prop_file, tape_dir+'/prop/'+no+'/'+prop_name+'.'+params['SP_EXTENSION'])
                 # a12m130 used h5 props
-                if ens in ['a12m130','a15m135XL'] and not prop_exists:
+                if ens in ['a12m130','a15m135XL'] and (not prop_exists and not t_dict['exists']):
                     prop_file = params['prop'] + '/' + prop_name+'.h5'
                     try:
                         file_size = params['prop_size_h5']
@@ -160,7 +176,17 @@ for c in cfgs_run:
                         file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                     utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
                     prop_exists = os.path.exists(prop_file)
-                if not prop_exists:
+                    if not prop_exists:
+                        # check on tape
+                        t_dict_h5 = check_tape(tape_dir+'/prop/'+no, prop_name+'.h5')
+                        if t_dict_h5['exists'] and not prop_exists and args.tape:
+                            hsi.cget(params['prop'], tape_dir+'/prop/'+no, prop_name+'.h5')
+                            prop_exists = os.path.exists(prop_file)
+                        elif  t_dict_h5['exists'] and not prop_exists and not args.tape:
+                            props_to_pull_tape.append(no+'/'+prop_name+'.h5')
+                    elif prop_exists and args.tape:
+                        hsi.cput(prop_file, tape_dir+'/prop/'+no+'/'+prop_name+'.h5')
+                if not prop_exists and not (t_dict['exists'] or t_dict_h5['exists']) and (args.force or not spec_exists):
                     # restore prop extension to params['SP_EXTENSION'] in case we looked for h5 props
                     prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
                     src_name = c51.names['src'] % params
@@ -249,8 +275,24 @@ for c in cfgs_run:
                             %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY']))
                 else:
                     if args.verbose:
-                        print('    prop exists',prop_file)
+                        if prop_exists:
+                            print('    prop exists',prop_file)
+                        elif not prop_exists and (t_dict['exists'] or t_dict_h5['exists']):
+                            print('    prop on tape', prop_file)
             elif os.path.exists(spec_file) and not args.force:
                 print('    spec exists and force make prop = False',spec_file.split('/')[-1])
     else:
         print('  flowed cfg missing',cfg_file)
+
+if props_to_pull_tape:
+    p_list = 'props_to_pull_Srcs'+src_set+'.lst'
+    if os.path.exists(p_list):
+        pull_list = open(p_list).readlines()
+    else:
+        pull_list = []
+    pull_list = [prop.strip() for prop in pull_list]
+    pull_list = pull_list + [prop for prop in props_to_pull_tape if prop not in pull_list]
+    prop_pull = open(p_list,'w')
+    for prop in pull_list:
+        prop_pull.write(prop+'\n')
+    prop_pull.close()
