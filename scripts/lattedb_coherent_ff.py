@@ -384,6 +384,8 @@ for c in cfgs:
                         print("formfac: cfg = %4d  tsep = %2s  src = %13s  on_tape = %s" %(c,dt,s0,have_tape))
             if have_disk_all_src and not have_tape_all_src and args.collect:
                 print('collect data')
+                params['T_SEP'] = dt
+                lattedb_ff.collect_spec_ff_4D_tslice_src_avg('formfac', params, meta_entries['formfac_4D_tslice_src_avg'])
 
         if not have_all_seqprops:
             print('    missing FLAV or SPIN seqprops')
