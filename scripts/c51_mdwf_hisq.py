@@ -84,6 +84,7 @@ ens_long = {
     'a06m310L' :'l7296f211b672m0048m024m286',
     }
 
+quda_resource_dir = scratch+'/production/quda_resource'
 base_dir    = scratch+'/production/%(ENS_S)s'
 ens_dir     = manage +'/production/%(ENS_S)s'
 script_dir  = manage +'/production/nucleon_elastic_FF/scripts'

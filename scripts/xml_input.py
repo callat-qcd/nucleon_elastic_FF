@@ -194,7 +194,7 @@ quda_nef='''<elem>
 <obsvP>true</obsvP>
 <numRetries>1</numRetries>
 <FermionAction>
-<FermAct>NEF</FermAct>
+<FermAct>UNPRECONDITIONED_NEF</FermAct>
   <OverMass>%(M5)s</OverMass>
   <N5>%(L5)s</N5>
   <b5>%(B5)s</b5>
@@ -221,6 +221,8 @@ quda_nef='''<elem>
 <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
 <AxialGaugeFix>false</AxialGaugeFix>
 <AutotuneDslash>true</AutotuneDslash>
+<MatPCType>EVEN_EVEN</MatPCType>
+<checkSolution>false</checkSolution>
 <NEFParams>
   <OverMass>%(M5)s</OverMass>
   <N5>%(L5)s</N5>

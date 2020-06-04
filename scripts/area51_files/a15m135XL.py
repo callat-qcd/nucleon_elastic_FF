@@ -56,8 +56,8 @@ params['seqsrc_size']  = 8153734000
 params['seqprop_size'] = 8153736000
 
 
-params['MAX_ITER']   = '17000'
-params['RSD_TARGET'] = '1.e-7'
+params['MAX_ITER']   = '14000'
+params['RSD_TARGET'] = '5.e-8'
 params['Q_DELTA']    = '0.1'
 params['RSD_TOL']    = '80'
 
