@@ -111,6 +111,7 @@ params['MAXCUS']      = params['gpu_maxcus']
 params['SOURCE_ENV']  = c51.env
 params['PROG']        = '"$LALIBE_GPU '+params['gpu_geom']+'"\n'
 params['PROG']       += 'export QUDA_RESOURCE_PATH='+c51.quda_resource_dir+'\n'
+params['PROG']       += 'export QUDA_ENABLE_DSLASH_POLICY="0,1,6,7"\n'
 params['APP']         = 'APP='+c51.bind_dir+params['gpu_bind']
 params['NRS']         = params['gpu_nrs']
 params['RS_NODE']     = params['gpu_rs_node']
@@ -157,6 +158,10 @@ for c in cfgs_run:
                 utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
                 prop_exists = os.path.exists(prop_file)
                 # check on tape
+                t_dict = dict()
+                t_dict['exists'] = False
+                t_dict_h5 = dict()
+                t_dict_h5['exists'] = False
                 if not prop_exists:
                     t_dict = check_tape(tape_dir+'/prop/'+no, prop_name+'.'+params['SP_EXTENSION'])
                     if t_dict['exists'] and not prop_exists and args.tape:
@@ -186,7 +191,7 @@ for c in cfgs_run:
                             props_to_pull_tape.append(no+'/'+prop_name+'.h5')
                     elif prop_exists and args.tape:
                         hsi.cput(prop_file, tape_dir+'/prop/'+no+'/'+prop_name+'.h5')
-                if not prop_exists and not (t_dict['exists'] or t_dict_h5['exists']) and (args.force or not spec_exists):
+                if (not prop_exists and not (t_dict['exists'] or t_dict_h5['exists']) and not spec_exists) or args.force:
                     # restore prop extension to params['SP_EXTENSION'] in case we looked for h5 props
                     prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
                     src_name = c51.names['src'] % params
