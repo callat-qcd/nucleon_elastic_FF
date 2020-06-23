@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import os, sys
+import os, shutil, sys, time
 import argparse
 
 '''
@@ -19,7 +19,7 @@ import numpy as np
 
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
 parser.add_argument('cfgs',nargs='+',type=int,help='cfg[s] no to check: ni [nf dn]')
-parser.add_argument('--cfgType',type=str,help='cfg type: MILC or SCIDAC')
+parser.add_argument('--cfgType',type=str,default='MILC',help='cfg type: MILC or SCIDAC')
 parser.add_argument('-o',default=False,action='store_const',const=True,\
     help='overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('-p',default=False,action='store_const',const=True,\
@@ -71,7 +71,7 @@ params['WALL_TIME']   = params['strange_charm_loops_time']
 
 params['ENS_DIR']     = c51.ens_dir % params
 #for testing script dir
-params['SCRIPT_DIR']  = '/p/gpfs1/mcamacho/nucleon_elastic_FF_hisq_spec/scripts'#c51.script_dir
+params['SCRIPT_DIR']  = c51.script_dir
 params['MAXCUS']      = params['hisq_maxcus']
 params['SOURCE_ENV']  = c51.env
 params['SOURCE_ENV']  +='\nexport QUDA_RESOURCE_PATH="`pwd`/quda_resource_milc"\n'
@@ -137,7 +137,10 @@ params.update({'MS':ms_phys,'MC':mc_phys,'NAIK_C':params['NAIK'],'NAIK_C_PHYS':n
 in_text=open(params['SCRIPT_DIR']+'/strange_charm_loops_hisq.in','r').read()
 if args.cfgType=='SCIDAC':
     in_text=in_text.replace('milc_cfg','scidac_cfg')
-
+elif args.cfgType=='MILC':
+    pass
+else:
+    sys.exit('unrecognized cfgType = '+args.cfgType)
 
 
 for c in cfgs:
@@ -159,6 +162,15 @@ for c in cfgs:
     params['INI']=params['xml']+'/'+name+'.ini'
     params['STDOUT']=params['stdout']+'/'+name+'.stdout'
     params['OUT']=params['stdout']+'/'+name+'.stdout'
+
+    if os.path.exists(params['STDOUT']):
+        stdText=open(params['STDOUT']).read()
+        if 'RUNNING COMPLETED' not in stdText:
+            now = time.time()
+            file_time = os.stat(params['STDOUT']).st_mtime
+            if (now-file_time)/60 > 10:# if older than 10 minutes, delete
+                print('  OLD, incomplete, deleting',params['STDOUT'])
+                shutil.move(params['STDOUT'], params['corrupt']+'/'+params['STDOUT'].split('/')[-1])
 
  
     if not os.path.exists(params['STDOUT']):

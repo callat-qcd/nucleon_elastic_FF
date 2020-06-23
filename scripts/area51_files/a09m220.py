@@ -107,6 +107,23 @@ def mpirun_params(machine):
         params['gpu_c_rs']    = '-c4'
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 1 4'
+        params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
+
+        params['hisq_nodes']  = 1
+        params['hisq_metaq_nodes'] = 1
+        params['hisq_gpus']   = 4
+        params['hisq_geom']    = ' -qmp-geom 1 1 1 4'
+        params['hisq_nrs']     = '--nrs 1'
+        params['hisq_rs_node'] = '-r 1'
+        params['hisq_a_rs']    = '-a4'
+        params['hisq_g_rs']    = '-g4'
+        params['hisq_c_rs']    = '-c4'
+        params['hisq_latency'] = '-l gpu-cpu'
+        params['hisq_coul_spec'] = 16
+        params['hisq_spec']   = 9
+        params['hisq_maxcus'] = 1
+        params['mixed_mesons_time']   = 30
+        params['strange_charm_loops_time'] = 180
 
     if machine == 'summit':
         params['metaq_split'] = True
