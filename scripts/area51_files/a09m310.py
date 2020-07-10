@@ -2,7 +2,9 @@ import sources
 
 params = dict()
 params['tuning_mq'] = False
+params['tuning_ms']   = False
 params['run_ff'] = True
+params['run_strange'] = False
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -48,7 +50,7 @@ params['SP_EXTENSION'] = 'lime'
 params['seed'] = dict()
 params['seed']['e'] = '1a' #this should have been 1e,
 '''                               0, nt/2, nt/4, 3 nt/4 '''
-params['t_shifts'] = [ 0, 48  , 24  , 72     ]
+params['t_shifts'] = [ 0, 48  , 24  , 72, 12, 60, 36, 84     ]
 params['generator'] = sources.oa(int(params['NL']))
 
 ''' minutes after last file modification time when deletion of small files is OK '''
