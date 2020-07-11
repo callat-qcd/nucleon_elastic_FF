@@ -183,7 +183,7 @@ def mpirun_params(machine):
         params['gpu_g_rs']    = '-g4'
         params['gpu_c_rs']    = '-c4'
         params['gpu_latency'] = '-l gpu-cpu'
-        params['gpu_geom']    = ' -geom 1 1 3 4 -qmp-geom 1 1 3 4 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
+        params['gpu_geom']    = ' -geom 1 1 6 2 -qmp-geom 1 1 6 2'
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
 
@@ -200,7 +200,7 @@ def mpirun_params(machine):
         params['hisq_g_rs']    = '-g4'
         params['hisq_c_rs']    = '-c4'
         params['hisq_latency'] = '-l gpu-cpu'
-        params['hisq_geom']    = ' -geom 1 1 3 4 -qmp-geom 1 1 3 4 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
+        params['hisq_geom']    = ' -geom 1 1 6 2 -qmp-geom 1 1 6 2'
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
     if machine == 'summit':
@@ -224,9 +224,9 @@ def mpirun_params(machine):
         params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']        = 12
         params['gpu_maxcus']      = 1
-        params['prop_time']       = 150
-        params['seqprop_time']    = 80
-        params['strange_prop_time'] = 15
+        params['prop_time']       = 115
+        params['seqprop_time']    = 60
+        params['strange_prop_time'] = 18
 
         params['gpu_nrs']     = '--nrs 2'
         params['gpu_rs_node'] = '-r1'
@@ -234,7 +234,7 @@ def mpirun_params(machine):
         params['gpu_g_rs']    = '-g6'
         params['gpu_c_rs']    = '-c6'
         params['gpu_latency'] = '-l gpu-cpu'
-        params['gpu_geom']    = ' -geom 1 1 3 4'
+        params['gpu_geom']    = ' -geom 1 1 6 2'
         params['gpu_bind']    = ''
 
         params['hisq_nodes']  = 2
@@ -250,6 +250,6 @@ def mpirun_params(machine):
         params['hisq_g_rs']    = '-g6'
         params['hisq_c_rs']    = '-c6'
         params['hisq_latency'] = '-l gpu-cpu'
-        params['hisq_geom']    = ' -qmp-geom 1 1 3 4'
+        params['hisq_geom']    = ' -qmp-geom 1 1 6 2'
 
     return params

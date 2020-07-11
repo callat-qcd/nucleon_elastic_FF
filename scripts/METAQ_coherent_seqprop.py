@@ -137,6 +137,7 @@ params['MAXCUS']      = params['gpu_maxcus']
 params['SOURCE_ENV']  = c51.env
 params['PROG']        = '"$LALIBE_GPU '+params['gpu_geom']+'"\n'
 params['PROG']       += 'export QUDA_RESOURCE_PATH='+c51.quda_resource_dir+'\n'
+params['PROG']       += 'export QUDA_ENABLE_DSLASH_POLICY="0,1,6,7"\n'
 params['APP']         = 'APP='+c51.bind_dir+params['gpu_bind']
 params['NRS']         = params['gpu_nrs']
 params['RS_NODE']     = params['gpu_rs_node']

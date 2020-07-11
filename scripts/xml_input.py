@@ -216,7 +216,7 @@ quda_nef='''<elem>
 <SolverType>CG</SolverType>
 <Verbose>false</Verbose>
 <AsymmetricLinop>false</AsymmetricLinop>
-<CudaReconstruct>RECONS_NONE</CudaReconstruct>
+<CudaReconstruct>RECONS_12</CudaReconstruct>
 <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
 <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
 <AxialGaugeFix>false</AxialGaugeFix>

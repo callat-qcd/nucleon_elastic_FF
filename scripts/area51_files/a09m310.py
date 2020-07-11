@@ -39,6 +39,11 @@ params['MV_S'] = '0.0491'
 
 params['spec_size'] = 1121000
 params['ff_size']   = 5078000
+params['src_size']     = 3623880000
+params['prop_size']    = 3623882000
+params['prop_size_h5'] = 1
+params['seqsrc_size']  = 3623886000
+params['seqprop_size'] = 3623887900
 
 params['MAX_ITER']   = '2000'
 params['RSD_TARGET'] = '1.e-7'
@@ -106,6 +111,8 @@ def mpirun_params(machine):
         params['gpu_geom']    = ' -geom 1 1 1 4'
 
     if machine == 'summit':
+        # split tasks to todo/cgpu_n where n = nodes?
+        params['metaq_split'] = True
         params['cpu_nodes']   = 1
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
@@ -126,6 +133,7 @@ def mpirun_params(machine):
         params['gpu_gpus']    = 6
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10
+        params['seqprop_time']= 8
 
         params['gpu_nrs']     = '--nrs 1'
         params['gpu_rs_node'] = '-r1'
