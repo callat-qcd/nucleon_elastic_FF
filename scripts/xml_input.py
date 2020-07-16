@@ -378,6 +378,39 @@ hyperon_spec = '''  <elem>
 
 '''
 
+pipi_spec = '''<elem>
+  <Name>PIPI_SCATTERING</Name>
+  <PipiParams>
+    <p2_max>%(MM_REL_MOM)s</p2_max>
+    <ptot2_max>%(MM_TOT_MOM)s</ptot2_max>
+    <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
+    <obj_path>/%(PIPI_SCAT_OBJ_PATH)s</obj_path>
+  </PipiParams>
+  <NamedObject>
+    <light_prop>%(UP_QUARK)s</light_prop>
+  </NamedObject>
+</elem>
+
+'''
+
+pik_spec = '''<elem>
+  <Name>PIPI_SCATTERING</Name>
+  <PipiParams>
+    <p2_max>%(MM_REL_MOM)s</p2_max>
+    <ptot2_max>%(MM_TOT_MOM)s</ptot2_max>
+    <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
+    <obj_path>/%(PIPI_SCAT_OBJ_PATH)s</obj_path>
+  </PipiParams>
+  <NamedObject>
+    <light_prop>%(UP_QUARK)s</light_prop>
+    <strange_prop>%(STRANGE_QUARK)s</strange_prop>
+  </NamedObject>
+</elem>
+
+'''
+
+
+
 lalibe_seqsource='''<elem>
     <Name>LALIBE_SEQSOURCE</Name>
     <Frequency>1</Frequency>
