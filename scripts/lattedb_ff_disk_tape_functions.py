@@ -539,7 +539,7 @@ def get_or_create_disk_entries(meta_entries: List, disk_entries: DiskEntries, pa
     return file_entries
 
 TapeEntries = TypeVar("TapeEntries")
-def get_or_create_tape_entries(meta_entries: List, tape_entries: TapeEntries, path: str, machine: str, name: Optional[str] = None,
+def get_or_create_tape_entries(meta_entries: List, tape_entries: TapeEntries, path: str, machine: str, name: Optional[str] = None, dbl_check=False
         ) -> List[TapeEntries]:
     """Returns queryset of TapeEntries entries for given CorrelatorMeta entries
     
@@ -559,8 +559,12 @@ def get_or_create_tape_entries(meta_entries: List, tape_entries: TapeEntries, pa
         "machine" : machine,
         "exists"  : False,
     }
-    
+    create_entries=False
     if file_entries.count() != meta_entries.count():
+        create_entries=True
+    elif file_entries.count() == meta_entries.count() and dbl_check:
+        create_entries=True
+    if create_entries:
         entries_to_create = []
         for meta in meta_entries:
             if not hasattr(meta, 'tape'):

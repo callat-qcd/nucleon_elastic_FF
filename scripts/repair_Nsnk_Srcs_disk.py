@@ -13,10 +13,12 @@ ens,s = sys.argv[1].split('_')[2], sys.argv[1].split('_')[3]
 ff_val = {
     'a09m135':  'gf1.0_w3.5_n45_M51.1_L512_a2.0_mq0.00152',
     'a15m135XL':'gf1.0_w3.0_n30_M51.3_L524_a3.5_mq0.00237',
+    'a12m310XL':'gf1p0_w3.0_n30_M51.2_L58_a1.5_mq0.0126',
 }
 t_seps = {
     'a09m135':  range(3,13),
     'a15m135XL':range(3,10),
+    'a12m310XL':range(3,14),
 }
 
 repair_lst = open(sys.argv[1]).readlines()

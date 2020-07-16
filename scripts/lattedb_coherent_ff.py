@@ -57,12 +57,14 @@ parser.add_argument('-d','--debug'    , default=False,action='store_const',const
                     help='run DEBUG? [%(default)s]')
 parser.add_argument('-p','--priority' , default=False,action='store_const',const=True, \
                     help='put task in priority? [%(default)s]')
-parser.add_argument('-v','--verbose' , default=True, action='store_const',const=False,\
+parser.add_argument('-v','--verbose'  , default=True, action='store_const',const=False,\
                     help='run with verbose output? [%(default)s]')
-parser.add_argument('--make_tasks'   , default=True, action='store_const', const=False,\
+parser.add_argument('--make_tasks'    , default=True, action='store_const', const=False,\
                     help='make tasks? [%(default)s]')
-parser.add_argument('--collect'      , default=False, action='store_const', const=True,\
+parser.add_argument('--collect'       , default=False, action='store_const', const=True,\
                     help='collect data? [%(default)s]')
+parser.add_argument('--dbl_check'     , default=False, action='store_const', const=True,\
+                    help='double check tape entries? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -171,6 +173,7 @@ meta_entries = dict()
 tape_entries = dict()
 
 try:
+    print('trying to querry Lattedb for ff_4D files')
     f_type = 'formfac_4D_tslice_src_avg'
     meta_entries[f_type] = lattedb_ff.get_or_create_ff4D_tsliced_savg(params, cfgs, ens, stream, src_set)
     tape_dir_4D = c51.tape+'/'+ens_s+'/'+f_type+'/%(CFG)s'
@@ -178,10 +181,12 @@ try:
         meta_entries = meta_entries[f_type], 
         tape_entries = TapeTSlicedSAveragedFormFactor4DFile,
         path         = tape_dir_4D,
-        machine      = c51.machine
+        machine      = c51.machine,
+        dbl_check    = args.dbl_check,
     )
 
     for dt in params['t_seps']:
+        print('trying to querry Lattedb for ff files for dt = %d' %dt)
         corr = 'ff_tsep_'+str(dt)
         meta_entries[corr] = lattedb_ff.get_or_create_meta_entries(corr, cfgs, ens, stream, src_set, srcs)
         tape_entries[corr] = lattedb_ff.get_or_create_tape_entries(
@@ -211,6 +216,7 @@ for cfg in cfgs:
 '''
 
 for c in cfgs:
+    print('now checking tasks for cfg = %d' %c)
     no = str(c)
     params['CFG'] = no
     ''' set up ensemble and make sure all dirs exist '''
@@ -249,7 +255,10 @@ for c in cfgs:
                     ff_4D_dict.update({'name':ff_4D_avg_name})
                     db_ff = meta_entries['ff_tsep_'+dt].filter(**ff_dict).first()
                     db_4D = meta_entries['formfac_4D_tslice_src_avg'].filter(**ff_4D_dict).first()
-                    have_tape = db_ff.tape.exists and db_4D.tape.exists
+                    if hasattr(db_4D, 'tape') and hasattr(db_ff,'tape'):
+                        have_tape = db_ff.tape.exists and db_4D.tape.exists
+                    else:
+                        have_tape = False
                 else:
                     d_sets = []
                     for particle in params['particles']:
