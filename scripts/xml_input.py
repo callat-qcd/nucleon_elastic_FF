@@ -383,11 +383,26 @@ pipi_spec = '''<elem>
   <PipiParams>
     <p2_max>%(MM_REL_MOM)s</p2_max>
     <ptot2_max>%(MM_TOT_MOM)s</ptot2_max>
+    <diagrams>0</diagrams>
     <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
-    <obj_path>/%(PIPI_SCAT_OBJ_PATH)s</obj_path>
+    <obj_path>/PS</obj_path>
   </PipiParams>
   <NamedObject>
-    <light_prop>%(UP_QUARK)s</light_prop>
+    <light_prop>%(PROP_LIGHT)s</light_prop>
+  </NamedObject>
+</elem>
+
+<elem>
+  <Name>PIPI_SCATTERING</Name>
+  <PipiParams>
+    <p2_max>%(MM_REL_MOM)s</p2_max>
+    <ptot2_max>%(MM_TOT_MOM)s</ptot2_max>
+    <diagrams>0</diagrams>
+    <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
+    <obj_path>/SS</obj_path>
+  </PipiParams>
+  <NamedObject>
+    <light_prop>SS_%(PROP_LIGHT)s</light_prop>
   </NamedObject>
 </elem>
 
@@ -398,12 +413,28 @@ pik_spec = '''<elem>
   <PipiParams>
     <p2_max>%(MM_REL_MOM)s</p2_max>
     <ptot2_max>%(MM_TOT_MOM)s</ptot2_max>
+    <diagrams>0</diagrams>
     <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
-    <obj_path>/%(PIPI_SCAT_OBJ_PATH)s</obj_path>
+    <obj_path>/PS</obj_path>
   </PipiParams>
   <NamedObject>
-    <light_prop>%(UP_QUARK)s</light_prop>
-    <strange_prop>%(STRANGE_QUARK)s</strange_prop>
+    <light_prop>%(PROP_LIGHT)s</light_prop>
+    <strange_prop>%(PROP_STRANGE)s</strange_prop>
+  </NamedObject>
+</elem>
+
+<elem>
+  <Name>PIPI_SCATTERING</Name>
+  <PipiParams>
+    <p2_max>%(MM_REL_MOM)s</p2_max>
+    <ptot2_max>%(MM_TOT_MOM)s</ptot2_max>
+    <diagrams>0</diagrams>
+    <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
+    <obj_path>/SS</obj_path>
+  </PipiParams>
+  <NamedObject>
+    <light_prop>SS_%(PROP_LIGHT)s</light_prop>
+    <strange_prop>SS_%(PROP_STRANGE)s</strange_prop>
   </NamedObject>
 </elem>
 

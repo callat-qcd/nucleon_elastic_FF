@@ -107,6 +107,10 @@ smr = 'gf'+params['FLOW_TIME']+'_w'+params['WF_S']+'_n'+params['WF_N']
 val = smr+'_M5'+params['M5']+'_L5'+params['L5']+'_a'+params['alpha5']
 ''' for now - just doing the light quark '''
 params['MQ'] = params['MV_L']
+if params['run_strange']:
+    params['MV_LS'] = 'ml'+params['MV_L']+'_ms'+params['MV_S']
+else:
+    params['MV_LS'] = 'ml'+params['MV_L']
 
 params = area51.mpirun_params(c51.machine)
 params['NODES']       = params['cpu_nodes']
@@ -117,7 +121,7 @@ params['ENS_DIR']     = c51.ens_dir % params
 params['SCRIPT_DIR']  = c51.script_dir
 params['MAXCUS']      = params['cpu_maxcus']
 params['SOURCE_ENV']  = c51.env
-params['PROG']        = '$LALIBE_CPU'
+params['PROG']        = '$INSTALLDIR/lalibe_haobo_cpu/bin/lalibe'
 params['APP']         = 'APP='+c51.bind_dir+params['cpu_bind']
 params['NRS']         = params['cpu_nrs']
 params['RS_NODE']     = params['cpu_rs_node']
@@ -127,8 +131,8 @@ params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
 params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
-if 'KPI_SCAT' not in params:
-    sys.exit('You must set the KPI_SCAT switch on the area51 file')
+if 'run_mm' not in params:
+    sys.exit('You must set the run_mm switch on the area51 file')
 
 
 for c in cfgs_run:
@@ -155,157 +159,170 @@ for c in cfgs_run:
             if args.verbose:
                 print(c,src_pairs[c][ts0][0],src_pairs[c][ts0][1])
             ''' check if pipi scat exists '''
-            params['SRC0']=src_pairs[c][ts0][0]
-            params['SRC1']=src_pairs[c][ts0][1]
-            pipi_scat_name    = c51.names['pipi_scat'] % params
-            pipi_scat_file    = params['pipi_scat'] +'/'+ pipi_scat_name+'.h5'
+            for s0 in src_pairs[c][ts0]:
+                params['SRC']=s0
+                pipi_scat_name    = c51.names['pipi_scat'] % params
+                pipi_scat_file    = params['pipi_scat'] +'/'+ pipi_scat_name+'.h5'
 
-            pipi_scat_exists = os.path.exists(pipi_scat_file)
-            if not pipi_scat_exists:
-                ''' make sure prop is correct size '''
-                try:
-                    file_size = params['prop_size']
-                except:
-                    print('PROP_SIZE not defined in area51 file: using crude default')
-                    file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
-
-                prop_names,prop_files={},{}
-                prop_strange_names,prop__strange_files=[],[]
-                #Looping over the two sources  
-                for k,isrc in enumerate(src_pairs[c][ts0]):
-                    params['SRC'] = isrc
-                    params['MQ'] = params['MV_L']
-                    prop_names['light'+str(k+1)]=c51.names['prop'] % params
-                    prop_files['light'+str(k+1)]=params['prop'] + '/' + prop_names['light'+str(k+1)]+'.'+params['SP_EXTENSION']
-                    utils.check_file(prop_files['light'+str(k+1)],file_size,params['file_time_delete'],params['corrupt'])
-                    if params['KPI_SCAT']:
-                        params['MQ'] = params['MV_S']
-                        prop_names['strange'+str(k+1)]=c51.names['prop'] % params
-                        prop_files['strange'+str(k+1)]=params['prop_strange'] + '/' + prop_names['strange'+str(k+1)]+'.'+params['SP_EXTENSION']
-                        utils.check_file(prop_files['strange'+str(k+1)],file_size,params['file_time_delete'],params['corrupt'])
-
-                   
-                prop_exist = {k:os.path.exists(prop_files[k]) for k in prop_files}
-
-                try:
-                    file_size = params['prop_size_h5']
-                except:
-                    print('PROP_SIZE not defined in area51 file: using crude default')
-                    file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
-
-                # a12m130 used h5 props
-                if ens in ['a12m130','a15m135XL']:
-                    for k in prop_files:
-                        if not prop_exist[k]:
-                            prop_files[k] = prop_files[k].replace('.'+params['SP_EXTENSION'],'.h5')
-                            utils.check_file(prop_files[k],file_size,params['file_time_delete'],params['corrupt'])
-
-                prop_exist = {k:os.path.exists(prop_files[k]) for k in prop_files}
-
-                if args.debug:
-                    print('DEBUG: prop exist',prop_exist)
-
-
-                #First check for the two light and two strange props
-                if prop_exist['light1'] and prop_exist['light2']:
-                    if params['KPI_SCAT'] and not (prop_exist['strange1'] or prop_exist['strange2']):
-                        sys.exit('Strange props missing: Turn off KPI_SCAT switch or make the props first')
-                    print('  making ',pipi_scat_name)
-                    metaq = pipi_scat_name+'.sh'
-                    t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
+                pipi_scat_exists = os.path.exists(pipi_scat_file)
+                if not pipi_scat_exists:
+                    ''' make sure prop is correct size '''
                     try:
-                        if params['metaq_split']:
-                            t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['cpu_nodes']),params,folder=q,overwrite=args.o)
-                            t_w = t_w or t_w2
-                            t_e = t_e or t_e2
+                        file_size = params['prop_size']
                     except:
-                        pass
-                    if not t_e or (args.o and not t_w):
-                        xmlini = params['xml'] +'/'+pipi_scat_name+'.'+'ini.xml'
-                        fin = open(xmlini,'w')
-                        fin.write(xml_input.head)
+                        print('PROP_SIZE not defined in area51 file: using crude default')
+                        file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
 
-                        params['OBJ_TYPE']  = 'LatticePropagator'
-                       
-                        ''' read light props '''
-                        for k in prop_files:
-                            params['PROP_NAME'] = prop_files[k]
-                            params['LIME_FILE'] = prop_files[k]
-                            if params['SP_EXTENSION'] in prop_files[k]:
-                                params['SPEC_FILE'] = pipi_scat_file
-                                params['OBJ_ID']    = 'PS_prop_'+k#prop_name
-                                fin.write(xml_input.qio_read % params)
-                            if '.h5' in prop_files[k]:
-                                params['H5_FILE'] = prop_files[k]
-                                if ens == 'a12m130':
-                                    if params['si'] in [0,8]:
-                                        params['H5_PATH'] = '48_64'
-                                        params['H5_OBJ_NAME'] = 'PS_prop_'+k
-                                    else:
-                                        params['H5_PATH'] = ''
-                                        params['H5_OBJ_NAME'] = 'PS_prop_'+k
-                                else:
-                                    params['H5_PATH'] = ''
-                                    params['H5_OBJ_NAME'] = 'PS_prop_'+k
-                                fin.write(xml_input.hdf5_read % params)
+                    params['MQ'] = params['MV_L']
+                    prop_l = c51.names['prop'] % params
+                    prop_l_file = params['prop'] + '/' +prop_l +'.'+params['SP_EXTENSION']
+                    utils.check_file(prop_l_file, file_size,params['file_time_delete'],params['corrupt'])
+                    prop_l_exists = os.path.exists(prop_l_file)
+                    if not prop_l_exists and ens in ['a12m130','a15m135XL']:
+                        prop_file = prop_l_file.replace('.'+params['SP_EXTENSION'],'.h5')
+                        try:
+                            file_size_h5 = params['prop_size_h5']
+                        except:
+                            print('PROP_SIZE not defined in area51 file: using crude default')
+                            file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                        utils.check_file(prop_file, file_size_h5, params['file_time_delete'],params['corrupt'])
+                        if os.path.exists(prop_file):
+                            prop_l_exists = True
+                            prop_l_file = str(prop_file)
+                    # if run_strange, also check strange prop
+                    if params['run_strange']:
+                        params['MQ'] = params['MV_S']
+                        prop_s = c51.names['prop'] % params
+                        prop_s_file = params['prop_strange'] + '/' +prop_s +'.'+params['SP_EXTENSION']
+                        utils.check_file(prop_s_file, file_size,params['file_time_delete'],params['corrupt'])
+                        prop_s_exists = os.path.exists(prop_s_file)
+                        if not prop_s_exists and ens in ['a12m130','a15m135XL']:
+                            prop_file = prop_s_file.replace('.'+params['SP_EXTENSION'],'.h5')
+                            try:
+                                file_size_h5 = params['prop_size_h5']
+                            except:
+                                print('PROP_SIZE not defined in area51 file: using crude default')
+                                file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                            utils.check_file(prop_file, file_size_h5, params['file_time_delete'],params['corrupt'])
+                            if os.path.exists(prop_file):
+                                prop_s_exists = True
+                                prop_s_file = str(prop_file)
 
-
-                        for k in prop_files:
-                            params[k.upper()]='PS_prop_'+k
-                        params['PIPI_SCAT_FILE']=pipi_scat_file#'./lalibe_pipi_spectrum.h5'
-                        params['PIPI_SCAT_OBJ_PATH']='PS'   
-
-                        if params['KPI_SCAT']:
-                            fin.write(xml_input.pipi_kpi_scat % params)
-                        else:
-                            fin.write(xml_input.pipi_scat % params)
-   
-                        ''' smear props '''
-                        for k in prop_files:
-                            params['PROP_NAME'] = 'PS_prop_'+k
-                            params['SMEARED_PROP'] = 'SS_prop_'+k
-                            fin.write(xml_input.shell_smearing % params)
-
-                        
-                        '''Meson scatterin with smear props'''
-                        for k in prop_files:
-                            params[k.upper()]='SS_prop_'+k
-                        params['PIPI_SCAT_FILE']=pipi_scat_file#'./lalibe_pipi_spectrum.h5'
-                        params['PIPI_SCAT_OBJ_PATH']='SS'   
-
-                        if params['KPI_SCAT']:
-                            fin.write(xml_input.pipi_kpi_scat % params)
-                        else:
-                            fin.write(xml_input.pipi_scat % params)
-
-
-                        fin.write(xml_input.tail % params)
-                        fin.close()
-
-                        ''' make METAQ task '''
-                        params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
-                        params['INI']       = xmlini
-                        params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
-                        params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                        params['CLEANUP']   = ''
-                        mtype = args.mtype
+                    # now create xml and metaq
+                    if params['run_strange']:
+                        proceed = prop_l_exists and prop_s_exists
+                    else:
+                        proceed = prop_l_exists
+                    if proceed:
+                        print('  making ',pipi_scat_name)
+                        metaq = pipi_scat_name+'.sh'
+                        t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
                         try:
                             if params['metaq_split']:
-                                mtype = mtype + '_'+str(params['cpu_nodes'])
+                                t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['cpu_nodes']),params,folder=q,overwrite=args.o)
+                                t_w = t_w or t_w2
+                                t_e = t_e or t_e2
                         except:
                             pass
-                        scheduler.make_task(metaq,mtype,params,folder=q)
+
+                        if not t_e or (args.o and not t_w):
+                            xmlini = params['xml'] +'/'+pipi_scat_name+'.'+'ini.xml'
+                            fin = open(xmlini,'w')
+                            fin.write(xml_input.head)
+
+                            # read prop(s)
+                            params['OBJ_TYPE']  = 'LatticePropagator'
+                            params['OBJ_ID']    = prop_l
+                            params['PROP_NAME'] = prop_l_file
+                            if prop_l_file.split('.')[-1] == 'lime':
+                                params['LIME_FILE'] = prop_l_file
+                                fin.write(xml_input.qio_read % params)
+                            elif prop_l_file.split('.') == '.h5':
+                                params['H5_FILE'] = prop_l_file
+                                if ens == 'a12m130':
+                                    if params['si'] in [0,8]:
+                                        params['H5_OBJ_NAME'] = 'prop1'
+                                        params['H5_PATH'] = '48_64'
+                                    else:
+                                        params['H5_PATH'] = ''
+                                        params['H5_OBJ_NAME'] = 'prop'
+                                else:
+                                    params['H5_PATH'] = ''
+                                    params['H5_OBJ_NAME'] = 'prop'
+                                fin.write(xml_input.hdf5_read % params)
+                            else:
+                                print(prop_l_file)
+                                sys.exit('unrecognized prop extension')
+                            # read strange prop if we are doing run_strange
+                            if params['run_strange']:
+                                params['OBJ_ID']    = prop_s
+                                params['PROP_NAME'] = prop_s_file
+                                if prop_s_file.split('.')[-1] == 'lime':
+                                    params['LIME_FILE'] = prop_s_file
+                                    fin.write(xml_input.qio_read % params)
+                                elif prop_s_file.split('.') == '.h5':
+                                    params['H5_FILE'] = prop_s_file
+                                    if ens == 'a12m130':
+                                        if params['si'] in [0,8]:
+                                            params['H5_OBJ_NAME'] = 'prop1'
+                                            params['H5_PATH'] = '48_64'
+                                        else:
+                                            params['H5_PATH'] = ''
+                                            params['H5_OBJ_NAME'] = 'prop'
+                                    else:
+                                        params['H5_PATH'] = ''
+                                        params['H5_OBJ_NAME'] = 'prop'
+                                    fin.write(xml_input.hdf5_read % params)
+                                else:
+                                    print(prop_s_file)
+                                    sys.exit('unrecognized prop extension')
+                            # sink smear props
+                            params['PROP_NAME'] = prop_l
+                            params['SMEARED_PROP'] = 'SS_'+prop_l
+                            fin.write(xml_input.shell_smearing % params)
+                            if params['run_strange']:
+                                params['PROP_NAME'] = prop_s
+                                params['SMEARED_PROP'] = 'SS_'+prop_s
+                                fin.write(xml_input.shell_smearing % params)
+                            # make pipi xml file
+                            params['PIPI_SCAT_FILE']=pipi_scat_file
+                            params['PROP_LIGHT'] = prop_l
+                            if params['run_strange']:
+                                params['PROP_STRANGE'] = prop_s
+                                fin.write(xml_input.pik_spec % params)
+                            else:
+                                fin.write(xml_input.pipi_spec % params)
+
+                            fin.write(xml_input.tail % params)
+                            fin.close()
+
+                            ''' make METAQ task '''
+                            params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
+                            params['INI']       = xmlini
+                            params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
+                            params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
+                            params['CLEANUP']   = ''
+                            mtype = args.mtype
+                            try:
+                                if params['metaq_split']:
+                                    mtype = mtype + '_'+str(params['cpu_nodes'])
+                            except:
+                                pass
+                            scheduler.make_task(metaq,mtype,params,folder=q)
+                    else:
+                        if args.verbose:
+                            print('missing props')
+                            print(prop_l_file)
+                            if params['run_strange']:
+                                print(prop_s_file)
+                        print('python METAQ_prop.py %s -s %s %s' %(c, src_pairs[c][ts0][0], src_args))
+                        print('python METAQ_prop.py %s -s %s %s' %(c,src_pairs[c][ts0][1], src_args))
+                        os.system(c51.python+' %s/METAQ_prop.py %s -s %s %s %s' \
+                            %(params['SCRIPT_DIR'], c,  src_pairs[c][ts0][0], src_args, params['PRIORITY']))
+                        os.system(c51.python+' %s/METAQ_prop.py %s -s %s %s %s' \
+                            %(params['SCRIPT_DIR'], c,  src_pairs[c][ts0][1], src_args, params['PRIORITY']))
                 else:
                     if args.verbose:
-                        print('missing props',prop_exist['light1'],prop_exist['light2'])
-                    print('python METAQ_prop.py %s -s %s %s' %(c, src_pairs[c][ts0][0], src_args))
-                    print('python METAQ_prop.py %s -s %s %s' %(c,src_pairs[c][ts0][1], src_args))
-                    os.system(c51.python+' %s/METAQ_prop.py %s -s %s %s %s' \
-                        %(params['SCRIPT_DIR'], c,  src_pairs[c][ts0][0], src_args, params['PRIORITY']))
-                    os.system(c51.python+' %s/METAQ_prop.py %s -s %s %s %s' \
-                        %(params['SCRIPT_DIR'], c,  src_pairs[c][ts0][1], src_args, params['PRIORITY']))
-            else:
-                if args.verbose:
-                    print('pipi/kpi file exists',spec_file)
+                        print('pipi/kpi file exists',pipi_scat_file)
     else:
         print('  flowed cfg missing',cfg_file)

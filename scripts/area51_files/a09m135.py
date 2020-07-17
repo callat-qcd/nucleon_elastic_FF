@@ -5,6 +5,7 @@ params['tuning_mq']   = False
 params['tuning_ms']   = False
 params['run_ff']      = False
 params['run_strange'] = True
+params['run_mm']      = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -74,6 +75,8 @@ params['file_time_delete'] = 10
 
 params['MESONS_PSQ_MAX']  = 0
 params['BARYONS_PSQ_MAX'] = 0
+params['MM_REL_MOM']      = 9
+params['MM_TOT_MOM']      = 5
 
 params['t_seps']  = [3,4,5,6,7,8,9,10,11,12]
 params['flavs']   = ['UU','DD']
