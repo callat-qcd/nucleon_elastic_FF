@@ -196,7 +196,7 @@ for c in cfgs:
                 params['STDOUT'] = pbp_file
                 params['N_CHARM_SETS'] = 1
                 params['SET']    = 0
-                params['N_PBP']  = 1
+                params['N_PBP']  = params['CC_Nnoise']
                 params['MASS']   = mass
 
                 # check if task exists
