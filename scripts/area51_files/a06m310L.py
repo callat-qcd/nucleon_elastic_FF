@@ -26,6 +26,11 @@ params['MS_S'] = '0.024'
 params['MS_C'] = '0.286'
 params['NAIK'] = '-0.0533009'
 
+params['MC_reweight']       = [0.28038, 0.27476, 0.26914, 0.26352, 0.2579]
+params['MC_MAX_ITER']       = 500
+params['MC_PROP_ERROR']     = '5.e-16'
+params['MC_REL_PROP_ERROR'] = '0'
+
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
 params['WF_S'] = '3.5'
@@ -121,12 +126,17 @@ def mpirun_params(machine):
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
         params['hisq_nodes']  = 8
-        params['hisq_metaq_nodes'] = 8
+        params['hisq_metaq_nodes'] = 0
         params['hisq_gpus']   = 32
         params['hisq_coul_spec'] = 16
         params['hisq_spec']   = 9
         params['hisq_maxcus'] = 1
         params['mixed_mesons_time']   = 30
+        params['charm_pbp_nodes'] = 4
+        params['charm_pbp_meta_nodes'] = 0
+        params['charm_pbp_gpus']  = 16
+        params['charm_pbp_time']  = 20
+        params['charm_pbp_nrs']   = '--nrs 4'
 
         params['hisq_nrs']     = '--nrs 8'
         params['hisq_rs_node'] = '-r1'
