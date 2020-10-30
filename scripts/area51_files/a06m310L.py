@@ -26,7 +26,7 @@ params['MS_S'] = '0.024'
 params['MS_C'] = '0.286'
 params['NAIK'] = '-0.0533009'
 
-params['MC_reweight']       = [0.28038, 0.27476, 0.26914, 0.26352, 0.2579]
+params['MC_reweight']       = [0.286, 0.28038, 0.27476, 0.26914, 0.26352, 0.2579]
 params['MC_MAX_ITER']       = 500
 params['CC_Nnoise']         = 128
 params['MC_PROP_ERROR']     = '5.e-16'
