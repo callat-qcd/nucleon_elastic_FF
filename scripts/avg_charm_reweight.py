@@ -51,6 +51,8 @@ if args.fout == None:
     f_out = data_dir +'/avg/charm_PBP_'+ens_s+'_avg.h5'
 else:
     f_out = args.fout
+print('collecting data to')
+print(f_out)
 
 for mc in params['MC_reweight']:
     print('mc =',mc)
@@ -71,7 +73,6 @@ for mc in params['MC_reweight']:
     if not have_data:
         cfgs_srcs  = []
         first_data = True
-        pbp        = np.array([], dtype=dtype)
         for cfg in cfgs:
             no = str(cfg)
             sys.stdout.write('    %4s\r' %(no))
@@ -83,8 +84,8 @@ for mc in params['MC_reweight']:
                         tmp = f5.get_node('/mc_'+mc_s).read()
                         cfgs_srcs.append([cfg, tmp.shape[0]])
                         if first_data:
-                            pbp = np.append(pbp, tmp)
-                            pbp = np.reshape(pbp, (1,pbp.shape[0]))
+                            pbp = np.zeros((1,)+tmp.shape, dtype=dtype)
+                            pbp[0] = tmp
                             fisrt_data = False
                         else:
                             pbp = np.append(pbp, [tmp], axis=0)
