@@ -35,7 +35,7 @@ print('Arguments passed')
 print(args)
 print('')
 
-dtype = np.complex64
+dtype = np.complex128
 data_dir = c51.data_dir % params
 utils.ensure_dirExists(data_dir)
 
