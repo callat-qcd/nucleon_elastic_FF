@@ -86,7 +86,7 @@ for mc in params['MC_reweight']:
                         if first_data:
                             pbp = np.zeros((1,)+tmp.shape, dtype=dtype)
                             pbp[0] = tmp
-                            fisrt_data = False
+                            first_data = False
                         else:
                             pbp = np.append(pbp, [tmp], axis=0)
         cfgs_srcs = np.array(cfgs_srcs)
