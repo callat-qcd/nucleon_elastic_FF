@@ -95,6 +95,41 @@ def check_disk(d_path,d_file):
         d_dict['date_modified'] = None
     return d_dict
 
+def sync_h5_data_files(tape_file, data_file, tmp_file, atol=0.0, rtol=1e-10, verbose=False):
+    ''' Our data collection utilizes three files
+        - tape_file - long term storage of all temporal correlators
+        - data_file - volatile disk copy of tape_file
+        - tmp_file  - temporary copy of data_file
+
+        We only want to collect data we have not already collected.  We also do not want
+        to lose any collected data.  To proceed, we first ensure that the contents of the
+        data_file matches the tape_file, it if exists.  The data_file and tmp_file do not
+        have to be synced, as the the collection step will examine both files for content
+        prior to collecting.
+    '''
+
+    t_dict = check_tape('/'.join(tape_file.split('/')[:-1]) , tape_file.split('/')[-1])
+    d_dict = check_disk('/'.join(data_file.split('/')[:-1]) , data_file.split('/')[-1])
+
+    if t_dict['exists']:
+        if d_dict['exists']:
+            # do time stamps match and file sizes match
+            if (t_dict['date_modified'] != d_dict['date_modified']) or (t_dict['size'] != d_dict['size']):
+                print('tape and disk times or sizes do not match - sync disk to tmp, then pull')
+                if verbose:
+                    print('TAPE date',t_dict['date_modified'], 'size',t_dict['size'])
+                    print('DISK date',d_dict['date_modified'], 'size',d_dict['size'])
+                # first copy d_file to tmp_file
+                if d_dict['size'] > 0:
+                    h5_dset_migrate(data_file, tmp_file, atol=atol, rtol=rtol)
+                else:
+                    os.remove(data_file)
+                # pull file from tape, overwriting data_file
+                hsi.get('/'.join(data_file.split('/')[:-1]), tape_file)
+            else:
+                hsi.cget('/'.join(data_file.split('/')[:-1]), tape_file)
+
+
 def corr_compare_tape_disk(h5_file, tape_dir, disk_dir, tmp_disk_dir, d_sets, atol, rtol, tape_push=False):
     ''' We want to compare h5 data files on tape and disk to decide if we should update
         input: 

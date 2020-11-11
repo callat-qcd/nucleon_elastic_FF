@@ -2,7 +2,10 @@ import sources
 
 params = dict()
 params['tuning_mq'] = False
+params['tuning_ms'] = False
 params['run_ff'] = True
+params['run_strange'] = True
+params['run_mm']      = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -26,15 +29,23 @@ params['WF_N'] = '30'
 params['M5'] = '1.2'
 params['L5'] = '8'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
-params['B5']     = '1.5'
-params['C5']     = '0.5'
-params['alpha5'] = '1.5'
+params['B5']     = '1.25'
+params['C5']     = '0.25'
+params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
 params['MV_L'] = '0.0126'
 params['MV_S'] = '0.0693'
 
 params['spec_size'] = 200000
+params['hyperspec_size'] = 1
 params['ff_size']   = 429000
+params['spec_4D_tslice_fact'] = 0.5
+
+params['src_size']     = 8153728000
+params['prop_size']    = 8153729000
+params['prop_size_h5'] = 8153729000
+params['seqsrc_size']  = 8153734000
+params['seqprop_size'] = 8153736000
 
 params['MAX_ITER']   = '4000'
 params['RSD_TARGET'] = '1.e-7'
@@ -128,6 +139,7 @@ def mpirun_params(machine):
         params['gpu_gpus']    = 6
         params['gpu_maxcus']  = 1
         params['prop_time']   = 24
+        params['strange_prop_time']   = 12
         params['seqprop_time']   = 15
 
         params['gpu_nrs']     = '--nrs 1'

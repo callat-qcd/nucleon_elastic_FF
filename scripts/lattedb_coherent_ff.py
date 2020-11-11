@@ -73,6 +73,9 @@ print('')
 ''' DATA collection directories '''
 data_dir     = c51.data_dir % params
 tmp_data_dir = c51.tmp_data_dir % params
+for ddir in [data_dir, tmp_data_dir]:
+    if not os.path.exists(ddir):
+        os.makedirs(ddir)
 tape_dir     = c51.tape+'/'+ens_s+'/data'
 # if we are collecting data - no need to push during data query for non-lattedb interface
 tape_push    = not args.collect

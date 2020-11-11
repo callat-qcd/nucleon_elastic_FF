@@ -37,8 +37,10 @@ params['alpha5'] = '1.5'
 params['MV_L'] = '0.00951'
 params['MV_S'] = '0.0491'
 
-params['spec_size'] = 1121000
-params['ff_size']   = 5078000
+params['spec_size'] = 267744
+params['ff_size']   = 478888#5078000
+params['spec_4D_size'] = 201340160
+params['spec_4D_tslice_fact'] = 0.5
 params['src_size']     = 3623880000
 params['prop_size']    = 3623882000
 params['prop_size_h5'] = 1

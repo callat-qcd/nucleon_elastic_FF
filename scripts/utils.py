@@ -54,8 +54,14 @@ def parse_cfg_argument(cfg_arg, params):
         cf = params['cfg_f']
         dc = params['cfg_d']
     else:
-        if int(cfg_arg[0]) not in allowed_cfgs:
-            sys.exit('you selected configs not allowed for %s: allowed_cfgs = range(%d, %d, %d)' %(params['ENS_S'],params['cfg_i'], params['cfg_f'], params['cfg_d']))
+        if len(cfg_arg) == 3:
+            cfgs = range(cfg_arg[0], cfg_arg[1]+1, cfg_arg[2])
+        elif len(cfg_arg) == 1:
+            cfgs = range(cfg_arg[0], cfg_arg[0]+1, 1)
+        if not all([cfg in allowed_cfgs for cfg in cfgs]):
+            print('you selected configs not allowed for %s:' %params['ENS_S'])
+            print('       allowed cfgs = range(%d, %d, %d)' %(params['cfg_i'], params['cfg_f'], params['cfg_d']))
+            sys.exit('  your choice: cfgs = range(%d, %d, %d)' %(cfgs[0],cfgs[-1],cfgs[1]-cfgs[0]))
         elif len(cfg_arg) == 1:
             ci = int(cfg_arg[0])
             cf = int(cfg_arg[0])

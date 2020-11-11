@@ -54,12 +54,15 @@ parser.add_argument('-m','--mq',             type=str,help='specify quark mass [
 parser.add_argument('-s','--src',            type=str,help='src [xXyYzZtT] None=All')
 parser.add_argument('--src_set',   nargs=3,  type=int,help='specify si sf ds')
 parser.add_argument('-t','--t_sep',nargs='+',type=int,help='value of t_sep [default = all]')
-parser.add_argument('-o',              default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('--move',          default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
-parser.add_argument('-u','--update_db',default=False,action='store_const',const=True,help='update db without collection? [%(default)s]')
-parser.add_argument('-v',              default=False,action='store_const',const=True,help='verbose? [%(default)s]')
-parser.add_argument('-d','--debug',    default=False,action='store_const',const=True,help='debug? [%(default)s]')
-parser.add_argument('--delete',        default=False,action='store_const',const=True,help='delete entries? [%(default)s]')
+parser.add_argument('-a','--atol',     default=0.0  , help='specify absolute tolerance for comparing h5 files [%(default)s]')
+parser.add_argument('-r','--rtol',     default=1e-10, help='specify relative tolerance for comparing h5 files [%(default)s]')
+parser.add_argument('-o',              default=False,action='store_true', help='overwrite? [%(default)s]')
+parser.add_argument('--move',          default=False,action='store_true', help='move bad files? [%(default)s]')
+parser.add_argument('tmp_sync',        default=False,action='store_true', help='force sync to tmp_data? [%(default)s]')
+parser.add_argument('-u','--update_db',default=False,action='store_true', help='update db without collection? [%(default)s]')
+parser.add_argument('-v',              default=False,action='store_true', help='verbose? [%(default)s]')
+parser.add_argument('-d','--debug',    default=False,action='store_true', help='debug? [%(default)s]')
+parser.add_argument('--delete',        default=False,action='store_true', help='delete entries? [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -156,8 +159,6 @@ meta_entries = dict()
 tape_entries = dict()
 disk_entries = dict()
 
-
-
 for corr in corrs:
     print('checking lattedb entries [meta, tape, disk] for %s' %corr)
     print(corr,': meta')
@@ -205,48 +206,27 @@ for cfg in cfgs_run:
         # first - try and get dset info from h5 files
         # get dict for tape and disk files
         h5_file_name = ens_s+'_'+no+'_srcs'+src_set+'.h5'
-        tape_dict = lattedb_ff.check_tape(tape_dir, h5_file_name)
-        disk_dict = lattedb_ff.check_disk(data_dir, h5_file_name)
-        # if tape_file exists, make sure disk_file has same time stamp, or pull from tape
-        tape_file = tape_dir+'/'+h5_file_name
-        h5_full= data_dir    +'/'+h5_file_name
-        h5_tmp = tmp_data_dir+'/'+h5_file_name
-        if tape_dict['exists']:
-            if disk_dict['exists']:
-                if tape_dict['date_modified'] != disk_dict['date_modified']:
-                    if args.v:
-                        print('TAPE and DISK times do not match')
-                        print(h5_full)
-                        if params['debug']:
-                            print('TAPE:',tape_dict['date_modified'])
-                            print('DISK:',disk_dict['date_modified'])
-                        print('  h5_dset_migrate from disk to tmp_disk, then pull from tape\n')
-                    # copy data_file to tmp_data_file
-                    # get file from tape
-                    if not os.path.exists(h5_tmp):
-                        os.system('touch '+h5_tmp)
-                    h5_dset_migrate(h5_full, h5_tmp, atol=0.0, rtol=1e-10)
-                    # use get which overwrites disk file with tape file
-                    # shutil.move(h5_full, bad_date_data_dir+'/'+h5_full.split('/')[-1])
-                    hsi.cget(data_dir, tape_file)
-            else:# disk not exists -> pull from tape with cget
-                if args.v:
-                    print('FILE EXISTS on tape but not on disk - pulling from tape\n')
-                    print(h5_full+'\n')
-                hsi.cget(data_dir, tape_file)
+        tape_file    = tape_dir +'/'+ h5_file_name
+        h5_full      = data_dir +'/'+ h5_file_name
+        h5_tmp       = tmp_data_dir +'/'+ h5_file_name
+
+        # synchronize files from tape to disk if need be
+        lattedb_ff.sync_h5_data_files(tape_file, h5_full, h5_tmp, atol=args.atol, rtol=args.rtol, verbose=args.v)
+        d_dict = lattedb_ff.check_disk(data_dir, h5_file_name)
+
+        # if user wants to force tmp_disk sync, sync from tmp_disk to disk
+        if args.tmp_sync:
+            tmp_dict = lattedb_ff.check_disk(tmp_data_dir, h5_file_name)
+            if d_dict['exists'] and tmp_dict['exists'] and \
+               ((d_dict['date_modified'] != tmp_dict['date_modified']) or (d_dict['size'] != tmp_dict['size'])):
+                h5_dset_migrate(h5_tmp, h5_full)
+        
         # now check dsets in tmp and full and tmp h5 files
-        if disk_dict['exists']:
+        if d_dict['exists']:
             with h5py.File(h5_full,'r') as f5_full:
                 dsets_full = get_dsets(f5_full, load_dsets=False)
         else:
             dsets_full = dict()
-            if args.v:
-                print('DOES NOT EXIST: %s' %h5_full)
-        if os.path.exists(h5_tmp):
-            with h5py.File(h5_tmp,'r') as f5_tmp:
-                dsets_tmp  = get_dsets(f5_tmp, load_dsets=False)
-        else:
-            dsets_tmp = dict()
         # if disk entries do not exist - collect data and migrate
         migrate_h5_data = False
         params['h5_spec_path'] = val_p+'/spec'
@@ -255,24 +235,30 @@ for cfg in cfgs_run:
             if not lattedb_ff.querry_corr_disk_tape(meta_entries, corr, db_filter, dt='disk', debug=args.debug):
                 params['corr'] = corr
                 if 'mres' in corr or 'phi' in corr:
-                    if not collect_utils.get_res_phi(params, dsets_full):
-                        if collect_utils.get_res_phi(params, dsets_tmp, h5_file=h5_tmp, collect=True):
-                            migrate_h5_data = True
+                    if collect_utils.get_res_phi(params, dsets_full, h5_file=h5_full, collect=True):
+                        migrate_h5_data=True
                 elif 'spec' in corr:
-                    if not collect_utils.get_spec(params, dsets_full):
-                        if collect_utils.get_spec(params, dsets_tmp, h5_file=h5_tmp, collect=True):
-                            migrate_h5_data = True
+                    if collect_utils.get_spec(params, dsets_full, h5_file=h5_full, collect=True):
+                        migrate_h5_data=True
                 elif 'ff' in corr:
                     for tsep in params['t_seps']:
                         params['corr'] = 'ff_tsep_'+str(tsep)
                         params['T_SEP'] = tsep
-                        if not collect_utils.get_formfac(params, dsets_full):
-                            if collect_utils.get_formfac(params, dsets_tmp, h5_file=h5_tmp, collect=True):
-                                migrate_h5_data = True
+                        if collect_utils.get_formfac(params, dsets_full, h5_file=h5_full, collect=True):
+                            migrate_h5_data = True
         if migrate_h5_data:
-            if not os.path.exists(h5_full):
-                os.system('touch '+h5_full)
-            h5_dset_migrate(h5_tmp, h5_full, atol=0.0, rtol=1e-10)
+            t_dict = lattedb_ff.check_tape(tape_dir, h5_file_name)
+            d_dict = lattedb_ff.check_disk(data_dir, h5_file_name)
+            if d_dict['exists']:
+                if not t_dict['exists']:
+                    hsi.cput(h5_full, tape_file)
+                else:
+                    if d_dict['date_modified'] > t_dict['date_modified']:
+                        hsi.cput(h5_full, tape_file)
+                    elif t_dict['date_modified'] > d_dict['date_modified']:
+                        sys.exit('ERROR - we collected data but tape file is newer than disk file')
+                    else:
+                        print('tape and disk time stamps match',d_dict['date_modified'], h5_full)
         if migrate_h5_data or args.update_db:
             # load updated dsets on disk
             if os.path.exists(h5_full):
@@ -323,8 +309,6 @@ for cfg in cfgs_run:
                 lattedb_ff.corr_disk_tape_update(disk_updates,dt='disk', debug=args.debug)
             # push to tape
             try:
-                if migrate_h5_data:
-                    hsi.cput(h5_full, tape_dir+'/'+h5_full.split('/')[-1])
                 print('updating TAPE entries %d' %(len(tape_updates)))
                 if len(tape_updates) > 0:
                     lattedb_ff.corr_disk_tape_update(tape_updates, dt='tape',debug=args.debug)
