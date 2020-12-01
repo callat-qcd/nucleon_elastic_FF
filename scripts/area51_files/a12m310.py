@@ -1,8 +1,11 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['run_ff'] = True
+params['tuning_mq']   = False
+params['tuning_ms']   = False
+params['run_ff']      = True
+params['run_strange'] = True
+params['run_pipi']    = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -26,15 +29,26 @@ params['WF_N'] = '30'
 params['M5'] = '1.2'
 params['L5'] = '8'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
-params['B5']     = '1.5'
-params['C5']     = '0.5'
-params['alpha5'] = '1.5'
+params['B5']     = '1.25'
+params['C5']     = '0.25'
+params['alpha5'] = "%.1f" %(float(params['B5']) + float(params['C5']))
+#params['alpha5'] = '1.5'
 
 params['MV_L'] = '0.0126'
 params['MV_S'] = '0.0693'
 
-params['spec_size'] = 826000
-params['ff_size']   = 4046000
+#params['spec_size'] = 826000# with momentum
+params['spec_size']      = 200160
+params['ff_size']        = 429700
+params['hyperspec_size'] = 383680
+params['pipi_size']      = 1
+params['pik_size']       = 4653344
+
+
+params['src_size']     = 1019217500
+params['prop_size']    = 1019218500
+params['seqsrc_size']  = 1019222500
+params['seqprop_size'] = 1019224000
 
 params['MAX_ITER']   = '4000'
 params['RSD_TARGET'] = '1.e-7'
@@ -52,8 +66,11 @@ params['generator'] = sources.oa(int(params['NL']))
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10
 
-params['MESONS_PSQ_MAX']  = 5
+params['MESONS_PSQ_MAX']  = 0#5
 params['BARYONS_PSQ_MAX'] = 0
+''' Pi Pi '''
+params['MM_REL_MOM'] = 4
+params['MM_TOT_MOM'] = 4
 
 params['run_3pt'] = True
 params['t_seps']  = [3,4,5,6,7,8,9,10,11,12]
@@ -62,7 +79,7 @@ params['spins']   = ['up_up','dn_dn']
 params['snk_mom'] = ['0 0 0']
 params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
-params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P']
+params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 #params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S','T34','T12','CHROMO_MAG']
 
@@ -94,6 +111,7 @@ def mpirun_params(machine):
         params['gpu_gpus']    = 4
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10
+        params['strange_prop_time']   = 5
         params['seqprop_time'] = 10
 
         params['gpu_nrs']     = '--nrs 1'

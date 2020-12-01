@@ -223,7 +223,7 @@ for c in cfgs_run:
                                 if not params['tuning_ms']:
                                     params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                                     params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
-                                    params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_hyperspec.py '
+                                    params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_hyperspec.py '
                                     params['CLEANUP']  += params['CFG']+' -s '+s0+' '+src_args+' '+params['PRIORITY']+'\n'
                                     params['CLEANUP']  += '    sleep 5\n'
                                     params['CLEANUP']  += 'else\n'

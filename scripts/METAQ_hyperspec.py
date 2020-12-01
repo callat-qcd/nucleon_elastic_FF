@@ -109,6 +109,10 @@ params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
 params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
+''' PIPI '''
+if params['run_pipi'] and params['run_strange']:
+        run_pipi = True
+
 for c in cfgs_run:
     no = str(c)
     params['CFG'] = no
@@ -140,7 +144,15 @@ for c in cfgs_run:
             hyperspec_name = c51.names['hyperspec'] % params
             hyperspec_file = params['hyperspec'] +'/'+ hyperspec_name+'.h5'
             utils.check_file(hyperspec_file,params['hyperspec_size'],params['file_time_delete'],params['corrupt'])
-            if not os.path.exists(hyperspec_file):
+            if run_pipi:
+                pipi_name = c51.names['pik'] % params
+                pipi_file = params['spec'] +'/'+ pipi_name
+                utils.check_file(pipi_file, params['pik_size'], params['file_time_delete'],params['corrupt'])
+                pipi_exists = os.path.exists(pipi_file)
+                params['PIPI_SCAT_FILE'] = pipi_file
+            else:
+                pipi_exists = True
+            if not os.path.exists(hyperspec_file) or not pipi_exists:
                 # light prop
                 params['MQ'] = params['MV_L']
                 light_prop_name = c51.names['prop'] % params
@@ -226,21 +238,33 @@ for c in cfgs_run:
                         params['PROP_NAME']    = strange_prop_name
                         params['SMEARED_PROP'] = strange_prop_name+'_SS'
                         fin.write(xml_input.shell_smearing % params)
-                        ''' PS '''
-                        params['BARYON_MOM'] = '    <p2_max>'+str(params['BARYONS_PSQ_MAX'])+'</p2_max>'
-                        params['H5_PATH'] = 'pt'
-                        params['UP_QUARK'] = light_prop_name
-                        params['DN_QUARK'] = light_prop_name
-                        params['STRANGE_QUARK'] = strange_prop_name
-                        fin.write(xml_input.pi_k_spec % params)
-                        fin.write(xml_input.hyperon_spec % params)
-                        ''' SS '''
-                        params['H5_PATH'] = 'sh'
-                        params['UP_QUARK'] = light_prop_name+'_SS'
-                        params['DN_QUARK'] = light_prop_name+'_SS'
-                        params['STRANGE_QUARK'] = strange_prop_name+'_SS'
-                        fin.write(xml_input.pi_k_spec % params)
-                        fin.write(xml_input.hyperon_spec % params)
+                        if not os.path.exists(hyperspec_file):
+                            ''' PS '''
+                            params['BARYON_MOM'] = '    <p2_max>'+str(params['BARYONS_PSQ_MAX'])+'</p2_max>'
+                            params['H5_PATH'] = 'pt'
+                            params['UP_QUARK'] = light_prop_name
+                            params['DN_QUARK'] = light_prop_name
+                            params['STRANGE_QUARK'] = strange_prop_name
+                            fin.write(xml_input.pi_k_spec % params)
+                            fin.write(xml_input.hyperon_spec % params)
+                            ''' SS '''
+                            params['H5_PATH'] = 'sh'
+                            params['UP_QUARK'] = light_prop_name+'_SS'
+                            params['DN_QUARK'] = light_prop_name+'_SS'
+                            params['STRANGE_QUARK'] = strange_prop_name+'_SS'
+                            fin.write(xml_input.pi_k_spec % params)
+                            fin.write(xml_input.hyperon_spec % params)
+                        if run_pipi and not os.path.exists(pipi_file):
+                            ''' PS '''
+                            params['H5_PATH'] = 'pt'
+                            params['UP_QUARK'] = light_prop_name
+                            params['STRANGE_QUARK'] = strange_prop_name
+                            fin.write(xml_input.meson_meson % params)
+                            ''' SS '''
+                            params['H5_PATH'] = 'sh'
+                            params['UP_QUARK'] = light_prop_name+'_SS'
+                            params['STRANGE_QUARK'] = strange_prop_name+'_SS'
+                            fin.write(xml_input.meson_meson % params)
                         ''' end '''
                         fin.write(xml_input.tail % params)
                         fin.close()

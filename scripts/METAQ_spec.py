@@ -111,6 +111,10 @@ params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
 params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
+''' PIPI '''
+if params['run_pipi'] and not params['run_strange']:
+    run_pipi = True
+
 for c in cfgs_run:
     no = str(c)
     params['CFG'] = no
@@ -151,7 +155,15 @@ for c in cfgs_run:
                 if (now-file_time)/60 > params['file_time_delete']:
                     print('DELETING:',spec_file)
                     shutil.move(spec_file,params['corrupt']+'/'+spec_file.split('/')[-1])
-            spec_exists = os.path.exists(spec_file) and os.path.exists(spec_file_4D)
+            if run_pipi:
+                pipi_name = c51.names['pipi'] % params
+                pipi_file = params['spec'] +'/'+ pipi_name
+                utils.check_file(pipi_file, params['pipi_size'], params['file_time_delete'],params['corrupt'])
+                pipi_exists = os.path.exists(pipi_file)
+                params['PIPI_SCAT_FILE'] = pipi_file
+            else:
+                pipi_exists = True
+            spec_exists = os.path.exists(spec_file) and os.path.exists(spec_file_4D) and pipi_exists
             if not spec_exists:
                 prop_name = c51.names['prop'] % params
                 prop_file = params['prop'] + '/' + prop_name+'.'+params['SP_EXTENSION']
@@ -217,23 +229,33 @@ for c in cfgs_run:
                         ''' smear prop '''
                         params['SMEARED_PROP'] = prop_name+'_SS'
                         fin.write(xml_input.shell_smearing % params)
-                        ''' PS '''
-                        params['BARYON_MOM'] = '    <p2_max>'+str(params['BARYONS_PSQ_MAX'])+'</p2_max>'
-                        params['H5_PATH'] = 'pt'
-                        params['UP_QUARK'] = prop_name
-                        params['DN_QUARK'] = prop_name
-                        fin.write(xml_input.meson_spec % params)
-                        fin.write(xml_input.baryon_spec % params)
-                        ''' SS '''
-                        params['H5_PATH'] = 'sh'
-                        params['UP_QUARK'] = prop_name+'_SS'
-                        params['DN_QUARK'] = prop_name+'_SS'
-                        fin.write(xml_input.meson_spec % params)
-                        fin.write(xml_input.baryon_spec % params)
-                        ''' BARYONS 4D '''
-                        params['BARYON_MOM'] = ''
-                        params['SPEC_FILE'] = spec_file_4D
-                        fin.write(xml_input.baryon_spec % params)
+                        if not os.path.exists(spec_file):
+                            ''' PS '''
+                            params['BARYON_MOM'] = '    <p2_max>'+str(params['BARYONS_PSQ_MAX'])+'</p2_max>'
+                            params['H5_PATH'] = 'pt'
+                            params['UP_QUARK'] = prop_name
+                            params['DN_QUARK'] = prop_name
+                            fin.write(xml_input.meson_spec % params)
+                            fin.write(xml_input.baryon_spec % params)
+                            ''' SS '''
+                            params['H5_PATH'] = 'sh'
+                            params['UP_QUARK'] = prop_name+'_SS'
+                            params['DN_QUARK'] = prop_name+'_SS'
+                            fin.write(xml_input.meson_spec % params)
+                            fin.write(xml_input.baryon_spec % params)
+                            ''' BARYONS 4D '''
+                            params['BARYON_MOM'] = ''
+                            params['SPEC_FILE'] = spec_file_4D
+                            fin.write(xml_input.baryon_spec % params)
+                        if run_pipi and not os.path.exists(pipi_file):
+                            ''' PS '''
+                            params['H5_PATH'] = 'pt'
+                            params['UP_QUARK'] = prop_name
+                            fin.write(xml_input.pipi % params)
+                            ''' SS '''
+                            params['H5_PATH'] = 'sh'
+                            params['UP_QUARK'] = prop_name+'_SS'
+                            fin.write(xml_input.pipi % params)
                         ''' end '''
                         fin.write(xml_input.tail % params)
                         fin.close()

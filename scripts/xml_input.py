@@ -683,3 +683,50 @@ stag_src_write = '''<elem>
 
 '''
 
+pipi = '''<elem>
+  <Name>PIPI_SCATTERING</Name>
+  <PipiParams>
+    <p2_max>%(MM_REL_MOM)s</p2_max>
+    <ptot2_max>%(MM_TOT_MOM)s</ptot2_max>
+    <diagrams>0</diagrams>
+    <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
+    <obj_path>/%(H5_PATH)s</obj_path>
+  </PipiParams>
+  <NamedObject>
+    <up_quark>%(UP_QUARK)s</up_quark>
+  </NamedObject>
+</elem>
+'''
+
+meson_meson = '''<elem>
+  <Name>PIPI_SCATTERING</Name>
+  <PipiParams>
+    <p2_max>%(MM_REL_MOM)s</p2_max>
+    <ptot2_max>%(MM_TOT_MOM)s</ptot2_max>
+    <diagrams>0</diagrams>
+    <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
+    <obj_path>/%(H5_PATH)s</obj_path>
+  </PipiParams>
+  <NamedObject>
+    <up_quark>%(UP_QUARK)s</up_quark>
+    <strange_quark>%(STRANGE_QUARK)s</strange_quark>
+  </NamedObject>
+</elem>
+'''
+
+meson_meson_iso_break = '''<elem>
+  <Name>PIPI_SCATTERING</Name>
+  <PipiParams>
+    <p2_max>%(MM_REL_MOM)s</p2_max>
+    <ptot2_max>%(MM_TOT_MOM)s</ptot2_max>
+    <diagrams>0</diagrams>
+    <h5_file_name>%(PIPI_SCAT_FILE)s</h5_file_name>
+    <obj_path>/%(H5_PATH)s</obj_path>
+  </PipiParams>
+  <NamedObject>
+    <up_quark>%(UP_QUARK)s</up_quark>
+    <down_quark>%(DN_QUARK)s</down_quark>
+    <strange_quark>%(STRANGE_QUARK)s</strange_quark>
+  </NamedObject>
+</elem>
+'''
