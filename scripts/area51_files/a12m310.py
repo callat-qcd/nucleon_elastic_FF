@@ -40,9 +40,9 @@ params['MV_S'] = '0.0693'
 #params['spec_size'] = 826000# with momentum
 params['spec_size']      = 200160
 params['ff_size']        = 429700
-params['hyperspec_size'] = 383680
+params['hyperspec_size'] = 4890432
 params['pipi_size']      = 1
-params['pik_size']       = 4653344
+params['pik_size']       = 2311280
 
 
 params['src_size']     = 1019217500
@@ -66,10 +66,10 @@ params['generator'] = sources.oa(int(params['NL']))
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10
 
-params['MESONS_PSQ_MAX']  = 0#5
-params['BARYONS_PSQ_MAX'] = 0
+params['MESONS_PSQ_MAX']  = 4
+params['BARYONS_PSQ_MAX'] = 4
 ''' Pi Pi '''
-params['MM_REL_MOM'] = 4
+params['MM_REL_MOM'] = 2
 params['MM_TOT_MOM'] = 4
 
 params['run_3pt'] = True

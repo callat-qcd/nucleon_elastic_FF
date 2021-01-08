@@ -143,6 +143,12 @@ mpirun['default'] = '''
 cleanup = """
 echo "FINISH WORK "$(date "+%%Y-%%m-%%dT%%H:%%M")
 
+# look for failing jsrun connection
+if [[ `grep "JSM server is not responding" $stdout | wc -l` > 0 ]]; then
+    echo "`date`    ${LSB_JOBID}    $LLNL_COMPUTE_NODES" >> %(JSRUN_FAIL)s
+    bkill ${LSB_JOBID}
+fi
+
 echo "CLEANING UP"
 
 %(CLEANUP)s

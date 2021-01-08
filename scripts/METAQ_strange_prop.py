@@ -162,7 +162,7 @@ for c in cfgs_run:
                     prop_light_exists = os.path.exists(prop_light_file)
                 # restore MQ to strange mass
                 params['MQ'] = params['MV_S']
-                if prop_light_exists:
+                if True:
                     if not prop_exists:
                         # restore prop extension to params['SP_EXTENSION'] in case we looked for h5 props
                         prop_file = params['prop_strange'] + '/' + prop_name+'.'+params['SP_EXTENSION']

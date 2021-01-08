@@ -112,8 +112,7 @@ params['L_GPU_CPU']   = params['cpu_latency']
 params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 ''' PIPI '''
-if params['run_pipi'] and not params['run_strange']:
-    run_pipi = True
+run_pipi = params['run_pipi'] and not params['run_strange']
 
 for c in cfgs_run:
     no = str(c)
@@ -142,6 +141,8 @@ for c in cfgs_run:
             ''' check if spectrum exists '''
             spec_name    = c51.names['spec'] % params
             spec_file    = params['spec'] +'/'+ spec_name+'.h5'
+            utils.check_file(spec_file, params['spec_size'], params['file_time_delete'], params['corrupt'])
+            
             spec_file_4D = spec_file.replace('spec_','spec_4D_').replace('/spec/','/spec_4D/')
             '''
                 NOTE: we need to enhance this to look for the t_sliced data file as well
@@ -149,12 +150,17 @@ for c in cfgs_run:
             '''            spin*par* vol       * comp * dbl '''
             spec_size_4D = 2 * 2 * nt * nl**3 * 2 * 8
             utils.check_file(spec_file_4D,spec_size_4D,params['file_time_delete'],params['corrupt'])
+
             if os.path.exists(spec_file) and not os.path.exists(spec_file_4D):
                 now = time.time()
                 file_time = os.stat(spec_file).st_mtime
                 if (now-file_time)/60 > params['file_time_delete']:
                     print('DELETING:',spec_file)
                     shutil.move(spec_file,params['corrupt']+'/'+spec_file.split('/')[-1])
+            if os.path.exists(spec_file_4D) and not os.path.exists(spec_file):
+                ''' if spec_file is gone, no way spec_file_4D can be good '''
+                print('DELETING:',spec_file_4D)
+                shutil.move(spec_file_4D,params['corrupt']+'/'+spec_file_4D.split('/')[-1])
             if run_pipi:
                 pipi_name = c51.names['pipi'] % params
                 pipi_file = params['spec'] +'/'+ pipi_name

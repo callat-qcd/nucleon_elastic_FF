@@ -33,12 +33,14 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
-parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-s','--src',type=str,help='src [xXyYzZtT] None=All')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('--move',default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('cfgs',       nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-s','--src', type=str,help='src [xXyYzZtT] None=All')
+parser.add_argument('-o',         default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
+parser.add_argument('--move',     default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
+parser.add_argument('-v',         default=True,action='store_const',const=False,help='verbose? [%(default)s]')
 parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--psq_max',  type=int,default=0,
+                    help=         'specify Psq max value [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -91,6 +93,8 @@ par_np = [p+'_np' for p in par]
 par = par + par_np
 params['MQ'] = 'ml'+params['MV_L']+'_ms'+params['MV_S']
 
+psq_lst    = list(range(0,args.psq_max+1,1))
+
 for cfg in cfgs_run:
     no = str(cfg)
     print(no)
@@ -110,85 +114,97 @@ for cfg in cfgs_run:
         t_src = int(src.split('t')[1])
         f5 = h5.open_file(data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
         mq = params['MQ'].replace('.','p')
-        spec_dir = '/'+val_p+'/spec/'+mq
+        mq_dir = '/'+val_p+'/spec/'+mq
         for corr in mesons:
             try:
-                f5.create_group(spec_dir,corr,createparents=True)
+                f5.create_group(mq_dir,corr,createparents=True)
                 f5.flush()
             except:
                 pass
         for corr in par:
             for s in spin_dict[corr]:
                 try:
-                    f5.create_group(spec_dir+'/'+corr,s,createparents=True)
+                    f5.create_group(mq_dir+'/'+corr,s,createparents=True)
                     f5.flush()
                 except:
                     pass
         # PSEUDO SCALAR MESONS
+        psq_dict = utils.psq_dict(params['MESONS_PSQ_MAX'])
         for corr in mesons:
-            get_data = False
-            if src not in f5.get_node(spec_dir+'/'+corr):
-                get_data = True
-            if args.o and src in f5.get_node(spec_dir+'/'+corr):
-                get_data = True
-            if get_data:
-                fin = h5.open_file(ftmp,'r')
-                tmp_dir = spec_dir+'/'+corr
-                p_lst = utils.p_lst(params['MESONS_PSQ_MAX'])
-                for mom in p_lst:
-                    if mom not in f5.get_node(tmp_dir):
-                        f5.create_group(tmp_dir,mom)
-                    mom_dir = tmp_dir + '/'+mom
-                    pt = fin.get_node('/pt/'+corr+'/'+src_split+'/'+mom).read()
-                    sh = fin.get_node('/sh/'+corr+'/'+src_split+'/'+mom).read()
-                    nt = len(pt)
-                    data = np.zeros([nt,2,1],dtype=dtype)
-                    data[:,0,0] = sh
-                    data[:,1,0] = pt
-                    if not np.any(np.isnan(data)):
-                        if args.v: print(no,corr,src,mom)
-                        if src not in f5.get_node(mom_dir):
-                            f5.create_array(mom_dir,src,data)
-                        elif src in f5.get_node(mom_dir) and args.o:
-                            f5.get_node(mom_dir+'/'+src)[:] = data
-                        elif src in f5.get_node(mom_dir) and not args.o:
-                            print('  skipping %s: overwrite = False; %s %s' %(corr,no,src))
-                    else:
-                        print('  NAN',no,src)
-                fin.close()
-        # BARYONS
-        for corr in par:
-            get_data = False
-            for s in spin_dict[corr]:
-                if src not in f5.get_node(spec_dir+'/'+corr+'/'+s):
+            spec_dir = mq_dir +'/'+ corr
+            for nsq in [k for k in psq_lst if k <= max(psq_dict)]:
+                try:
+                    f5.create_group(spec_dir, 'psq_%d' %nsq, createparents=True)
+                    f5.flush()
+                except:
+                    pass
+                psq_dir   = spec_dir +'/psq_%d' %nsq
+                get_data = False
+                if src not in f5.get_node(psq_dir) or (args.o and src in f5.get_node(psq_dir)):
                     get_data = True
-                if args.o and src in f5.get_node(spec_dir+'/'+corr+'/'+s):
-                    get_data = True
-            if get_data:
-                fin = h5.open_file(ftmp,'r')
-                for s in spin_dict[corr]:
-                    tmp_dir = spec_dir+'/'+corr+'/'+s
-                    p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
-                    for mom in p_lst:
-                        if mom not in f5.get_node(tmp_dir):
-                            f5.create_group(tmp_dir,mom)
-                        mom_dir = tmp_dir + '/'+mom
-                        pt = fin.get_node('/pt/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
-                        sh = fin.get_node('/sh/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
+                    
+                if get_data:
+                    fin = h5.open_file(ftmp,'r')
+                    psq_data = []
+                    for mom in psq_dict[nsq]:                        
+                        pt = fin.get_node('/pt/'+corr+'/'+src_split+'/'+mom).read()
+                        sh = fin.get_node('/sh/'+corr+'/'+src_split+'/'+mom).read()
                         nt = len(pt)
                         data = np.zeros([nt,2,1],dtype=dtype)
                         data[:,0,0] = sh
                         data[:,1,0] = pt
-                        if not np.any(np.isnan(data)):
+                        psq_data.append(data)
+                    psq_data = np.array(psq_data)
+                    if not np.any(np.isnan(psq_data)):
+                        if args.v: print("%4s  %6s  %13s  psq_%d" %(no,corr,src,nsq))
+                        if src not in f5.get_node(psq_dir):
+                            f5.create_array(psq_dir,src,psq_data.mean(axis=0))
+                        elif src in f5.get_node(psq_dir) and args.o:
+                            f5.get_node(psq_dir+'/'+src)[:] = psq_data.mean(axis=0)
+                        elif src in f5.get_node(psq_dir) and not args.o:
+                            print('  skipping %s: overwrite = False; %s %s psq_%d' %(corr,no,src,nsq))
+                    else:
+                        print('  NAN',no,src,'psq_%d' %nsq)
+                    fin.close()
+        # BARYONS
+        psq_dict = utils.psq_dict(params['BARYONS_PSQ_MAX'])
+        for corr in par:
+            spec_dir = mq_dir +'/'+ corr
+            for nsq in [k for k in psq_lst if k <= max(psq_dict)]:
+                get_data = False
+                for s in spin_dict[corr]:
+                    try:
+                        f5.create_group(spec_dir+'/'+ s, 'psq_%d' %nsq, createparents=True)
+                        f5.flush()
+                    except:
+                        pass
+                    psq_dir   = spec_dir +'/'+ s +'/psq_%d' %nsq
+                    if src not in f5.get_node(psq_dir) or (args.o and src in f5.get_node(psq_dir)):
+                        get_data = True
+                if get_data:
+                    fin = h5.open_file(ftmp,'r')
+                    for s in spin_dict[corr]:
+                        psq_dir  = spec_dir +'/'+ s +'/psq_%d' %nsq
+                        psq_data = []
+                        for mom in psq_dict[nsq]:
+                            pt = fin.get_node('/pt/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
+                            sh = fin.get_node('/sh/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
+                            nt = len(pt)
+                            data = np.zeros([nt,2,1],dtype=dtype)
+                            data[:,0,0] = sh
+                            data[:,1,0] = pt
+                            psq_data.append(data)
+                        psq_data = np.array(psq_data)
+                        if not np.any(np.isnan(psq_data)):
                             if args.v:
-                                print(no,corr,s,src,mom)
-                            if src not in f5.get_node(mom_dir):
-                                f5.create_array(mom_dir,src,data)
-                            elif src in f5.get_node(mom_dir) and args.o:
-                                f5.get_node(mom_dir+'/'+src)[:] = data
-                            elif src in f5.get_node(mom_dir) and not args.o:
-                                print('  skipping %s: overwrite = False: %s %s' %(corr,no,src))
+                                print("%4s  %15s  %9s %13s  psq_%d" %(no,corr,s,src,nsq))
+                            if src not in f5.get_node(psq_dir):
+                                f5.create_array(psq_dir,src,psq_data.mean(axis=0))
+                            elif src in f5.get_node(psq_dir) and args.o:
+                                f5.get_node(psq_dir+'/'+src)[:] = psq_data.mean(axis=0)
+                            elif src in f5.get_node(psq_dir) and not args.o:
+                                print('  skipping %s: overwrite = False: %s %s psq_%d' %(corr,no,src,nsq))
                         else:
                             print('  NAN',no,src)
-                fin.close()
+                    fin.close()
         f5.close()

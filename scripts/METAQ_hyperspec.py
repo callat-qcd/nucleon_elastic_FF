@@ -110,8 +110,7 @@ params['L_GPU_CPU']   = params['cpu_latency']
 params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
 ''' PIPI '''
-if params['run_pipi'] and params['run_strange']:
-        run_pipi = True
+run_pipi = params['run_pipi'] and params['run_strange']
 
 for c in cfgs_run:
     no = str(c)
@@ -146,7 +145,7 @@ for c in cfgs_run:
             utils.check_file(hyperspec_file,params['hyperspec_size'],params['file_time_delete'],params['corrupt'])
             if run_pipi:
                 pipi_name = c51.names['pik'] % params
-                pipi_file = params['spec'] +'/'+ pipi_name
+                pipi_file = params['hyperspec'] +'/'+ pipi_name
                 utils.check_file(pipi_file, params['pik_size'], params['file_time_delete'],params['corrupt'])
                 pipi_exists = os.path.exists(pipi_file)
                 params['PIPI_SCAT_FILE'] = pipi_file

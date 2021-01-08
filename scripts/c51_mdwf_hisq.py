@@ -24,6 +24,7 @@ elif any(host in hn for host in ['lassen']):
     bind_dir  = '/usr/workspace/coldqcd/software/callat_build_scripts/binding_scripts/'
     milc_dir  = '/usr/workspace/coldqcd/software/lassen_smpi_RR/install/lattice_milc_qcd'
     python    = '/usr/workspace/coldqcd/software/python_venv-3.7.2.lassen/bin/python'
+    jsrun_fail= '/p/gpfs1/walkloud/c51/x_files/project_2/production/failing_jsrun_jobids.txt'
 elif any(host in hn for host in ['login','batch']):
     ''' TERRIBLE LOGIN NAME FOR SUMMIT '''
     manage   = '/ccs/proj/lgt100/c51/x_files/project_2'
@@ -95,6 +96,7 @@ data_dir_4d = scratch+'/production/%(ENS_S)s/data_4D'
 ff_data_dir = scratch+'/production/%(ENS_S)s/ff4D_data'
 
 def ensemble(params):
+    params['JSRUN_FAIL']  = jsrun_fail
     milc_cfg              = params['ENS_LONG']+params['STREAM']+'.'+params['CFG']
     params['prod']        = scratch + "/production/" + params['ENS_S']
     params['milc_cfg']    = params['prod']+'/cfgs/'+milc_cfg

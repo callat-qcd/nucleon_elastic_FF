@@ -131,6 +131,14 @@ def p_lst(nsq):
         p_lst.append('px%d_py%d_pz%d' %(xyz[0],xyz[1],xyz[2]))
     return p_lst
 
+def psq_dict(nsq):
+    psq_dict = dict()
+    for msq in range(nsq+1):
+        n = int(np.ceil(np.sqrt(msq)))
+        r = range(-n,n+1,1)
+        psq_dict[msq] = ['px%d_py%d_pz%d' %(x,y,z) for x in r for y in r for z in r if x**2 +y**2 +z**2 == msq]
+    return psq_dict
+    
 def p_simple_lst(n=4):
     r = [i for j in (range(-n,0), range(1,n+1)) for i in j]
     p_lst = []
