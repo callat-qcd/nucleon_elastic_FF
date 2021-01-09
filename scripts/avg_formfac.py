@@ -33,14 +33,15 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
-parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
+parser.add_argument('--cfgs',        nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-t','--t_sep',  nargs='+',type=int,help='values of t_sep [default = all]')
+parser.add_argument('--tau_cut',     default=True, action='store_false',help='cut data to just from src to sink? [%(default)s]')
 parser.add_argument('-c','--current',type=str,nargs='+',help='pick a specific current or currents? [A3 V4 ...]')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--srcs',type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
-parser.add_argument('--fout',type=str,help='name of output file')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('-o',            default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
+parser.add_argument('-v',            default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--srcs',        type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
+parser.add_argument('--fout',        type=str,help='name of output file')
+parser.add_argument('--src_set',     nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -108,6 +109,9 @@ if args.t_sep == None:
     pass
 else:
     params['t_seps'] = args.t_sep
+
+print('running ',cfgs[0],'-->',cfgs[-1])
+print('srcs:',src_ext)
 print('getting t_sep values')
 print(params['t_seps'])
 if args.current != None:
@@ -188,7 +192,10 @@ for corr in params['particles']:
                                 # FORMFAC files already have -1 applied
                                 data = utils.time_reverse(data,phase=1,time_axis=1)
                             print('    Nc=%4d, Ns=%.7f' %(cfgs_srcs.shape[0],cfgs_srcs.mean(axis=0)[1]))
-                            data_slice = data[:,0:tsep+1]
+                            if args.tau_cut:
+                                data_slice = data[:,0:tsep+1]
+                            else:
+                                data_slice = data
                             if mom in f5_out.get_node(curr_dir):
                                 f5_out.remove_node(curr_dir,mom,recursive=True)
                             f5_out.create_group(curr_dir,mom)
