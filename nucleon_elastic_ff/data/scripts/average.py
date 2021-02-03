@@ -3,6 +3,7 @@
 from typing import List
 from typing import Dict
 from typing import Optional
+from typing import Callable
 
 import os
 import re
@@ -30,6 +31,7 @@ def dset_avg(  # pylint: disable=R0914, R0913
     overwrite: bool = False,
     expected_dsets: Optional[int] = None,
     fail_unexpected_dsets: bool = True,
+    dset_fcn: Optional[Callable] = None,
 ):
     """Reads h5 files and exports the average of datasets across files.
 
@@ -91,6 +93,18 @@ def dset_avg(  # pylint: disable=R0914, R0913
                 If True, fails if number of found dsets in a group is unequal to
                 ``expected_dsets``.
 
+            dset_fcn: Optional[Callable] = None
+                Function which acts on dsets before aggregating the average.
+                Takes as argument, the dset and as kwargs the filename and path of the
+                input file, the out path and the number of files to be averaged over.
+                It should return the modified dsets:
+                ``dset_new = dset_fcn(
+                        dset_array,
+                        filename=filename,
+                        path=path,
+                        avg_path=avg_path,
+                        n_avg=n_avg
+                )``
     """
     dsets_paths = {}
     n_dsets = {}
@@ -128,7 +142,9 @@ def dset_avg(  # pylint: disable=R0914, R0913
 
                 meta = val.attrs.get("meta", None)
                 meta = str(meta) + "&" if meta else ""
-                meta += "&".join([f"{kkey}=={vval}" for kkey, vval in meta_info.items()])
+                meta += "&".join(
+                    [f"{kkey}=={vval}" for kkey, vval in meta_info.items()]
+                )
 
                 if out_grp in dsets_paths:
                     dsets_paths[out_grp].append((file, key))
@@ -151,7 +167,7 @@ def dset_avg(  # pylint: disable=R0914, R0913
                 )
 
     LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_paths), out_file)
-    with h5py.File(out_file) as h5f:
+    with h5py.File(out_file, "x" if not overwrite else "r+") as h5f:
         for key, paths in dsets_paths.items():
             LOGGER.debug(
                 "Writing dset `%s` (average of %d dsets) with meta info:\n\t`%s`",
@@ -167,7 +183,17 @@ def dset_avg(  # pylint: disable=R0914, R0913
             acc = 0
             for file, path in paths:
                 with h5py.File(file, "r") as h5fin:
-                    acc += h5fin[path][()]
+                    acc += (
+                        h5fin[path][()]
+                        if dset_fcn is None
+                        else dset_fcn(
+                            h5fin[path],
+                            filename=file,
+                            path=path,
+                            avg_path=key,
+                            n_avg=n_dsets[key],
+                        )
+                    )
 
             create_dset(h5f, key, acc / n_dsets[key], overwrite=overwrite)
             h5f[key].attrs["meta"] = dset_meta[key]
