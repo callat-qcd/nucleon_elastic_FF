@@ -108,13 +108,15 @@ for c in cfgs_run:
     params = c51.ensemble(params)
     params['RUN_DIR']     = params['prod']
 
-    ''' check if flowed cfg exists and make if not '''
+    ''' check if scidac cfg exists and make if not '''
     utils.ensure_dirExists(params['prod']+'/cfgs_coul')
     utils.ensure_dirExists(params['prod']+'/cfgs_scidac')
-    cfg_coul = params['prod']+'/cfgs_coul/'+params['ENS_LONG']+stream+'.'+no+'.coulomb'
+    cfg_milc   = params['prod']+'/cfgs/'+params['ENS_LONG']+stream+'.'+no
+    cfg_coul   = params['prod']+'/cfgs_coul/'+params['ENS_LONG']+stream+'.'+no+'.coulomb'
     cfg_scidac = params['prod']+'/cfgs_scidac/'+params['ENS_LONG']+stream+'.'+no+'.scidac'
     cfg_flow   = params['ENS_LONG']+stream+'.'+no+'_wflow'+params['FLOW_TIME']
     milc_cfg   = params['milc_cfg']
+
     if os.path.exists(cfg_scidac):
         cfg_file = cfg_scidac
     else:
@@ -128,7 +130,34 @@ for c in cfgs_run:
         params['CLEANUP']  += 'else\n'
         params['CLEANUP']  += '    echo "mpirun failed"\n'
         params['CLEANUP']  += 'fi\n'
-        cfg_in = '''
+        if not os.path.exists(cfg_scidac):
+            cfg_in = '''
+reload_parallel %s
+u0 %s
+no_gauge_fix
+save_parallel_scidac %s
+staple_weight 0
+ape_iter 0
+coordinate_origin 0 0 0 0
+time_bc antiperiodic
+
+max_number_of_eigenpairs 0
+number_of_pbp_masses 0
+number_of_base_sources 0
+number_of_modified_sources 0
+number_of_sets 0
+number_of_quarks 0
+number_of_mesons 0
+number_of_baryons 0
+
+continue
+
+u0 %s
+coulomb_gauge_fix
+save_parallel %s
+''' %(milc_cfg, u0, cfg_scidac, u0, cfg_coul)
+        else:
+            cfg_in = '''
 reload_parallel %s
 u0 %s
 coulomb_gauge_fix

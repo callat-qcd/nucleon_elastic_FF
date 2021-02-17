@@ -125,7 +125,7 @@ def mpirun_params(machine):
         params['hisq_g_rs']    = '-g4'
         params['hisq_c_rs']    = '-c4'
         params['hisq_latency'] = '-l gpu-cpu'
-        params['hisq_geom']    = ' -qmp-geom 1 1 3 2'
+        params['hisq_geom']    = ' -qmp-geom 1 1 1 4'
 
 
     if machine == 'summit':
