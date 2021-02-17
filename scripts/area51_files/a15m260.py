@@ -1,8 +1,11 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['run_ff'] = True
+params['tuning_mq']   = True
+params['tuning_ms']   = True
+params['run_ff']      = False
+params['run_strange'] = True
+params['run_pipi']    = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -115,8 +118,8 @@ def mpirun_params(machine):
         params['hisq_nodes']  = 1
         params['hisq_metaq_nodes'] = 0
         params['hisq_gpus']   = 4
-        params['hisq_coul_spec'] = 16
-        params['hisq_time']   = 16
+        params['hisq_coul_spec'] = 20
+        params['hisq_time']   = 20
         params['hisq_maxcus'] = 1
 
         params['hisq_nrs']     = '--nrs 1'
