@@ -115,8 +115,8 @@ def mpirun_params(machine):
         params['hisq_nodes']  = 1
         params['hisq_metaq_nodes'] = 0
         params['hisq_gpus']   = 4
-        params['hisq_coul_spec'] = 24
-        params['hisq_time']   = 24
+        params['hisq_coul_spec'] = 15
+        params['hisq_time']   = 10
         params['hisq_maxcus'] = 1
 
         params['hisq_nrs']     = '--nrs 1'
