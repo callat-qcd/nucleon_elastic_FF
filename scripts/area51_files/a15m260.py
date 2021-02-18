@@ -37,7 +37,7 @@ params['L5'] = '14'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
 params['B5']     = '1.5'
 params['C5']     = '0.5'
-params['alpha5'] = '2.0'
+params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
 params['MV_L'] = '0.0105'
 params['MV_S'] = '0.0902'

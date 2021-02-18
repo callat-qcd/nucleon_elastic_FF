@@ -125,7 +125,7 @@ for c in cfgs_run:
     if not os.path.exists(cfg_coul):
         params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
         params['CLEANUP']   = '    cd '+params['ENS_DIR']+'\n'
-        params['CLEANUP']  += '    python '+params['SCRIPT_DIR']+'/METAQ_hisq_spec.py '
+        params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_hisq_spec.py '
         params['CLEANUP']  += params['CFG']+' '+params['PRIORITY']+'\n'
         params['CLEANUP']  += 'else\n'
         params['CLEANUP']  += '    echo "mpirun failed"\n'

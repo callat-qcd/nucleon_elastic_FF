@@ -1,14 +1,17 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = True
-params['run_ff'] = False
+params['tuning_mq']   = True
+params['tuning_ms']   = True
+params['run_ff']      = False
+params['run_strange'] = True
+params['run_pipi']    = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
-params['si'] = 0
-params['sf'] = 0
-params['ds'] = 1
+params['cfg_i'] = 300    #* started hisq spectrum on this
+params['cfg_f'] = 6300
+params['cfg_d'] = 6
 
 #l4896f211b630m0052m0363m430a
 params['ENS_ABBR'] = 'a09m260'
@@ -21,9 +24,6 @@ params['MS_S'] = '0.0363'
 params['MS_C'] = '0.430'
 params['NAIK'] = ''
 params['save_hisq_prop'] = False
-params['cfg_i'] = 1904    #* started hisq spectrum on this
-params['cfg_f'] = 3902   #*
-params['cfg_d'] = 6
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
@@ -31,11 +31,11 @@ params['WF_S'] = '3.5'
 params['WF_N'] = '45'
 
 params['M5'] = '1.1'
-params['L5'] = '6'
+params['L5'] = '8'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
-params['B5']     = '1.25'
-params['C5']     = '0.25'
-params['alpha5'] = '1.5'
+params['B5']     = '1.5'
+params['C5']     = '0.5'
+params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
 params['MV_L'] = '0.0069'
 params['MV_S'] = '0.0491'
@@ -113,20 +113,20 @@ def mpirun_params(machine):
         params['gpu_p_milc']    = '-p16'
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
-        params['hisq_nodes']  = 1
+        params['hisq_nodes']  = 2
         params['hisq_metaq_nodes'] = 0
-        params['hisq_gpus']   = 4
-        params['hisq_coul_spec'] = 16
-        params['hisq_time']   = 16
+        params['hisq_gpus']   = 8
+        params['hisq_coul_spec'] = 30
+        params['hisq_time']   = 30
         params['hisq_maxcus'] = 1
 
-        params['hisq_nrs']     = '--nrs 1'
+        params['hisq_nrs']     = '--nrs 2'
         params['hisq_rs_node'] = '-r1'
         params['hisq_a_rs']    = '-a4'
         params['hisq_g_rs']    = '-g4'
         params['hisq_c_rs']    = '-c4'
         params['hisq_latency'] = '-l gpu-cpu'
-        params['hisq_geom']    = ' -qmp-geom 1 1 3 2'
+        params['hisq_geom']    = ' -qmp-geom 1 1 1 8'
 
 
     if machine == 'summit':

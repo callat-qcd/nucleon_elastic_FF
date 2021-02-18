@@ -1,12 +1,15 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = True
-params['run_ff'] = True
+params['tuning_mq']   = True
+params['tuning_ms']   = True
+params['run_ff']      = False
+params['run_strange'] = True
+params['run_pipi']    = True
 
 #l3264f211b600m00717m0507m628a
-params['cfg_i'] = 100
-params['cfg_f'] = 5300
+params['cfg_i'] = 300
+params['cfg_f'] = 5295
 params['cfg_d'] = 5
 
 params['ENS_ABBR'] = 'a12m260'
@@ -19,9 +22,6 @@ params['MS_S'] = '0.0507'
 params['MS_C'] = '0.628'
 params['NAIK'] = ''
 params['save_hisq_prop'] = False
-params['cfg_i'] = 100    #*
-params['cfg_f'] = 5295   #*
-params['cfg_d'] = 5
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
@@ -33,9 +33,9 @@ params['L5'] = '8'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
 params['B5']     = '1.5'
 params['C5']     = '0.5'
-params['alpha5'] = '1.5'
+params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
-params['MV_L'] = '0.0126'
+params['MV_L'] = '0.0088'
 params['MV_S'] = '0.0693'
 
 params['spec_size'] = 1
@@ -115,8 +115,8 @@ def mpirun_params(machine):
         params['hisq_nodes']  = 1
         params['hisq_metaq_nodes'] = 0
         params['hisq_gpus']   = 4
-        params['hisq_coul_spec'] = 16
-        params['hisq_time']   = 16
+        params['hisq_coul_spec'] = 24
+        params['hisq_time']   = 24
         params['hisq_maxcus'] = 1
 
         params['hisq_nrs']     = '--nrs 1'
@@ -125,7 +125,7 @@ def mpirun_params(machine):
         params['hisq_g_rs']    = '-g4'
         params['hisq_c_rs']    = '-c4'
         params['hisq_latency'] = '-l gpu-cpu'
-        params['hisq_geom']    = ' -qmp-geom 1 1 3 2'
+        params['hisq_geom']    = ' -qmp-geom 1 1 1 4'
 
 
     if machine == 'summit':
