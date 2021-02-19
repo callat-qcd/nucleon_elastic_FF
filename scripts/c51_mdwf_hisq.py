@@ -135,7 +135,7 @@ names['spec_4D_tslice']     = names['spec'].replace('spec_','spec_4D_tslice_')
 names['spec_4D_tslice_avg'] = names['spec'].replace('spec_','spec_4D_tslice_avg_')
 names['hyperspec']        = 'hyperspec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['hyperspec']       += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_ml%(MV_L)s_ms%(MV_S)s_%(SRC)s'
-names['hisq_spec']        = 'hisq_spec_%(ENS_S)s_ml%(ML)s_ms%(MS)s_%(CFG)s_%(SRC)s'
+names['hisq_spec']        = 'hisq_spec_%(ENS_S)s_ml%(MS_L)s_ms%(MS_S)s_%(CFG)s_%(SRC)s'
 names['seqsrc']           = 'seqsrc_%(ENS_S)s_%(CFG)s_%(PARTICLE)s_%(FLAV_SPIN)s'
 names['seqsrc']          += '_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s'
 names['seqsrc']          += '_%(MOM)s_%(SRC)s_%(SS_PS)s'
@@ -154,6 +154,7 @@ names['formfac_4D_tslice_src_avg'] = names['formfac'].replace('formfac','formfac
 
 names['mixed_corr']       = 'dwf_hisq_spec_%(ENS_S)s_wflow%(FLOW_TIME)s_M5%(M5)s_L5%(L5)s'
 names['mixed_corr']      += '_a%(alpha5)s_cfg_%(CFG)s_src%(SRC)s_%(SMR)s_ml%(MQ_L)s_ms%(MQ_S)s.corr'
+names['hisq_corr']        = 'hisq_spec_%(ENS_S)s_ml%(MS_L)s_ms%(MS_S)s_%(CFG)s_%(SRC)s'
 
 names['pipi']             = 'pipi_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['pipi']            += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(Q)s_%(SRC)s'
