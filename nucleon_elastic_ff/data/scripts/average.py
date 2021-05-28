@@ -173,7 +173,7 @@ def dset_avg(  # pylint: disable=R0914, R0913
                 )
 
     LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_paths), out_file)
-    with h5py.File(out_file, "x" if not overwrite else "r+") as h5f:
+    with h5py.File(out_file, "x" if not overwrite else "a") as h5f:
         for key, paths in dsets_paths.items():
 
             if overwrite and skip_existing_dsets and key in h5f:
