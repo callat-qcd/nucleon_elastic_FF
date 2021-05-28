@@ -155,7 +155,7 @@ def dset_avg(  # pylint: disable=R0914, R0913
                 if out_grp in dsets_paths:
                     dsets_paths[out_grp].append((file, key))
                     n_dsets[out_grp] += 1
-                    dset_meta[out_grp] += "\n" + meta
+                    dset_meta[out_grp] += ("\n" + meta) if meta else ""
                 else:
                     dsets_paths[out_grp] = [(file, key)]
                     n_dsets[out_grp] = 1
