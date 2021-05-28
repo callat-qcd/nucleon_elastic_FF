@@ -32,6 +32,7 @@ def dset_avg(  # pylint: disable=R0914, R0913
     expected_dsets: Optional[int] = None,
     fail_unexpected_dsets: bool = True,
     dset_fcn: Optional[Callable] = None,
+    skip_existing_dsets: bool = False,
 ):
     """Reads h5 files and exports the average of datasets across files.
 
@@ -105,6 +106,11 @@ def dset_avg(  # pylint: disable=R0914, R0913
                         avg_path=avg_path,
                         n_avg=n_avg
                 )``
+
+            skip_existing_dsets: bool = False
+                Only comes into place if overwrite is true.
+                If a dset is already present in the exisiting output h5file,
+                do not perform average and skip it.
     """
     dsets_paths = {}
     n_dsets = {}
@@ -169,6 +175,11 @@ def dset_avg(  # pylint: disable=R0914, R0913
     LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_paths), out_file)
     with h5py.File(out_file, "x" if not overwrite else "r+") as h5f:
         for key, paths in dsets_paths.items():
+
+            if overwrite and skip_existing_dsets and key in h5f:
+                LOGGER.debug("Skipping dset `%s`", key)
+                continue
+
             LOGGER.debug(
                 "Writing dset `%s` (average of %d dsets) with meta info:\n\t`%s`",
                 key,
