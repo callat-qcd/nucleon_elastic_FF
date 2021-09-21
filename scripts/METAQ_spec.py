@@ -51,17 +51,22 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
-if 'si' in params and 'sf' in params and 'ds' in params:
-    tmp_params = dict()
-    tmp_params['si'] = params['si']
-    tmp_params['sf'] = params['sf']
-    tmp_params['ds'] = params['ds']
-    params = sources.src_start_stop(params,ens,stream)
-    params['si'] = tmp_params['si']
-    params['sf'] = tmp_params['sf']
-    params['ds'] = tmp_params['ds']
+if params['tuning_mq']:
+    params['si'] = 0
+    params['sf'] = 0
+    params['ds'] = 1
 else:
-    params = sources.src_start_stop(params,ens,stream)
+    if 'si' in params and 'sf' in params and 'ds' in params:
+        tmp_params = dict()
+        tmp_params['si'] = params['si']
+        tmp_params['sf'] = params['sf']
+        tmp_params['ds'] = params['ds']
+        params = sources.src_start_stop(params,ens,stream)
+        params['si'] = tmp_params['si']
+        params['sf'] = tmp_params['sf']
+        params['ds'] = tmp_params['ds']
+    else:
+        params = sources.src_start_stop(params,ens,stream)
 if args.src_set:# override src index in sources and area51 files for collection
     params['si'] = args.src_set[0]
     params['sf'] = args.src_set[1]
@@ -271,7 +276,7 @@ for c in cfgs_run:
                         params['INI']       = xmlini
                         params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                         params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
-                        params['CLEANUP']   = ''
+                        params['CLEANUP']   = 'sleep 30'
                         mtype = args.mtype
                         try:
                             if params['metaq_split']:

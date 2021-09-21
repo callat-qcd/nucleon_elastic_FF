@@ -53,17 +53,23 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
-if 'si' in params and 'sf' in params and 'ds' in params:
-    tmp_params = dict()
-    tmp_params['si'] = params['si']
-    tmp_params['sf'] = params['sf']
-    tmp_params['ds'] = params['ds']
-    params = sources.src_start_stop(params,ens,stream)
-    params['si'] = tmp_params['si']
-    params['sf'] = tmp_params['sf']
-    params['ds'] = tmp_params['ds']
+if params['tuning_mq']:
+    params['si'] = 0
+    params['sf'] = 0
+    params['ds'] = 1
 else:
-    params = sources.src_start_stop(params,ens,stream)
+    if 'si' in params and 'sf' in params and 'ds' in params:
+        tmp_params = dict()
+        tmp_params['si'] = params['si']
+        tmp_params['sf'] = params['sf']
+        tmp_params['ds'] = params['ds']
+        params = sources.src_start_stop(params,ens,stream)
+        params['si'] = tmp_params['si']
+        params['sf'] = tmp_params['sf']
+        params['ds'] = tmp_params['ds']
+    else:
+        params = sources.src_start_stop(params,ens,stream)
+
 if args.src_set:# override src index in sources and area51 files for collection
     params['si'] = args.src_set[0]
     params['sf'] = args.src_set[1]
@@ -177,7 +183,7 @@ for c in cfgs_run:
                 utils.check_file(src_file,file_size,params['file_time_delete'],params['corrupt'])
                 print('making src',src_name)
                 if not os.path.exists(src_file):
-                    metaq = src_name + '.sh'
+                    metaq = (src_name + '.sh').replace('src','source')
                     t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
                     try:
                         if params['metaq_split']:
