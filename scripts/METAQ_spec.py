@@ -272,7 +272,8 @@ for c in cfgs_run:
                         fin.close()
 
                         ''' make METAQ task '''
-                        params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
+                        #params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
+                        params['METAQ_LOG'] = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                         params['INI']       = xmlini
                         params['OUT']       = xmlini.replace('.ini.xml','.out.xml')
                         params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
