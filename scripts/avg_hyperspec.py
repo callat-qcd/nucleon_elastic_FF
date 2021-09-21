@@ -32,12 +32,14 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='average phi_qq')
-parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--srcs',type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
-parser.add_argument('--fout',type=str,help='name of output file')
+parser.add_argument('--cfgs',     nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-o',         default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
+parser.add_argument('-v',         default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--srcs',     type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
+parser.add_argument('--fout',     type=str,help='name of output file')
 parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--psq_max',  type=int,default=0,
+                    help=        'specify Psq max value [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -104,9 +106,13 @@ par_np = [p+'_np' for p in par]
 par = par + par_np
 
 mesons = ['piplus','kplus','kminus']
-p_lst = utils.p_lst(params['MESONS_PSQ_MAX'])
+
+psq_lst    = list(range(0,args.psq_max+1,1))
+
+psq_dict = utils.psq_dict(params['MESONS_PSQ_MAX'])
 for corr in mesons:
-    for mom in p_lst:
+    for nsq in [k for k in psq_lst if k <= max(psq_dict)]:
+        mom        = 'psq_'+str(nsq)
         cfgs_srcs = []
         spec = np.array([],dtype=dtype)
         first_data = True
@@ -176,11 +182,12 @@ for corr in mesons:
                 fout.create_array(tmp_dir+'/'+mom,'cfgs_srcs',cfgs_srcs)
             fout.close()
 
+psq_dict = utils.psq_dict(params['BARYONS_PSQ_MAX'])
 for corr in par:
     print(corr)
-    p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
     ''' flip spin and momentum order in h5 dir structrure '''
-    for mom in p_lst:
+    for nsq in [k for k in psq_lst if k <= max(psq_dict)]:
+        mom        = 'psq_'+str(nsq)
         spin_data = dict()
         have_spin = False
         for s in spin_dict[corr]:

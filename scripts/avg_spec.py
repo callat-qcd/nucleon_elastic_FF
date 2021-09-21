@@ -92,139 +92,66 @@ par  = ['proton','proton_np']
 
 corr = 'piplus'
 p_lst = utils.p_lst(params['MESONS_PSQ_MAX'])
+mqs = 'ml'+mq.replace('.','p')
 for mom in p_lst:
-    cfgs_srcs = []
-    spec = np.array([],dtype=dtype)
-    first_data = True
-    mqs = 'ml'+mq.replace('.','p')
-    for cfg in cfgs:
-        no = str(cfg)
-        good_cfg = False
-        f_open = False
-        if args.srcs == None:
-            file_in = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
-        elif args.srcs == 'old':
-            file_in = data_dir+'/'+ens_s+'_'+no+'.h5'
+    with h5.open_file(f_out,'r') as fout:
+        if '/'+val_p+'/spec/'+mqs+'/'+corr+'/'+mom in fout.root:
+            if args.o:
+                avg_data = True
+            else:
+                avg_data = False
         else:
-            file_in = data_dir+'/'+ens_s+'_'+no+'_'+args.srcs+'.h5'
-        if os.path.exists(file_in):
-            fin = h5.open_file(file_in,'r')
-            f_open = True
-            try:
-                srcs = fin.get_node('/'+val_p+'/spec/'+mqs+'/'+corr+'/'+mom)
-                if srcs._v_nchildren > 0:
-                    good_cfg = True
-            except:
-                print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
-        #    fin.close()
-        if good_cfg:
-            ns = 0
-            tmp = []
-            for src in srcs:
-                tmp.append(src.read())
-                ns += 1
-            if args.v:
-                sys.stdout.write('%s %s %s %s Ns = %.2f\r' %(corr,mq,mom,no,ns))
-                sys.stdout.flush()
-                #print(corr,mq,mom,no,'Ns = ',ns)
-            tmp = np.array(tmp)
-            if first_data:
-                spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
-                spec[0] = tmp.mean(axis=0)
-                first_data = False
+            avg_data = False
+    if avg_data:
+        cfgs_srcs = []
+        spec = np.array([],dtype=dtype)
+        first_data = True
+        mqs = 'ml'+mq.replace('.','p')
+        for cfg in cfgs:
+            no = str(cfg)
+            good_cfg = False
+            f_open = False
+            if args.srcs == None:
+                file_in = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
+            elif args.srcs == 'old':
+                file_in = data_dir+'/'+ens_s+'_'+no+'.h5'
             else:
-                spec = np.append(spec,[tmp.mean(axis=0)],axis=0)
-            cfgs_srcs.append([cfg,ns])
-        if f_open:
-            fin.close()
-    cfgs_srcs = np.array(cfgs_srcs)
-    nc = cfgs_srcs.shape[0]
-    ns_avg = cfgs_srcs.mean(axis=0)[1]
-    print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
-    if nc > 0:
-        fout = h5.open_file(f_out,'a')
-        try:
-            fout.create_group('/'+val_p+'/spec/'+mqs,corr,createparents=True)
-        except:
-            pass
-        tmp_dir = '/'+val_p+'/spec/'+mqs+'/'+corr
-        add_spec = True
-        if mom in fout.get_node(tmp_dir) and not args.o:
-            print(tmp_dir+'/'+mom+' exists: overwrite = False')
-            add_spec = False
-        elif mom in fout.get_node(tmp_dir) and args.o:
-            fout.remove_node(tmp_dir,mom,recursive=True)
-            fout.create_group(tmp_dir,mom)
-        elif corr not in fout.get_node(tmp_dir):
-            fout.create_group(tmp_dir,mom)
-        if add_spec:
-            fout.create_array(tmp_dir+'/'+mom,'corr',spec)
-            fout.create_array(tmp_dir+'/'+mom,'cfgs_srcs',cfgs_srcs)
-        fout.close()
-
-for corr in par:
-    print(corr)
-    p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
-    ''' flip spin and momentum order in h5 dir structrure '''
-    for mom in p_lst:
-        spin_data = dict()
-        have_spin = False
-        for s in spin:
-            cfgs_srcs = []
-            spec = np.array([],dtype=dtype)
-            first_data = True
-            mqs = 'ml'+mq.replace('.','p')
-            for cfg in cfgs:
-                no = str(cfg)
-                good_cfg = False
-                if args.srcs == None:
-                    file_in = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
-                elif args.srcs == 'old':
-                    file_in = data_dir+'/'+ens_s+'_'+no+'.h5'
+                file_in = data_dir+'/'+ens_s+'_'+no+'_'+args.srcs+'.h5'
+            if os.path.exists(file_in):
+                fin = h5.open_file(file_in,'r')
+                f_open = True
+                try:
+                    srcs = fin.get_node('/'+val_p+'/spec/'+mqs+'/'+corr+'/'+mom)
+                    if srcs._v_nchildren > 0:
+                        good_cfg = True
+                except:
+                    print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
+            #    fin.close()
+            if good_cfg:
+                ns = 0
+                tmp = []
+                for src in srcs:
+                    tmp.append(src.read())
+                    ns += 1
+                if args.v:
+                    sys.stdout.write('%s %s %s %s Ns = %.2f\r' %(corr,mq,mom,no,ns))
+                    sys.stdout.flush()
+                    #print(corr,mq,mom,no,'Ns = ',ns)
+                tmp = np.array(tmp)
+                if first_data:
+                    spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
+                    spec[0] = tmp.mean(axis=0)
+                    first_data = False
                 else:
-                    file_in = data_dir+'/'+ens_s+'_'+no+'_'+args.srcs+'.h5'
-                if os.path.exists(file_in):
-                    fin = h5.open_file(file_in,'r')
-                    try:
-                        srcs = fin.get_node('/'+val_p+'/spec/'+mqs+'/'+corr+'/'+s+'/'+mom)
-                        if srcs._v_nchildren > 0:
-                            good_cfg = True
-                    except:
-                        print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
-                if good_cfg:
-                    ns = 0
-                    tmp = []
-                    for src in srcs:
-                        tmp.append(src.read())
-                        ns += 1
-                    if args.v:
-                        sys.stdout.write('%s %s %s %s %s Ns = %.2f\r' %(corr,s,mq,mom,no,ns))
-                        sys.stdout.flush()
-                        #print(corr,s,mq,no,mom,'Ns = ',ns)
-                    tmp = np.array(tmp)
-                    if first_data:
-                        spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
-                        spec[0] = tmp.mean(axis=0)
-                        first_data = False
-                    else:
-                        spec = np.append(spec,[tmp.mean(axis=0)],axis=0)
-                    cfgs_srcs.append([cfg,ns])
+                    spec = np.append(spec,[tmp.mean(axis=0)],axis=0)
+                cfgs_srcs.append([cfg,ns])
+            if f_open:
                 fin.close()
-            cfgs_srcs = np.array(cfgs_srcs)
-            ''' perform time-reversal on neg par correlators '''
-            if '_np' in corr:
-                print('PERFORMING TIME_REVERSAL:',corr)
-                spec = utils.time_reverse(spec,phase=-1,time_axis=1)
-            spin_data[s] = spec
-            if 'cfgs_srcs' not in spin_data:
-                spin_data['cfgs_srcs'] = cfgs_srcs
-            else:
-                if not np.all(cfgs_srcs == spin_data['cfgs_srcs']):
-                    print('spin_data miss match')
-                    sys.exit()
-            if cfgs_srcs.shape[0] > 0:
-                have_spin = True
-        if have_spin:
+        cfgs_srcs = np.array(cfgs_srcs)
+        nc = cfgs_srcs.shape[0]
+        ns_avg = cfgs_srcs.mean(axis=0)[1]
+        print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
+        if nc > 0:
             fout = h5.open_file(f_out,'a')
             try:
                 fout.create_group('/'+val_p+'/spec/'+mqs,corr,createparents=True)
@@ -238,15 +165,107 @@ for corr in par:
             elif mom in fout.get_node(tmp_dir) and args.o:
                 fout.remove_node(tmp_dir,mom,recursive=True)
                 fout.create_group(tmp_dir,mom)
-            elif mom not in fout.get_node(tmp_dir):
+            elif corr not in fout.get_node(tmp_dir):
                 fout.create_group(tmp_dir,mom)
             if add_spec:
-                c_dir = tmp_dir + '/' + mom
-                cfgs_srcs = spin_data['cfgs_srcs']
-                nc = cfgs_srcs.shape[0]
-                ns_avg = cfgs_srcs.mean(axis=0)[1]
-                print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
-                fout.create_array(c_dir,'cfgs_srcs',cfgs_srcs)
-                for s in spin:
-                    fout.create_array(c_dir,s,spin_data[s])
+                fout.create_array(tmp_dir+'/'+mom,'corr',spec)
+                fout.create_array(tmp_dir+'/'+mom,'cfgs_srcs',cfgs_srcs)
             fout.close()
+
+for corr in par:
+    print(corr)
+    p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
+    ''' flip spin and momentum order in h5 dir structrure '''
+    for mom in p_lst:
+        with h5.open_file(f_out,'r') as fout:
+            avg_data = False
+            for s in spin:
+                if '/'+val_p+'/spec/'+mqs+'/'+corr+'/'+mom+'/'+s not in fout.root:
+                    avg_data = True
+                else:
+                    if args.o:
+                        avg_data = True
+        if avg_data:
+            spin_data = dict()
+            have_spin = False
+            for s in spin:
+                cfgs_srcs = []
+                spec = np.array([],dtype=dtype)
+                first_data = True
+                mqs = 'ml'+mq.replace('.','p')
+                for cfg in cfgs:
+                    no = str(cfg)
+                    good_cfg = False
+                    if args.srcs == None:
+                        file_in = data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5'
+                    elif args.srcs == 'old':
+                        file_in = data_dir+'/'+ens_s+'_'+no+'.h5'
+                    else:
+                        file_in = data_dir+'/'+ens_s+'_'+no+'_'+args.srcs+'.h5'
+                    if os.path.exists(file_in):
+                        fin = h5.open_file(file_in,'r')
+                        try:
+                            srcs = fin.get_node('/'+val_p+'/spec/'+mqs+'/'+corr+'/'+s+'/'+mom)
+                            if srcs._v_nchildren > 0:
+                                good_cfg = True
+                        except:
+                            print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
+                    if good_cfg:
+                        ns = 0
+                        tmp = []
+                        for src in srcs:
+                            tmp.append(src.read())
+                            ns += 1
+                        if args.v:
+                            sys.stdout.write('%s %s %s %s %s Ns = %.2f\r' %(corr,s,mq,mom,no,ns))
+                            sys.stdout.flush()
+                            #print(corr,s,mq,no,mom,'Ns = ',ns)
+                        tmp = np.array(tmp)
+                        if first_data:
+                            spec = np.zeros((1,)+tmp.mean(axis=0).shape,dtype=dtype)
+                            spec[0] = tmp.mean(axis=0)
+                            first_data = False
+                        else:
+                            spec = np.append(spec,[tmp.mean(axis=0)],axis=0)
+                        cfgs_srcs.append([cfg,ns])
+                    fin.close()
+                cfgs_srcs = np.array(cfgs_srcs)
+                ''' perform time-reversal on neg par correlators '''
+                if '_np' in corr:
+                    print('PERFORMING TIME_REVERSAL:',corr)
+                    spec = utils.time_reverse(spec,phase=-1,time_axis=1)
+                spin_data[s] = spec
+                if 'cfgs_srcs' not in spin_data:
+                    spin_data['cfgs_srcs'] = cfgs_srcs
+                else:
+                    if not np.all(cfgs_srcs == spin_data['cfgs_srcs']):
+                        print('spin_data miss match')
+                        sys.exit()
+                if cfgs_srcs.shape[0] > 0:
+                    have_spin = True
+            if have_spin:
+                fout = h5.open_file(f_out,'a')
+                try:
+                    fout.create_group('/'+val_p+'/spec/'+mqs,corr,createparents=True)
+                except:
+                    pass
+                tmp_dir = '/'+val_p+'/spec/'+mqs+'/'+corr
+                add_spec = True
+                if mom in fout.get_node(tmp_dir) and not args.o:
+                    print(tmp_dir+'/'+mom+' exists: overwrite = False')
+                    add_spec = False
+                elif mom in fout.get_node(tmp_dir) and args.o:
+                    fout.remove_node(tmp_dir,mom,recursive=True)
+                    fout.create_group(tmp_dir,mom)
+                elif mom not in fout.get_node(tmp_dir):
+                    fout.create_group(tmp_dir,mom)
+                if add_spec:
+                    c_dir = tmp_dir + '/' + mom
+                    cfgs_srcs = spin_data['cfgs_srcs']
+                    nc = cfgs_srcs.shape[0]
+                    ns_avg = cfgs_srcs.mean(axis=0)[1]
+                    print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
+                    fout.create_array(c_dir,'cfgs_srcs',cfgs_srcs)
+                    for s in spin:
+                        fout.create_array(c_dir,s,spin_data[s])
+                fout.close()
