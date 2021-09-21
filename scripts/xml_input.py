@@ -35,6 +35,26 @@ wflow_cfg = """<elem>
 
 """
 
+coul_cfg = """<elem>
+<Name>COULOMB_GAUGEFIX</Name>
+<Frequency>1</Frequency>
+<Param>
+  <version>1</version>
+  <GFAccu>%(GF_PREC)s</GFAccu>
+  <GFMax>%(GF_ITER)s</GFMax>
+  <OrDo>%(OVERRELAX)s</OrDo>
+  <OrPara>%(OVERRELAX_PARAM)s</OrPara>
+  <j_decay>%(GF_DECAY)s</j_decay>
+</Param>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <gfix_id>%(GF_ID)s</gfix_id>
+  <gauge_rot_id>%(GF_ROTATION_ID)s</gauge_rot_id>
+</NamedObject>
+</elem>
+"""
+
+
 hdf5_read='''<elem>
 <Name>HDF5_READ_NAMED_OBJECT</Name>
 <Frequency>1</Frequency>
@@ -220,6 +240,27 @@ shell_smearing='''
 </elem>
 
 '''
+
+mom_vol_src = """<elem>
+<Name>MAKE_SOURCE</Name>
+<Frequency>1</Frequency>
+<Param>
+<version>6</version>
+<Source>
+  <version>1</version>
+  <SourceType>CW_SOURCE</SourceType>
+  <j_decay>3</j_decay>
+  <mom>%(PX)s %(PY)s %(PZ)s %(PT)s</mom>
+  <av_mom>false</av_mom>
+  <t_source>%(T0)s</t_source>
+</Source>
+</Param>
+<NamedObject>
+<gauge_id>default_gauge_field</gauge_id>
+<source_id>%(SRC_NAME)s</source_id>
+</NamedObject>
+</elem>
+"""
 
 meson_spec='''<elem>
 <Name>MESON_CONTRACTIONS</Name>

@@ -20,7 +20,8 @@ elif any(host in hn for host in ['lassen']):
     manage    = '/usr/workspace/coldqcd/c51/x_files/project_2'
     scratch   = '/p/gpfs1/walkloud/c51/x_files/project_2'
     machine   = 'lassen'
-    env       = 'source /usr/workspace/coldqcd/software/lassen_smpi_RR/install/env.sh'
+    #env       = 'source /usr/workspace/coldqcd/software/lassen_smpi_RR/install/env.sh'
+    env       = 'source /usr/workspace/coldqcd/software/lassen_smpi_RR2/install/env.sh'
     bind_dir  = '/usr/workspace/coldqcd/software/callat_build_scripts/binding_scripts/'
     milc_dir  = '/usr/workspace/coldqcd/software/lassen_smpi_RR/install/lattice_milc_qcd'
     python    = '/usr/workspace/coldqcd/software/python_venv-3.7.2.lassen/bin/python'
@@ -84,6 +85,7 @@ ens_long = {
     'a09m130'  :'l6496f211b630m0012m0363m432',
     'a09m135'  :'l6496f211b630m001326m03636m4313',
     'a06m310L' :'l7296f211b672m0048m024m286',
+    'a06m220L' :'l72128f211b672m0024m02186m2579',
     }
 
 base_dir    = scratch+'/production/%(ENS_S)s'

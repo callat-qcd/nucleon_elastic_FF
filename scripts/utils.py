@@ -67,7 +67,7 @@ def parse_cfg_argument(cfg_arg, params):
             print('unrecognized use of cfg arg')
             print('cfg_i [cfg_f cfg_d]')
             sys.exit()
-    return range(ci,cf+dc,dc)
+    return range(ci,cf+1,dc)
 
 def parse_cfg_src_argument(cfg_arg,src_arg,params,src_type=[]):
     cfgs_run = parse_cfg_argument(cfg_arg,params)
