@@ -1,8 +1,8 @@
 import sources
 
 params = dict()
-params['tuning_mq']   = True
-params['tuning_ms']   = True
+params['tuning_mq']   = False
+params['tuning_ms']   = False
 params['run_ff']      = False
 params['run_strange'] = True
 params['run_pipi']    = True
@@ -40,10 +40,16 @@ params['C5']     = '0.5'
 params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
 params['MV_L'] = '0.0105'
-params['MV_S'] = '0.0902'
+#params['MV_S'] = '0.0902'
+#params['MV_S'] = '0.0897'
+params['MV_S'] = '0.0893'
 
-params['spec_size'] = 1
+params['spec_size'] = 685696
+params['hyperspec_size'] = 1
+params['pik_size'] = 1
 params['ff_size']   = 1
+params['src_size']  = 764414000
+params['prop_size'] = 764415000
 
 params['MAX_ITER']   = '4000'
 params['RSD_TARGET'] = '1.e-7'
@@ -64,6 +70,9 @@ params['file_time_delete'] = 10
 
 params['MESONS_PSQ_MAX']  = 5
 params['BARYONS_PSQ_MAX'] = 5
+''' Pi Pi '''
+params['MM_REL_MOM'] = 2
+params['MM_TOT_MOM'] = 4
 
 params['run_3pt'] = True
 params['t_seps']  = [3,4,5,6,7,8,9,10]
@@ -98,11 +107,12 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = 'lassen_bind_cpu.N32.sh'
 
-        params['gpu_nodes']   = 0
-        params['gpu_metaq_nodes']   = 16
+        params['gpu_nodes']   = 1
+        params['gpu_metaq_nodes'] = 1
         params['gpu_gpus']    = 4
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10
+        params['strange_prop_time']   = 4
 
         params['gpu_nrs']     = '--nrs 1'
         params['gpu_rs_node'] = '-r1'
@@ -116,7 +126,7 @@ def mpirun_params(machine):
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
         params['hisq_nodes']  = 1
-        params['hisq_metaq_nodes'] = 0
+        params['hisq_metaq_nodes'] = 1
         params['hisq_gpus']   = 4
         params['hisq_coul_spec'] = 10
         params['hisq_time']   = 4

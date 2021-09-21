@@ -107,7 +107,7 @@ def mpirun_params(machine):
         params['cpu_bind']    = 'lassen_bind_cpu.N32.sh'
 
         params['gpu_nodes']   = 1
-        params['gpu_metaq_nodes'] = 0
+        params['gpu_metaq_nodes'] = 1
         params['gpu_gpus']    = 4
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10

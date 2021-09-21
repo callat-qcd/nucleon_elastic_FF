@@ -10,6 +10,10 @@ params['run_strange'] = True
 # you must specify all three of these params to override the default
 #params['si'] = 8; params['sf'] = 15; params['ds'] = 1
 
+params['cfg_i'] = 300
+params['cfg_f'] = 5295
+params['cfg_d'] = 5
+
 params['ENS_ABBR'] = 'a12m130'
 params['NL']   = '48'
 params['NT']   = '64'
@@ -17,9 +21,15 @@ params['U0']   = '0.86372'
 params['MS_L'] = '0.00184'
 params['MS_S'] = '0.0507'
 params['MS_C'] = '0.628'
-params['cfg_i'] = 300
-params['cfg_f'] = 5295
-params['cfg_d'] = 5
+params['NAIK'] = '-0.2248'
+
+params['MC_reweight'] = {}
+params['MC_reweight'][2] = [0.6331, 0.6382]
+params['MC_MAX_ITER']       = 500
+params['CC_Nnoise']         = 128
+params['MC_PROP_ERROR']     = '5.e-16'
+params['MC_REL_PROP_ERROR'] = '0'
+
 
 params['FLOW_TIME'] = '1.0'
 params['FLOW_STEP'] = '40'
@@ -110,6 +120,20 @@ def mpirun_params(machine):
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 1 16'
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
+
+        params['hisq_maxcus'] = 1
+        params['charm_pbp_nodes'] = 1
+        params['charm_pbp_meta_nodes'] = 0
+        params['charm_pbp_gpus']  = 4
+        params['charm_pbp_time']  = 20
+        params['charm_pbp_nrs']   = '--nrs 1'
+
+        params['hisq_rs_node'] = '-r1'
+        params['hisq_a_rs']    = '-a4'
+        params['hisq_g_rs']    = '-g4'
+        params['hisq_c_rs']    = '-c4'
+        params['hisq_latency'] = '-l gpu-cpu'
+        params['hisq_geom']    = '-qmp-geom 1 1 1 4 -qmp-alloc-map 3 2 1 0 -qmp-logic-map  3 2 1 0'
 
     if machine == 'lassen_3node':
         params['metaq_split'] = False
