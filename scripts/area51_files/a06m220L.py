@@ -1,8 +1,8 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = True
-params['tuning_ms'] = True
+params['tuning_mq'] = False
+params['tuning_ms'] = False
 params['run_ff'] = False
 params['run_strange'] = True
 
@@ -46,21 +46,26 @@ params['WF_S'] = '3.5'
 params['WF_N'] = '45'
 
 params['M5'] = '1.0'
-params['L5'] = '8'
+params['L5'] = '6'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
 params['B5']     = '1.25'
 params['C5']     = '0.25'
 params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
-params['MV_L'] = '0.00300'
-params['MV_S'] = '0.0300'
+#MV_L = 0.00300, MV_S = 0.0300
+#params['MV_L'] = '0.00306'
+#params['MV_S'] = '0.0281'
+params['MV_L'] = '0.00309'
+params['MV_S'] = '0.0282'
 
 params['spec_size']      = 1
 params['ff_size']        = 1
 params['hyperspec_size'] = 1
 params['mixed_size']     = 48000
-params['src_size']       = 41278244800
-params['prop_size']      = 41278245000
+params['src_size']       = 55037659100
+params['prop_size']      = 55037660500
+params['hisq_spec_size'] = 26000
+params['save_hisq_prop'] = False
 #params['seqsrc_size']  = 28991036000
 #params['seqprop_size'] = 28991036000
 
@@ -78,6 +83,7 @@ params['seed']['c'] = '1c'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
 params['t_shifts'] = [ 0, 64  , 32  , 96 ,   16,  80, 48, 112 ]
 params['generator'] = sources.oa(int(params['NL']))
+params['t_hisq']   = [ 0, 15, 32, 48, 64, 80, 96, 112 ]
 
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10
@@ -122,7 +128,7 @@ def mpirun_params(machine):
         params['gpu_metaq_nodes'] = 8
         params['gpu_gpus']    = 32
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 120
+        params['prop_time']   = 110
         params['strange_prop_time'] = 12
 
         params['gpu_nrs']     = '--nrs 8'
@@ -135,7 +141,7 @@ def mpirun_params(machine):
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
         params['hisq_nodes']  = 8
-        params['hisq_metaq_nodes'] = 0
+        params['hisq_metaq_nodes'] = 8
         params['hisq_gpus']   = 32
         params['hisq_coul_spec'] = 16
         params['hisq_spec']   = 9
