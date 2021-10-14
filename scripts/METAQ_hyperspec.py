@@ -31,18 +31,20 @@ params['METAQ_PROJECT'] = 'spec_'+ens_s
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] run number')
-parser.add_argument('-s','--src',type=str)
-parser.add_argument('-o',default=False,action='store_const',const=True,\
-    help='overwrite xml and metaq files? [%(default)s]')
-parser.add_argument('--mtype',default='cpu',help='specify metaq dir [%(default)s]')
-parser.add_argument('-p',default=False,action='store_const',const=True,\
-    help='put task.sh in priority queue? [%(default)s]')
-parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
-    help='run with verbose output? [%(default)s]')
-parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
-    help='print DEBUG statements? [%(default)s]')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('cfgs',           nargs='+',type=int,help='start [stop] run number')
+parser.add_argument('-s','--src',     type=str)
+parser.add_argument('-o',             default=False,action='store_true',
+                    help=             'overwrite xml and metaq files? [%(default)s]')
+parser.add_argument('--mtype',        default='cpu',help='specify metaq dir [%(default)s]')
+parser.add_argument('-p',             default=False,action='store_true',
+                    help=             'put task.sh in priority queue? [%(default)s]')
+parser.add_argument('-v','--verbose', default=True,action='store_false',
+                    help=             'run with verbose output? [%(default)s]')
+parser.add_argument('-d','--debug',   default=False,action='store_true',
+                    help=             'print DEBUG statements? [%(default)s]')
+parser.add_argument('--src_set',      nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--clean',        default=False,action='store_true',
+                    help=             'delete used src and strange prop files? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -293,5 +295,39 @@ for c in cfgs_run:
             else:
                 if args.verbose:
                     print('hyperspec exists',hyperspec_file)
+                if args.clean:
+                    # light prop
+                    params['MQ'] = params['MV_L']
+                    light_prop_name = c51.names['prop'] % params
+                    light_prop_file = params['prop'] + '/' + light_prop_name+'.'+params['SP_EXTENSION']
+                    ''' make sure prop is correct size '''
+                    try:
+                        file_size = params['prop_size']
+                    except:
+                        print('PROP_SIZE not defined in area51 file: using crude default')
+                        file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
+                    utils.check_file(light_prop_file,file_size,params['file_time_delete'],params['corrupt'])
+                    light_prop_exists = os.path.exists(light_prop_file)
+                    # strange prop
+                    params['MQ'] = params['MV_S']
+                    strange_prop_name = c51.names['prop'] % params
+                    strange_prop_file = params['prop_strange'] + '/' + strange_prop_name+'.'+params['SP_EXTENSION']
+                    utils.check_file(strange_prop_file, file_size,params['file_time_delete'],params['corrupt'])
+                    strange_prop_exists = os.path.exists(strange_prop_file)
+                    # delete source
+                    if light_prop_exists and strange_prop_exists:
+                        src_name = c51.names['src'] % params
+                        src_file = params['src']+'/'+src_name+'.'+params['SP_EXTENSION']
+                        if os.path.exists(src_file):
+                            print('deleting %s' %src_name)
+                            os.remove(src_file)
+                    # delete strange prop
+                    if os.path.exists(hyperspec_file) and os.path.exists(pipi_file) and params['hyperspec_size'] > 1 and params['pik_size'] > 1:
+                        if os.path.exists(strange_prop_file):
+                            print('deleting %s' %strange_prop_name)
+                            os.remove(strange_prop_file)
+                    elif params['hyperspec_size'] == 1 or params['pik_size'] == 1:
+                        print('you must specify real size of hyperspec_size and pik_size to clean (delete) srcs and props')
+                    
     else:
         print('  flowed cfg missing',cfg_file)
