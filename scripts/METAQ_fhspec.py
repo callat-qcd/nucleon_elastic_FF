@@ -232,6 +232,6 @@ for c in cfgs_run:
                     os.system(c51.python+' %s/METAQ_fhprop.py %s -s %s %s %s' %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY']))
             else:
                 if args.verbose:
-                    print('fhspec exists',spec_file)
+                    print('fhspec exists',fh_spec_file)
     else:
         print('  flowed cfg missing',cfg_file)
