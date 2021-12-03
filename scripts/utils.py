@@ -37,7 +37,8 @@ def check_file(f_name,f_size,time_delete,bad_file_dir,debug=False):
                 print('now',now,'file_time',file_time)
             else:
                 print('DELETING BAD FILE',os.path.getsize(f_name),f_name.split('/')[-1])
-                shutil.move(f_name,bad_file_dir+'/'+f_name.split('/')[-1])
+                #shutil.move(f_name,bad_file_dir+'/'+f_name.split('/')[-1])
+                shutil.move(f_name,bad_file_dir+'/')
     return os.path.exists(f_name)
 
 def parse_cfg_argument(cfg_arg, params):

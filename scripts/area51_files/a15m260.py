@@ -6,6 +6,7 @@ params['tuning_ms']   = False
 params['run_ff']      = False
 params['run_strange'] = True
 params['run_pipi']    = True
+params['run_fh']      = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -46,8 +47,9 @@ params['MV_S'] = '0.0893'
 
 params['spec_size'] = 685696
 params['hyperspec_size'] = 1
-params['pik_size'] = 1
+params['pik_size']  = 1
 params['ff_size']   = 1
+params['fh_size']   = 1
 params['src_size']  = 764414000
 params['prop_size'] = 764415000
 

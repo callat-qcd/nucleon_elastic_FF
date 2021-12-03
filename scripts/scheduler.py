@@ -5,9 +5,14 @@ def check_task(task,mtype,params,folder='todo',overwrite=False,task_type='metaq'
     if task_type == 'metaq':
         ''' METAQ TASKS '''
         task_exist = False
-        for tdir in ['todo','priority','hold']:
-            if os.path.exists(params['METAQ_DIR']+'/'+tdir+'/'+mtype+'/'+task):
-                task_exist = True
+        if os.path.exists(params['METAQ_DIR']+'/hold/'+task):
+            task_exist = True
+        else:
+            for tdir in ['todo','priority']:
+                mtype_dirs = glob(params['METAQ_DIR']+'/'+tdir+'/'+mtype+'*')
+                for search_dir in mtype_dirs:
+                    if os.path.exists(search_dir+'/'+task):
+                        task_exist = True
         task_lst  = glob(params['METAQ_DIR']+'/working/*/*.sh')
         task_lst += glob(params['METAQ_DIR']+'/working/*/*/*.sh')
         task_working = False

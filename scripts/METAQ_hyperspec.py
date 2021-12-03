@@ -36,6 +36,8 @@ parser.add_argument('-s','--src',     type=str)
 parser.add_argument('-o',             default=False,action='store_true',
                     help=             'overwrite xml and metaq files? [%(default)s]')
 parser.add_argument('--mtype',        default='cpu',help='specify metaq dir [%(default)s]')
+parser.add_argument('--gpu_l',        default='gpu', help='specify metaq dir for prop jobs [%(default)s]')
+parser.add_argument('--gpu_s',        default='gpu', help='specify metaq dir for strange prop jobs [%(default)s]')
 parser.add_argument('-p',             default=False,action='store_true',
                     help=             'put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-v','--verbose', default=True,action='store_false',
@@ -45,6 +47,8 @@ parser.add_argument('-d','--debug',   default=False,action='store_true',
 parser.add_argument('--src_set',      nargs=3,type=int,help='specify si sf ds')
 parser.add_argument('--clean',        default=False,action='store_true',
                     help=             'delete used src and strange prop files? [%(default)s]')
+parser.add_argument('--vast',         default=False,action='store_true',\
+                    help=             'write src and strange prop files to vast instead of gpfs [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -96,7 +100,7 @@ params = area51.mpirun_params(c51.machine)
 params['NODES']       = params['cpu_nodes']
 params['METAQ_NODES'] = params['cpu_nodes']
 params['METAQ_GPUS']  = params['cpu_gpus']
-params['WALL_TIME']   = params['gflow_time']
+params['WALL_TIME']   = params['spec_time']
 params['ENS_DIR']     = c51.ens_dir % params
 params['SCRIPT_DIR']  = c51.script_dir
 params['MAXCUS']      = params['cpu_maxcus']
@@ -182,6 +186,8 @@ for c in cfgs_run:
                 params['MQ'] = params['MV_S']
                 strange_prop_name = c51.names['prop'] % params
                 strange_prop_file = params['prop_strange'] + '/' + strange_prop_name+'.'+params['SP_EXTENSION']
+                if args.vast:
+                    strange_prop_file = strange_prop_file.replace('gpfs1/walkloud','vast1/coldqcd')
                 try:
                     file_size = params['prop_size']
                 except:
@@ -230,6 +236,8 @@ for c in cfgs_run:
                         # strange prop
                         params['OBJ_ID']    = strange_prop_name
                         prop_file = params['prop_strange'] + '/' + strange_prop_name+'.'+params['SP_EXTENSION']
+                        if args.vast:
+                            prop_file = prop_file.replace('gpfs1/walkloud','vast1/coldqcd')
                         params['LIME_FILE'] = prop_file
                         fin.write(xml_input.qio_read % params)
                         ''' smear props '''
@@ -289,9 +297,11 @@ for c in cfgs_run:
                         print('missing light or strange prop')
                         print(light_prop_file)
                         print(strange_prop_file)
-                    print('python METAQ_strange_prop.py %s -s %s %s' %(c,s0, src_args))
-                    os.system(c51.python+' %s/METAQ_strange_prop.py %s -s %s %s %s' \
-                        %(params['SCRIPT_DIR'],c,s0,src_args,params['PRIORITY']))
+                    print('python METAQ_strange_prop.py %s -s %s %s --mtype %s --gpu_l %s' %(c,s0, src_args, args.gpu_s, args.gpu_l))
+                    os.system(c51.python+' %s/METAQ_prop.py %s -s %s %s %s --mtype %s --gpu_s %s' \
+                              %(params['SCRIPT_DIR'],c,s0,src_args,params['PRIORITY'], args.gpu_l, args.gpu_s))
+                    os.system(c51.python+' %s/METAQ_strange_prop.py %s -s %s %s %s --mtype %s --gpu_l %s' \
+                              %(params['SCRIPT_DIR'],c,s0,src_args,params['PRIORITY'], args.gpu_s, args.gpu_l))
             else:
                 if args.verbose:
                     print('hyperspec exists',hyperspec_file)
@@ -312,12 +322,16 @@ for c in cfgs_run:
                     params['MQ'] = params['MV_S']
                     strange_prop_name = c51.names['prop'] % params
                     strange_prop_file = params['prop_strange'] + '/' + strange_prop_name+'.'+params['SP_EXTENSION']
+                    if args.vast:
+                        strange_prop_file = strange_prop_file.replace('gpfs1/walkloud','vast1/coldqcd')
                     utils.check_file(strange_prop_file, file_size,params['file_time_delete'],params['corrupt'])
                     strange_prop_exists = os.path.exists(strange_prop_file)
                     # delete source
                     if light_prop_exists and strange_prop_exists:
                         src_name = c51.names['src'] % params
                         src_file = params['src']+'/'+src_name+'.'+params['SP_EXTENSION']
+                        if args.vast:
+                            src_file = src_file.replace('gpfs1/walkloud','vast1/coldqcd')
                         if os.path.exists(src_file):
                             print('deleting %s' %src_name)
                             os.remove(src_file)

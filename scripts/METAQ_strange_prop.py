@@ -31,18 +31,21 @@ params['METAQ_PROJECT'] = 'prop_'+ens_s
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] cfg numbers')
-parser.add_argument('-s','--src',type=str)
-parser.add_argument('-o',default=False,action='store_const',const=True,\
-    help='overwrite xml and metaq files? [%(default)s]')
-parser.add_argument('--mtype',default='gpu',help='specify metaq dir [%(default)s]')
-parser.add_argument('-p',default=False,action='store_const',const=True,\
-    help='put task.sh in priority queue? [%(default)s]')
-parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
-    help='run with verbose output? [%(default)s]')
-parser.add_argument('-f','--force',default=False,action='store_const',const=True,\
-    help='force create props? [%(default)s]')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('cfgs',           nargs='+',type=int,help='start [stop] cfg numbers')
+parser.add_argument('-s','--src',     type=str)
+parser.add_argument('-o',             default=False,action='store_const',const=True,\
+                    help=             'overwrite xml and metaq files? [%(default)s]')
+parser.add_argument('--mtype',        default='gpu',help='specify metaq dir [%(default)s]')
+parser.add_argument('--gpu_l',        default='gpu', help='specify metaq dir for prop jobs [%(default)s]')
+parser.add_argument('-p',             default=False,action='store_const',const=True,\
+                    help=             'put task.sh in priority queue? [%(default)s]')
+parser.add_argument('-v','--verbose', default=True,action='store_const',const=False,\
+                    help=             'run with verbose output? [%(default)s]')
+parser.add_argument('-f','--force',   default=False,action='store_const',const=True,\
+                    help=             'force create props? [%(default)s]')
+parser.add_argument('--src_set',      nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--vast',         default=False,action='store_true',\
+                    help=             'write src and strange prop files to vast instead of gpfs [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -51,17 +54,22 @@ print('')
 '''
     RUN PARAMETER SET UP
 '''
-if 'si' in params and 'sf' in params and 'ds' in params:
-    tmp_params = dict()
-    tmp_params['si'] = params['si']
-    tmp_params['sf'] = params['sf']
-    tmp_params['ds'] = params['ds']
-    params = sources.src_start_stop(params,ens,stream)
-    params['si'] = tmp_params['si']
-    params['sf'] = tmp_params['sf']
-    params['ds'] = tmp_params['ds']
+if params['tuning_mq']:
+    params['si'] = 0
+    params['sf'] = 0
+    params['ds'] = 1
 else:
-    params = sources.src_start_stop(params,ens,stream)
+    if 'si' in params and 'sf' in params and 'ds' in params:
+        tmp_params = dict()
+        tmp_params['si'] = params['si']
+        tmp_params['sf'] = params['sf']
+        tmp_params['ds'] = params['ds']
+        params = sources.src_start_stop(params,ens,stream)
+        params['si'] = tmp_params['si']
+        params['sf'] = tmp_params['sf']
+        params['ds'] = tmp_params['ds']
+    else:
+        params = sources.src_start_stop(params,ens,stream)
 if args.src_set:# override src index in sources and area51 files for collection
     params['si'] = args.src_set[0]
     params['sf'] = args.src_set[1]
@@ -168,6 +176,9 @@ for c in cfgs_run:
                         prop_file = params['prop_strange'] + '/' + prop_name+'.'+params['SP_EXTENSION']
                         src_name = c51.names['src'] % params
                         src_file = params['src']+'/'+src_name+'.'+params['SP_EXTENSION']
+                        if args.vast:
+                            prop_file = prop_file.replace('gpfs1/walkloud','vast1/coldqcd')
+                            src_file = src_file.replace('gpfs1/walkloud','vast1/coldqcd')
                         try:
                             file_size = params['src_size']
                         except:
@@ -201,7 +212,7 @@ for c in cfgs_run:
                                 params['QUARK_SPIN'] = 'FULL'
                                 ''' this xml file contains mres info and is distinct from the chroma .out.xml '''
                                 params['PROP_XML']  = '<xml_file>'
-                                params['PROP_XML'] += prop_file.replace('/prop_strange/','/xml/').replace(params['SP_EXTENSION'],'out.xml')
+                                params['PROP_XML'] += prop_file.replace('/prop_strange/','/xml/').replace(params['SP_EXTENSION'],'out.xml').replace('vast1/coldqcd','gpfs1/walkloud')
                                 params['PROP_XML'] += '</xml_file>'
                                 fin.write(xml_input.quda_nef % params)
 
@@ -224,7 +235,7 @@ for c in cfgs_run:
                                     params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                                     params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                                     params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_hyperspec.py '
-                                    params['CLEANUP']  += params['CFG']+' -s '+s0+' '+src_args+' '+params['PRIORITY']+'\n'
+                                    params['CLEANUP']  += params['CFG']+' -s '+s0+' '+src_args+' '+params['PRIORITY']+' --gpu_l '+args.gpu_l+' --gpu_s '+args.mtype+'\n'
                                     params['CLEANUP']  += '    sleep 5\n'
                                     params['CLEANUP']  += 'else\n'
                                     params['CLEANUP']  += '    echo "mpirun failed"\n'
@@ -244,9 +255,9 @@ for c in cfgs_run:
                         else:
                             if args.verbose:
                                 print('    src missing',src_file)
-                            print('python METAQ_src.py %s -s %s %s %s -v -f --strange' %(c,s0,src_args,params['PRIORITY']))
-                            os.system(c51.python+' %s/METAQ_src.py %s -s %s %s %s -v -f --strange' \
-                                %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY']))
+                            print('python METAQ_src.py %s -s %s %s %s -v -f --strange --gpu_l %s --gpu_s %s' %(c,s0,src_args,params['PRIORITY'], args.gpu_l, args.mtype))
+                            os.system(c51.python+' %s/METAQ_src.py %s -s %s %s %s -v -f --strange --gpu_l %s --gpu_s %s' \
+                                      %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY'], args.gpu_l, args.mtype))
                     else:
                         if args.verbose:
                             print('    prop exists',prop_file)

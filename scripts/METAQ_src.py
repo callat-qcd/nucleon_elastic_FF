@@ -31,20 +31,24 @@ params['METAQ_PROJECT'] = 'src_'+ens_s
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] run number')
-parser.add_argument('-s','--src',type=str)
-parser.add_argument('-o',default=False,action='store_const',const=True,\
-    help='overwrite xml and metaq files? [%(default)s]')
-parser.add_argument('--mtype',default='cpu',help='specify metaq dir [%(default)s]')
-parser.add_argument('-p',default=False,action='store_const',const=True,\
-    help='put task.sh in priority queue? [%(default)s]')
+parser.add_argument('cfgs',          nargs='+',type=int,help='start [stop] run number')
+parser.add_argument('-s','--src',    type=str)
+parser.add_argument('-o',            default=False,action='store_const',const=True,\
+                    help=            'overwrite xml and metaq files? [%(default)s]')
+parser.add_argument('--mtype',       default='cpu',help='specify metaq dir [%(default)s]')
+parser.add_argument('--gpu_l',       default='gpu', help='specify metaq dir for prop jobs [%(default)s]')
+parser.add_argument('--gpu_s',       default='gpu', help='specify metaq dir for strange prop jobs [%(default)s]')
+parser.add_argument('-p',            default=False,action='store_const',const=True,\
+                    help=            'put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
-    help='run with verbose output? [%(default)s]')
-parser.add_argument('-f','--force',default=False,action='store_const',const=True,\
-    help='force create props? [%(default)s]')
-parser.add_argument('--strange',default=False,action='store_const',const=True,\
-    help='submit METAQ_strange_prop when finished? [%(default)s]')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+                    help=            'run with verbose output? [%(default)s]')
+parser.add_argument('-f','--force',  default=False,action='store_const',const=True,\
+                    help=            'force create props? [%(default)s]')
+parser.add_argument('--strange',     default=False,action='store_const',const=True,\
+                    help=            'submit METAQ_strange_prop when finished? [%(default)s]')
+parser.add_argument('--src_set',     nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--vast',        default=False,action='store_true',\
+                    help=            'write src and strange prop files to vast instead of gpfs [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -175,6 +179,8 @@ for c in cfgs_run:
             if make_src:
                 src_name = c51.names['src'] % params
                 src_file = params['src']+'/'+src_name+'.'+params['SP_EXTENSION']
+                if args.vast:
+                    src_file = src_file.replace('gpfs1/walkloud','vast1/coldqcd')
                 try:
                     file_size = params['src_size']
                 except:
@@ -227,14 +233,14 @@ for c in cfgs_run:
                             params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                             params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                             if not prop_exists:
-                                params['CLEANUP'] += '    %s %s %s -s %s %s %s\n'\
-                                    %(c51.python,params['SCRIPT_DIR']+'/METAQ_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
+                                params['CLEANUP'] += '    %s %s %s -s %s %s %s --mtype %s --gpu_s %s\n'\
+                                    %(c51.python,params['SCRIPT_DIR']+'/METAQ_prop.py', params['CFG'], s0, src_args, params['PRIORITY'], args.gpu_l, args.gpu_s)
                             if args.strange and not os.path.exists(prop_strange):
-                                params['CLEANUP'] += '    %s %s %s -s %s %s %s\n'\
-                                    %(c51.python,params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
+                                params['CLEANUP'] += '    %s %s %s -s %s %s %s --mtype %s --gpu_l %s\n'\
+                                    %(c51.python,params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'], args.gpu_s, args.gpu_l)
                             elif not args.strange and not os.path.exists(prop_strange) and params['run_strange']:
-                                params['CLEANUP'] += '    %s %s %s -s %s %s %s\n'\
-                                    %(c51.python,params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'])
+                                params['CLEANUP'] += '    %s %s %s -s %s %s %s --mtype %s --gpu_l %s\n'\
+                                    %(c51.python,params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'], args.gpu_s, args.gpu_l)
                             params['CLEANUP']  += '    sleep 5\n'
                             params['CLEANUP']  += 'else\n'
                             params['CLEANUP']  += '    echo "mpirun failed"\n'
@@ -248,9 +254,9 @@ for c in cfgs_run:
                         except:
                             pass
                         scheduler.make_task(metaq,mtype,params,folder=q)
-                else:
-                    if args.verbose:
-                        print('src exists',src_file)
+                    else:
+                        if args.verbose:
+                            print('       task exists',metaq)
 
             else:
                 if args.verbose and prop_exists:

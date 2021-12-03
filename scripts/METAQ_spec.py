@@ -31,18 +31,20 @@ params['METAQ_PROJECT'] = 'spec_'+ens_s
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] run number')
-parser.add_argument('-s','--src',type=str)
-parser.add_argument('-o',default=False,action='store_const',const=True,\
-    help='overwrite xml and metaq files? [%(default)s]')
-parser.add_argument('--mtype',default='cpu',help='specify metaq dir [%(default)s]')
-parser.add_argument('-p',default=False,action='store_const',const=True,\
-    help='put task.sh in priority queue? [%(default)s]')
-parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
-    help='run with verbose output? [%(default)s]')
-parser.add_argument('-d','--debug',default=False,action='store_const',const=True,\
-    help='print DEBUG statements? [%(default)s]')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('cfgs',           nargs='+',type=int,help='start [stop] run number')
+parser.add_argument('-s','--src',     type=str)
+parser.add_argument('-o',             default=False,action='store_const',const=True,\
+                    help=             'overwrite xml and metaq files? [%(default)s]')
+parser.add_argument('--mtype',        default='cpu',help='specify metaq dir [%(default)s]')
+parser.add_argument('--gpu_l',        default='gpu', help='specify metaq dir for prop jobs [%(default)s]')
+parser.add_argument('--gpu_s',        default='gpu', help='specify metaq dir for strange prop jobs [%(default)s]')
+parser.add_argument('-p',             default=False,action='store_const',const=True,\
+                    help=             'put task.sh in priority queue? [%(default)s]')
+parser.add_argument('-v','--verbose', default=True,action='store_const',const=False,\
+                    help=             'run with verbose output? [%(default)s]')
+parser.add_argument('-d','--debug',   default=False,action='store_const',const=True,\
+                    help=             'print DEBUG statements? [%(default)s]')
+parser.add_argument('--src_set',      nargs=3,type=int,help='specify si sf ds')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -288,9 +290,9 @@ for c in cfgs_run:
                 else:
                     if args.verbose:
                         print('missing prop',prop_file)
-                    print('python METAQ_prop.py %s -s %s %s' %(c, s0, src_args))
-                    os.system(c51.python+' %s/METAQ_prop.py %s -s %s %s %s' \
-                        %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY']))
+                    print('python METAQ_prop.py %s -s %s %s --mtype %s --gpu_s %s' %(c, s0, src_args, args.gpu_l, args.gpu_s))
+                    os.system(c51.python+' %s/METAQ_prop.py %s -s %s %s %s --mtype %s --gpu_s %s' \
+                              %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY'], args.gpu_l, args.gpu_s))
             else:
                 if args.verbose:
                     print('spec exists',spec_file)
