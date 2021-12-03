@@ -187,6 +187,89 @@ quda_nef='''<elem>
 </elem>
 '''
 
+fh_prop_ga='''<elem>
+<Name>FH_PROPAGATOR</Name>
+<FHParams>
+  <currents>%(CURRENTS)s
+  </currents>
+  <PropagatorParam>
+    <version>10</version>
+    <quarkSpinType>FULL</quarkSpinType>
+    <obsvP>true</obsvP>
+    <numRetries>1</numRetries>
+    <FermionAction>
+    <FermAct>UNPRECONDITIONED_NEF</FermAct>
+      <OverMass>%(M5)s</OverMass>
+      <N5>%(L5)s</N5>
+      <b5>%(B5)s</b5>
+      <c5>%(C5)s</c5>
+      <Mass>%(MQ)s</Mass>
+      <FermionBC>
+        <FermBC>SIMPLE_FERMBC</FermBC>
+        <boundary>1 1 1 -1</boundary>
+      </FermionBC>
+    </FermionAction>
+    <InvertParam>
+      <invType>QUDA_NEF_INVERTER</invType>
+      <DoCGNR>true</DoCGNR>
+      <MaxIter>%(MAX_ITER)s</MaxIter>
+      <RsdTarget>%(RSD_TARGET)s</RsdTarget>
+      <Delta>%(Q_DELTA)s</Delta>
+      <RsdToleranceFactor>%(RSD_TOL)s</RsdToleranceFactor>
+      <MaxResIncrease>1</MaxResIncrease>
+      <SolverType>CG</SolverType>
+      <Verbose>false</Verbose>
+      <AsymmetricLinop>false</AsymmetricLinop>
+      <CudaReconstruct>RECONS_NONE</CudaReconstruct>
+      <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+      <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+      <AxialGaugeFix>false</AxialGaugeFix>
+      <AutotuneDslash>true</AutotuneDslash>
+      <MatPCType>EVEN_EVEN</MatPCType>
+      <checkSolution>false</checkSolution>
+      <NEFParams>
+        <OverMass>%(M5)s</OverMass>
+        <N5>%(L5)s</N5>
+        <b5>%(B5)s</b5>
+        <c5>%(C5)s</c5>
+        <Mass>%(MQ)s</Mass>
+        <clovCoeff>0</clovCoeff>
+      </NEFParams>
+      <AntiPeriodicT>true</AntiPeriodicT>
+    </InvertParam>
+  </PropagatorParam>
+</FHParams>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <src_prop_id>%(SRC_PROP)s</src_prop_id>
+  <fh_prop_id>%(FH_PROPS)s
+  </fh_prop_id>
+  </NamedObject>
+</elem>
+
+'''
+
+fh_spec='''<elem>
+  <Name>FLAVOR_CONSERVING_FH_BARYON_CONTRACTIONS</Name>
+  <Frequency>1</Frequency>
+  <FlavorConservingFHBaryonParams>
+    <ng_parity>true</ng_parity>
+    <current>%(CURR)s</current>
+    <flavor>%(FLAVOR)s</flavor>
+    <h5_file_name>%(FH_SPEC_FILE)s</h5_file_name>
+    <path>/%(H5_FH_PATH)s</path>
+    <p2_max>0</p2_max>
+    <particle_list><elem>proton</elem></particle_list>
+  </FlavorConservingFHBaryonParams>
+  <NamedObject>
+    <up_quark>%(UP_PROP)s</up_quark>
+    <down_quark>%(DN_PROP)s</down_quark>
+    <fh_quark>%(FH_PROP)s</fh_quark>
+  </NamedObject>
+</elem>
+
+'''
+
 shell_source='''<elem>
 <Name>MAKE_SOURCE</Name>
 <Frequency>1</Frequency>

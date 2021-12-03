@@ -113,6 +113,12 @@ def ensemble(params):
         params[d] = params['prod']+'/'+d
     for d in dirs_no:
         params[d] = params['prod']+'/'+d+'/'+params['CFG']
+    if 'run_fh' in params:
+        if params['run_fh']:
+            params['fh_prop'] = params['prod']+'/fh_prop/'+params['CFG']
+            params['fh_spec'] = params['prod']+'/fh_spec/'+params['CFG']
+            utils.ensure_dirExists(params['fh_prop'])
+            utils.ensure_dirExists(params['fh_spec'])
     for d in dirs+dirs_no:
         utils.ensure_dirExists(params[d])
     params['spec_4D_tslice']     = params['prod']+'/spec_4D_tslice/'+params['CFG']
@@ -162,3 +168,8 @@ names['pipi']             = 'pipi_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%
 names['pipi']            += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(Q)s_%(SRC)s'
 names['pik']              = 'pipi_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['pik']             += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_ml%(MV_L)s_ms%(MV_S)s_%(SRC)s'
+
+names['fh_prop']          = 'fh_prop_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+names['fh_prop']         += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s_%(CURR)s'
+names['fh_spec']          = 'fh_spec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+names['fh_spec']         += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
