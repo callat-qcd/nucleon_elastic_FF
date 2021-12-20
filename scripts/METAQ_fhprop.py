@@ -198,9 +198,10 @@ for c in cfgs_run:
                         ''' write FH props to disk '''
                         params['OBJ_TYPE']  = 'LatticePropagatorF'
                         for fh in fh_props:
-                            params['OBJ_ID']    = fh_props[fh]
-                            params['LIME_FILE'] = fh_prop_files[fh]
-                            fin.write(xml_input.qio_write % params)
+                            if not os.path.exists(fh_prop_files[fh]):
+                                params['OBJ_ID']    = fh_props[fh]
+                                params['LIME_FILE'] = fh_prop_files[fh]
+                                fin.write(xml_input.qio_write % params)
                             
                         ''' end xml file '''
                         fin.write(xml_input.tail % params)
@@ -232,10 +233,10 @@ for c in cfgs_run:
                 else:
                     if have_prop:
                         print('    exists:')
-                        print('           '+[fh_props[fh]+'\n' for fh in fh_props])
+                        print('           '+' '.join([fh_props[fh]+'\n' for fh in fh_props]))
                     else:
                         print('python METAQ_prop.py %s -s %s %s ' %(c, s0, src_args))
-                        os.system(c51.python+ ' %s/METAQ_prop.py %s -s %s %s %s' %(params['SCRIPT_DIR'], c, s0, src_args))
+                        os.system(c51.python+ ' %s/METAQ_prop.py %s -s %s %s' %(params['SCRIPT_DIR'], c, s0, src_args))
             else:
                 print('    exists:',fh_spec_name)
 
