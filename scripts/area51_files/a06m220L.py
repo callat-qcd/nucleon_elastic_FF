@@ -1,10 +1,12 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['tuning_ms'] = False
-params['run_ff'] = False
+params['tuning_mq']   = False
+params['tuning_ms']   = False
+params['run_ff']      = False
 params['run_strange'] = True
+params['run_pipi']    = True
+params['run_fh']      = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -58,9 +60,11 @@ params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 params['MV_L'] = '0.00309'
 params['MV_S'] = '0.0282'
 
-params['spec_size']      = 1
+params['spec_size']      = 824448
 params['ff_size']        = 1
-params['hyperspec_size'] = 1
+params['hyperspec_size'] = 8337216
+params['pik_size']       = 3863760
+params['fh_size']        = 1
 params['mixed_size']     = 48000
 params['src_size']       = 55037659100
 params['prop_size']      = 55037660500
@@ -68,6 +72,8 @@ params['hisq_spec_size'] = 26000
 params['save_hisq_prop'] = False
 #params['seqsrc_size']  = 28991036000
 #params['seqprop_size'] = 28991036000
+
+params['spec_4D_tslice_fact'] = .3
 
 params['MAX_ITER']   = '10000'
 params['RSD_TARGET'] = '5.e-8'
@@ -91,6 +97,8 @@ params['file_time_delete'] = 10
 
 params['MESONS_PSQ_MAX']  = 4
 params['BARYONS_PSQ_MAX'] = 4
+params['MM_REL_MOM']      = 2
+params['MM_TOT_MOM']      = 4
 
 params['t_seps']  = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 params['flavs']   = ['UU','DD']
@@ -108,15 +116,17 @@ params['queue'] = 'metaq'
 params['OMP_NUM_THREADS'] = '4'
 
 def mpirun_params(machine):
+    gpu_geom = {8:' -geom 1 1 2 16',16:' -geom 1 1 4 16'}
+    nrs_cpu  = {8:'--nrs 16',16:'--nrs 32'}
     if machine == 'lassen':
         params['cpu_nodes']   = 8
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 25
-        params['src_time']    = 5
+        params['src_time']    = 15
         params['spec_time']   = 10
 
-        params['cpu_nrs']     = '--nrs 16'
+        params['cpu_nrs']     = nrs_cpu[params['cpu_nodes']]
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a16'
         params['cpu_g_rs']    = ''
@@ -125,19 +135,19 @@ def mpirun_params(machine):
         params['cpu_bind']    = 'lassen_bind_cpu.N32.sh'
 
         params['gpu_nodes']   = 8
-        params['gpu_metaq_nodes'] = 8
-        params['gpu_gpus']    = 32
+        params['gpu_metaq_nodes'] = params['gpu_nodes']
+        params['gpu_gpus']    = 4*params['gpu_nodes']
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 110
-        params['strange_prop_time'] = 12
+        params['prop_time']   = 55
+        params['strange_prop_time'] = 15
 
-        params['gpu_nrs']     = '--nrs 8'
+        params['gpu_nrs']     = '--nrs '+str(params['gpu_nodes'])
         params['gpu_rs_node'] = '-r1'
         params['gpu_a_rs']    = '-a4'
         params['gpu_g_rs']    = '-g4'
         params['gpu_c_rs']    = '-c4'
         params['gpu_latency'] = '-l gpu-cpu'
-        params['gpu_geom']    = ' -geom 1 1 2 16'
+        params['gpu_geom']    = gpu_geom[params['gpu_nodes']]
         params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
 
         params['hisq_nodes']  = 8
