@@ -3,7 +3,7 @@ import sources
 params = dict()
 params['tuning_mq']   = False
 params['tuning_ms']   = False
-params['run_ff']      = True
+params['run_ff']      = False
 params['run_strange'] = True
 params['run_pipi']    = True
 
@@ -100,7 +100,7 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = 'lassen_bind_cpu.N32.sh'
 
-        params['gpu_nodes']   = 0
+        params['gpu_nodes']   = 1
         params['gpu_metaq_nodes'] = 0
         params['gpu_gpus']    = 4
         params['gpu_maxcus']  = 1

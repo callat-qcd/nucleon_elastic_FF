@@ -1,10 +1,11 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['tuning_ms'] = False
-params['run_ff'] = False
+params['tuning_mq']   = False
+params['tuning_ms']   = False
+params['run_ff']      = False
 params['run_strange'] = True
+params['run_pipi']    = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -107,6 +108,7 @@ def mpirun_params(machine):
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 25
+        params['landau_time'] = 60
         params['src_time']    = 5
         params['spec_time']   = 10
 

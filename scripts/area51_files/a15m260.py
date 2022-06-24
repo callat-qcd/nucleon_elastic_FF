@@ -49,7 +49,7 @@ params['spec_size'] = 685696
 params['hyperspec_size'] = 1
 params['pik_size']  = 1
 params['ff_size']   = 1
-params['fh_size']   = 1
+params['fh_size']   = 127952
 params['src_size']  = 764414000
 params['prop_size'] = 764415000
 

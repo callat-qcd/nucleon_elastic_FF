@@ -123,6 +123,7 @@ def mpirun_params(machine):
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 25
+        params['landau_time'] = 60
         params['src_time']    = 15
         params['spec_time']   = 10
 

@@ -1,11 +1,12 @@
 import sources
 
 params = dict()
-params['tuning_mq']   = True
-params['tuning_ms']   = True
+params['tuning_mq']   = False
+params['tuning_ms']   = False
 params['run_ff']      = False
 params['run_strange'] = True
 params['run_pipi']    = True
+params['run_fh']      = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -33,8 +34,8 @@ params['WF_N'] = '45'
 params['M5'] = '1.1'
 params['L5'] = '8'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
-params['B5']     = '1.5'
-params['C5']     = '0.5'
+params['B5']     = '1.25'
+params['C5']     = '0.25'
 params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
 #params['MV_L'] = '0.0069'
@@ -45,11 +46,12 @@ params['MV_L'] = '0.00702'
 params['MV_S'] = '0.0481'
 
 params['spec_size']      = 1121408
+params['fh_size']        = 160720
 params['hyperspec_size'] = 11305792
 params['pik_size']       = 3107024
-params['ff_size']   = 1
-params['src_size']  = 12230592500
-params['prop_size']  = 1#2230592500
+params['ff_size']        = 1
+params['src_size']       = 12230592500
+params['prop_size']      = 12230594000
 
 params['MAX_ITER']   = '4000'
 params['RSD_TARGET'] = '1.e-7'
@@ -92,14 +94,14 @@ params['OMP_NUM_THREADS'] = '4'
 
 def mpirun_params(machine):
     if machine == 'lassen':
-        params['cpu_nodes']   = 1
+        params['cpu_nodes']   = 2
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 15
         params['src_time']    = 5
         params['spec_time']   = 10
 
-        params['cpu_nrs']     = '--nrs 2'
+        params['cpu_nrs']     = '--nrs 4'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a16'
         params['cpu_g_rs']    = ''
