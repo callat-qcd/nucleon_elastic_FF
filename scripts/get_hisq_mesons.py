@@ -33,15 +33,14 @@ print('ENSEMBLE:',ens_s)
 parser = argparse.ArgumentParser(description='get hisq and mixed data and put in h5 file')
 
 
-parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-s','--src',type=str,help='src [xXyYzZtT] None=All')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('--force',default=False,action='store_const',const=True,\
-    help='run without prompting user? [%(default)s]')
-parser.add_argument('--move',default=False,action='store_const',const=True,help='move bad files? [%(default)s]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-#parser.add_argument('--src_index',nargs=3,type=int,help='specify si sf ds')
-parser.add_argument('--fout',type=str,help='directory to output, need to end with /, leave empty for production')
+parser.add_argument('cfgs',       nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-s','--src', type=str,help='src [xXyYzZtT] None=All')
+parser.add_argument('-o',         default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
+parser.add_argument('--force',    default=False,action='store_const',const=True,\
+                    help=         'run without prompting user? [%(default)s]')
+parser.add_argument('--move',     default=False,action='store_true',help='move bad files? [%(default)s]')
+parser.add_argument('-v',         default=True,action='store_false',help='verbose? [%(default)s]')
+parser.add_argument('--fout',     type=str,help='directory to output, need to end with /, leave empty for production')
  
 args = parser.parse_args()
 print('Arguments passed')
@@ -75,10 +74,15 @@ cwd = os.getcwd()
 ms_l = params['MS_L']
 ms_s = params['MS_S']
 # TASTE_5,I SPECTRUM
-mesons = {
-    'PION_5':'phi_jj_5','PION_I':'phi_jj_I',
-    'KAON_5':'phi_jr_5','KAON_I':'phi_jr_I',
-    'SS_5':'phi_rr_5','SS_I':'phi_rr_I',
+if ms_l == ms_s:
+    mesons = {
+        'PION_5':'phi_jj_5','PION_I':'phi_jj_I',
+    }
+else:
+    mesons = {
+        'PION_5':'phi_jj_5','PION_I':'phi_jj_I',
+        'KAON_5':'phi_jr_5','KAON_I':'phi_jr_I',
+        'SS_5':'phi_rr_5','SS_I':'phi_rr_I',
     }
 
 print('looking for data in: '+ c51.ens_dir % params+'/hisq_spec'+'\n')

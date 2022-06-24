@@ -1,6 +1,4 @@
 #!/usr/local/bin/python
-
-
 from __future__ import print_function
 import os, sys, argparse, shutil, datetime, time
 import numpy as np
@@ -33,11 +31,13 @@ params['STREAM']   = stream
 
 np.set_printoptions(linewidth=180)
 parser = argparse.ArgumentParser(description='avg mres data from h5 file')
-parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('--ns',type=int,help='number of srcs/cfg [%(default)s]')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('--fin',type=str,help='directory to input (which is get script output), need to end with /, leave empty for production')
-parser.add_argument('--fout',type=str,help='directory to output, need to end with /, leave empty for production')
+parser.add_argument('cfgs',  nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('--ns',  type=int,help='number of srcs/cfg [%(default)s]')
+parser.add_argument('-o',    default=False,action='store_true',help='overwrite? [%(default)s]')
+parser.add_argument('--fin', type=str,
+                    help=    'directory to input (which is get script output), need to end with /, leave empty for production')
+parser.add_argument('--fout',type=str,
+                    help=    'directory to output, need to end with /, leave empty for production')
 
 args = parser.parse_args()
 print('Arguments passed')
@@ -79,7 +79,10 @@ fin_files = [fn for fn in glob(fin_dir+'/hisq_spec_'+ens_s+'_*.h5')]
 print( 'no cfgs = %d' %len(cfgs_run))
 
 # HISQ HISQ mesons
-mixed_states = ['phi_jj_5', 'phi_jr_5', 'phi_rr_5', 'phi_jj_I', 'phi_jr_I', 'phi_rr_I']
+if ms_l == ms_s:
+    mixed_states = ['phi_jj_5', 'phi_jj_I']
+else:
+    mixed_states = ['phi_jj_5', 'phi_jr_5', 'phi_rr_5', 'phi_jj_I', 'phi_jr_I', 'phi_rr_I']
 
 ml = ms_l
 ms = ms_s

@@ -203,6 +203,7 @@ forget
                 'ERR_L':1.e-7,'REL_ERR_L':0,
                 })
 
+        utils.check_file(hisq_spec_file,params['hisq_spec_size'],params['file_time_delete'],params['corrupt'])
         if not os.path.exists(hisq_spec_file) and (os.path.exists(cfg_file) or os.path.exists(cfg_coul)):
             hisq_spec_name    = c51.names['hisq_spec'] % params
             metaq  = hisq_spec_name+'.sh'
@@ -221,7 +222,10 @@ forget
                 in_file = params['xml']+'/'+hisq_spec_name+'.in'
                 '''make hisq input file'''
                 fin = open(in_file,'w')
-                in_tmp = open(c51.script_dir + '/hisq_spec.in').read()
+                if ml == ms:
+                    in_tmp = open(c51.script_dir + '/hisq_spec_su3.in').read()
+                else:
+                    in_tmp = open(c51.script_dir + '/hisq_spec.in').read()
                 fin.write(in_tmp % params)
                 fin.close()
 
@@ -240,8 +244,48 @@ forget
                 scheduler.make_task(metaq,mtype,params,folder=q)
             else:
                 print('  task exists:',metaq)
+
         elif os.path.exists(hisq_spec_file):
-            print('hisq_spec exists',hisq_spec_file.split('/')[-1])
+            if not os.path.exists(cfg_scidac):
+                metaq = 'milc_to_scidac_'+no+'.sh'
+                print('  making',metaq)
+                t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
+                try:
+                    if params['metaq_split']:
+                        t_e2,t_w2 = scheduler.check_task(metaq,args.mtype+'_'+str(params['gpu_nodes']),params,folder=q,overwrite=args.o)
+                        t_w = t_w or t_w2
+                        t_e = t_e or t_e2
+                except:
+                    pass
+                if not t_e or (args.o and not t_w):
+                    in_file = params['xml']+'/'+metaq.replace('.sh','.in')
+                    fin = open(in_file,'w')
+                    in_tmp = open(c51.script_dir + '/milc_to_scidac.in').read()
+                    in_tmp = in_tmp.replace('CFG',no)
+                    in_tmp = in_tmp.replace('NL', str(params['NL']))
+                    in_tmp = in_tmp.replace('NT', str(params['NT']))
+                    in_tmp = in_tmp.replace('TADPOLE',u0)
+                    in_tmp = in_tmp.replace('ENSSTREAM',params['ENS_LONG']+stream)
+                    fin.write(in_tmp)
+                    fin.close()
+
+                    ''' make METAQ task '''
+                    params['METAQ_LOG'] = params['METAQ_DIR']+'/log/'+metaq.replace('.sh','.log')
+                    params['INI']       = in_file
+                    params['OUT']       = in_file.replace('.in','.out')
+                    params['STDOUT']    = in_file.replace('.in','.stdout').replace('/xml/','/stdout/')
+                    params['CLEANUP']   = ''
+                    mtype = args.mtype
+                    try:
+                        if params['metaq_split']:
+                            mtype = mtype + '_'+str(params['gpu_nodes'])
+                    except:
+                        pass
+                    scheduler.make_task(metaq,mtype,params,folder=q)
+                else:
+                    print('  task exists:',metaq)
+            else:
+                print('hisq_spec exists',hisq_spec_file.split('/')[-1])
         else:
             print('hisq_spec_file',hisq_spec_file)
             print(os.path.exists(hisq_spec_file))

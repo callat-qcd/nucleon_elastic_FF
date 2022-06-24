@@ -48,6 +48,9 @@ print("c51 manage dir is",manage)
 print("c51 scratch dir is",scratch)
 
 ens_long = {
+    'a15m400trMc':'l2048f31b580m02405m02405m8447',
+    'a12m400trMc':'l2464f31b600m01878m01878m6382',
+    'a09m400trMc':'l3296f31b630m01300m01300m4313',
     'a15m400'  :'l1648f211b580m0217m065m838',
     'a15m350'  :'l1648f211b580m0166m065m838',
     'a15m310'  :'l1648f211b580m013m065m838',
