@@ -87,6 +87,7 @@ ens_long = {
     'a09m220'  :'l4896f211b630m00363m0363m430',
     'a09m130'  :'l6496f211b630m0012m0363m432',
     'a09m135'  :'l6496f211b630m001326m03636m4313',
+    'a06m310'  :'l48144f211b672m0048m024m286',
     'a06m310L' :'l7296f211b672m0048m024m286',
     'a06m220L' :'l72128f211b672m0024m02186m2579',
     }
@@ -120,10 +121,13 @@ def ensemble(params):
         if params['run_fh']:
             params['fh_prop'] = params['prod']+'/fh_prop/'+params['CFG']
             params['fh_spec'] = params['prod']+'/fh_spec/'+params['CFG']
+            params['fh_baryons'] = params['prod']+'/fh_spec/'+params['CFG']
             utils.ensure_dirExists(params['fh_prop'])
             utils.ensure_dirExists(params['fh_spec'])
+            utils.ensure_dirExists(params['fh_baryons'])
     for d in dirs+dirs_no:
         utils.ensure_dirExists(params[d])
+    params['spec_4D_avg']        = params['prod']+'/spec_4D_avg/'+params['CFG']
     params['spec_4D_tslice']     = params['prod']+'/spec_4D_tslice/'+params['CFG']
     params['spec_4D_tslice_avg'] = params['prod']+'/spec_4D_tslice_avg/'+params['CFG']
     params['formfac_4D_tslice']  = params['prod']+'/formfac_4D_tslice/'+params['CFG']
@@ -176,3 +180,5 @@ names['fh_prop']          = 'fh_prop_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s
 names['fh_prop']         += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s_%(CURR)s'
 names['fh_spec']          = 'fh_spec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['fh_spec']         += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
+names['fh_baryons']       = 'fh_baryons_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+names['fh_baryons']      += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'

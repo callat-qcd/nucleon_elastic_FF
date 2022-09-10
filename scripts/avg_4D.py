@@ -35,12 +35,19 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='average phi_qq')
-parser.add_argument('data',type=str,help='what data type to average [spec formfac]?')
-parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
-parser.add_argument('-t','--t_sep',nargs='+',type=int,help='values of t_sep [default = all]')
+parser.add_argument('data',         type=str,
+                    help=           'what data type to average [spec formfac]?')
+parser.add_argument('--cfgs',       nargs='+', type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-o',           default=False, action='store_true',
+                    help=           'overwrite? [%(default)s]')
+parser.add_argument('-v',           default=True,  action='store_false',
+                    help=           'verbose? [%(default)s]')
+parser.add_argument('--src_set',    nargs=3, type=int,
+                    help=           'specify si sf ds')
+parser.add_argument('-t','--t_sep', nargs='+',type=int,
+                    help=           'values of t_sep [default = all]')
+parser.add_argument('--tslice',     default=False, action='store_true',
+                    help=           'avg spec_4D_tslice? [%(default)s] or spec_4D')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -192,22 +199,33 @@ for c in cfgs_run:
         params['SRC']    = 'src_avg'+src_ext
         spec_name        = c51.names['spec'] % params
         spec_file        = params['spec'] +'/'+ spec_name+'.h5'
-        spec_file_4D_avg = params['spec_4D_tslice_avg'] +'/'+ (c51.names['spec_4D_tslice_avg'] % params)+'.h5'
+        if args.tslice:
+            spec_file_4D_avg = params['spec_4D_tslice_avg'] +'/'+ (c51.names['spec_4D_tslice_avg'] % params)+'.h5'
+        else:
+            spec_file_4D_avg = params['spec_4D_avg']+'/'+ (c51.names['spec_4D'] % params)+'.h5'
         do_avg = True
         if os.path.exists(spec_file_4D_avg) and not args.o:
             do_avg = False
         if do_avg:
-            run_avg = check_spec_4D_tslice(params,c51,srcs[c])
-            if not run_avg:
+            if args.tslice:
+                run_avg = check_spec_4D_tslice(params,c51,srcs[c])
+            else:
+                run_avg = check_spec_4D(params, c51, srcs[c])
+
+            if not run_avg and args.tslice:
                 have_spec = check_spec_4D(params,c51,srcs[c])
                 if have_spec:
                     print('  have all spec_4D files cfg=%d, trying to tslice' %(c))
                     tslice_spec(params,c51,srcs[c])
                     #os.system(c51.python+' %s/tslice_4D.py spec --cfgs %d' %(c51.script_dir, c))
-                    run_avg = check_spec_4D_tslice(params,c51,srcs[c])
-            if run_avg:
+            if args.tslice:
+                run_avg = check_spec_4D_tslice(params,c51,srcs[c])
                 d_dir = params['spec_4D_tslice']
-                average.spec_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext)
+            else:
+                run_avg = check_spec_4D(params, c51, srcs[c])
+                d_dir = params['spec_4D']
+            if run_avg:
+                average.spec_average(root=d_dir, overwrite=args.o, expected_sources=srcs[c], file_name_addition=src_ext, tslice=args.tslice)
             else:
                 print('missing srcs on cfg = %d' %c)
                 if c not in missing_srcs: missing_srcs.append(c)

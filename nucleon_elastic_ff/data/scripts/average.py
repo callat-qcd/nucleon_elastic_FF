@@ -280,11 +280,12 @@ def source_average(  # pylint: disable=R0913, R0914
 
 
 def spec_average(  # pylint: disable=R0913, R0914
-    root: str,
-    overwrite: bool = False,
-    n_expected_sources: Optional[int] = None,
-    expected_sources: Optional[List[str]] = None,
-    file_name_addition: Optional[str] = None,
+        root: str,
+        overwrite: bool = False,
+        n_expected_sources: Optional[int] = None,
+        expected_sources: Optional[List[str]] = None,
+        file_name_addition: Optional[str] = None,
+        tslice: bool = False,
 ):
     """Recursively scans directory for files and averages matches which over specified
     component.
@@ -292,7 +293,7 @@ def spec_average(  # pylint: disable=R0913, R0914
     Averages over source, spin and parity without shifting or slicing. Thus, the data
     must already be in the correct shape.
 
-    The input files must be h5 files (ending with ".h5") and must have `spec_4D_tslice`
+    The input files must be h5 files (ending with ".h5") and must have `spec_4D[_tslice`]
     in their file name. Files which have `spec_4D_tslice_avg` as name are excluded.
     Also, this routine ignores exporting to files which already exist.
 
@@ -322,18 +323,28 @@ def spec_average(  # pylint: disable=R0913, R0914
     LOGGER.info("Running source average")
 
     avg_over_file_keys = ("x", "y", "z", "t")
-    file_replace_pattern = {
-        "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"
-        + (file_name_addition if file_name_addition is not None else ""),
-        "spec_4D_tslice": "spec_4D_tslice_avg",
-        # "spec_4D": "spec_4D_avg",
-    }
+    if tslice:
+        file_replace_pattern = {
+            "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"
+            + (file_name_addition if file_name_addition is not None else ""),
+            "spec_4D_tslice": "spec_4D_tslice_avg",
+            # "spec_4D": "spec_4D_avg",
+        }
+    else:
+        file_replace_pattern = {
+            "x[0-9]+y[0-9]+z[0-9]+t[0-9]+": "src_avg"
+            + (file_name_addition if file_name_addition is not None else ""),
+            "spec_4D": "spec_4D_avg",
+        }
     dset_replace_pattern = {
         r"x(?P<x>[0-9]+)_y(?P<y>[0-9]+)_z(?P<z>[0-9]+)_t(?P<t>[0-9]+)": "src_avg",
         r"spin_(?:up|dn)": "spin_avg",
     }
 
-    file_patterns = [r".*\.h5$", "spec_4D_tslice"]
+    if tslice:
+        file_patterns = [r".*\.h5$", "spec_4D_tslice"]
+    else:
+        file_patterns = [r".*\.h5$", "spec_4D"]
     file_patterns += list(file_replace_pattern.keys())
 
     files = find_all_files(
