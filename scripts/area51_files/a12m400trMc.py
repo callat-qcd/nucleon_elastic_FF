@@ -31,11 +31,11 @@ params['B5']     = '1.25'
 params['C5']     = '0.25'
 params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
-params['MV_L'] = '0.02'
-params['MV_S'] = '0.02'
+params['MV_L'] = '0.0231'
+params['MV_S'] = '0.0231'
 
 params['spec_size'] = 826000
-params['hisq_spec_size'] = 1
+params['hisq_spec_size'] = 4900
 params['ff_size']   = 4046000
 
 params['MAX_ITER']   = '4000'
@@ -113,8 +113,8 @@ def mpirun_params(machine):
         params['hisq_nodes']       = 1
         params['hisq_metaq_nodes'] = 0
         params['hisq_gpus']        = 4
-        params['hisq_coul_spec']   = 4
-        params['hisq_spec']        = 1
+        params['hisq_coul_spec']   = 10
+        params['hisq_spec_time']   = 4
         params['hisq_maxcus']      = 1
         
         params['hisq_nrs']     = '--nrs 1'

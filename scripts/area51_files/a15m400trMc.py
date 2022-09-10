@@ -3,8 +3,11 @@ import sources
 params = dict()
 params['ENS_ABBR'] = 'a15m400trMc'
 
-params['tuning_mq'] = True
-params['run_ff'] = True
+params['tuning_mq']   = True
+params['run_strange'] = False
+params['run_pipi']    = False
+params['run_ff']      = False
+params['LIGHT_BARYONS'] = 'proton</elem> <elem>delta_pp'
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -32,12 +35,19 @@ params['B5']     = '1.5'
 params['C5']     = '0.5'
 params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
-params['MV_L'] = '0.03'
-params['MV_S'] = '0.03'
+#mq = '0.03'
+#mq = '0.0312'
+#mq = '0.0318'
+mq = '0.0320'
+params['MV_L'] = mq
+params['MV_S'] = mq
 
-params['spec_size'] = 684000
+params['spec_size']      = 1
 params['hisq_spec_size'] = 3850
-params['ff_size']   = 3830000
+params['ff_size']        = 1
+
+params['prop_size'] = 442371000
+params['src_size']  = 442370000
 
 params['MAX_ITER']   = '2000'
 params['RSD_TARGET'] = '1.e-7'
@@ -59,7 +69,7 @@ params['file_time_delete'] = 10
 
 #params['MESONS_PSQ_MAX']  = 5
 #params['BARYONS_PSQ_MAX'] = 5
-params['MESONS_PSQ_MAX']  = 5
+params['MESONS_PSQ_MAX']  = 0
 params['BARYONS_PSQ_MAX'] = 0
 
 params['run_3pt'] = True
@@ -96,7 +106,8 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = 'lassen_bind_cpu.N36.sh'
 
-        params['gpu_nodes']   = 0
+        params['gpu_nodes']   = 1
+        params['gpu_metaq_nodes'] = 1
         params['gpu_gpus']    = 4
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10
@@ -112,8 +123,8 @@ def mpirun_params(machine):
         params['hisq_nodes']  = 1
         params['hisq_metaq_nodes'] = 0
         params['hisq_gpus']   = 4
-        params['hisq_coul_spec'] = 4
-        params['hisq_spec']   = 1
+        params['hisq_coul_spec'] = 8
+        params['hisq_spec_time'] = 4
         params['hisq_maxcus'] = 1
         
         params['hisq_nrs']     = '--nrs 1'
