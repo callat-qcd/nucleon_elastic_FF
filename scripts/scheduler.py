@@ -69,6 +69,7 @@ qsub['summit'] = '''
 #BSUB -P LGT100
 #BSUB -W %(WALL_TIME)s
 #BSUB -alloc_flags smt4
+#BSUB -alloc_flags atsdisable
 
 '''
 

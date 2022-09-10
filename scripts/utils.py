@@ -38,6 +38,8 @@ def check_file(f_name,f_size,time_delete,bad_file_dir,debug=False):
             else:
                 print('DELETING BAD FILE',os.path.getsize(f_name),f_name.split('/')[-1])
                 #shutil.move(f_name,bad_file_dir+'/'+f_name.split('/')[-1])
+                if os.path.exists(bad_file_dir+'/'+f_name.split('/')[-1]):
+                    os.remove(bad_file_dir+'/'+f_name.split('/')[-1])
                 shutil.move(f_name,bad_file_dir+'/')
     return os.path.exists(f_name)
 

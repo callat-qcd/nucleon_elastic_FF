@@ -270,6 +270,31 @@ fh_spec='''<elem>
 
 '''
 
+fh_baryons='''<elem>
+  <Name>BARYON_FH_CONTRACTIONS</Name>
+  <Frequency>1</Frequency>
+  <FHBaryonParams>
+    <ng_parity>true</ng_parity>
+    <currents>%(CURR)s</currents>
+    <flavors>%(FLAVOR)s</flavors>
+    <h5_file_name>%(FH_BARYON_FILE)s</h5_file_name>
+    <path>/%(H5_FH_PATH)s</path>
+    <p2_max>0</p2_max>
+    <particle_list>
+      <elem>octet</elem>
+      <elem>decuplet</elem>
+    </particle_list>
+  </FHBaryonParams>
+  <NamedObject>
+    <up_quark>%(UP_PROP)s</up_quark>
+    <down_quark>%(DN_PROP)s</down_quark>
+    <strange_quark>%(STRANGE_PROP)s</strange_quark>
+    <fh_quarks>%(FH_PROP)s</fh_quarks>
+  </NamedObject>
+</elem>
+
+'''
+
 shell_source='''<elem>
 <Name>MAKE_SOURCE</Name>
 <Frequency>1</Frequency>
@@ -392,7 +417,7 @@ baryon_spec = '''  <elem>
     <path>/%(H5_PATH)s</path>
 %(BARYON_MOM)s
     <particle_list>
-        <elem>proton</elem>
+        <elem>%(LIGHT_BARYONS)s</elem>
     </particle_list>
 </BaryonParams>
 <NamedObject>
