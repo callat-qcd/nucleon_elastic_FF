@@ -33,10 +33,11 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='get spec data from h5 files')
-parser.add_argument('cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--fout',type=str,help='name of output file')
+parser.add_argument('cfgs',      nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-o',        default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
+parser.add_argument('-v',        default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--fout',    type=str,help='name of output file')
+parser.add_argument('--src_set', nargs=3, type=int, help='specify si sf ds')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -57,9 +58,14 @@ if 'si' in params and 'sf' in params and 'ds' in params:
     params['ds'] = tmp_params['ds']
 else:
     params = sources.src_start_stop(params,ens,stream)
+if args.src_set:# override src index in sources and area51 files for collection
+    params['si'] = args.src_set[0]
+    params['sf'] = args.src_set[1]
+    params['ds'] = args.src_set[2]
+src_ext = "%d-%d" %(params['si'],params['sf'])
 # give empty '' to in place of args.src to generate all srcs/cfg
 cfgs_run,srcs = utils.parse_cfg_src_argument(args.cfgs,'',params)
-src_ext = "%d-%d" %(params['si'],params['sf'])
+cfgs_set = "%d-%d" %(cfgs_run[0],cfgs_run[-1])
 if 'indvdl' in ens:
     params['N_SEQ'] = 1
 else:
@@ -79,7 +85,7 @@ par = ['proton','proton_np']
 if args.fout:
     fout_name = args.fout
 else:
-    fout_name = data_dir+'/spec_4D_'+ens_s+'_avg'+src_ext+'.h5'
+    fout_name = data_dir+'/spec_4D_'+ens_s+'_avg_cfgs_'+cfgs_set+'_srcs_'+src_ext+'.h5'
 print('out file')
 print(fout_name)
 for corr in params['particles']:
