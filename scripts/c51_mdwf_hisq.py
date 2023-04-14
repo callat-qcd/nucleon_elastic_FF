@@ -73,6 +73,8 @@ ens_long = {
     'a12m260'  :'l3264f211b600m00717m0507m628',
     'a12m220'  :'l3264f211b600m00507m0507m628',
     'a12m220ms':'l3264f211b600m00507m0304m628',
+    'a12m220diff': 'l3264f31b600m00507m628',
+    'a12m220lms':'l3264f211b600m00507m022815m628',
     'a12m220S' :'l2464f211b600m00507m0507m628',
     'a12m220L' :'l4064f211b600m00507m0507m628',
     'a12m220XL':'l4864f211b600m00507m0507m628',
@@ -122,9 +124,12 @@ def ensemble(params):
             params['fh_prop'] = params['prod']+'/fh_prop/'+params['CFG']
             params['fh_spec'] = params['prod']+'/fh_spec/'+params['CFG']
             params['fh_baryons'] = params['prod']+'/fh_spec/'+params['CFG']
+            params['fh_mesons'] = params['prod']+'/fh_spec/'+params['CFG']
             utils.ensure_dirExists(params['fh_prop'])
             utils.ensure_dirExists(params['fh_spec'])
             utils.ensure_dirExists(params['fh_baryons'])
+            utils.ensure_dirExists(params['fh_mesons'])
+
     for d in dirs+dirs_no:
         utils.ensure_dirExists(params[d])
     params['spec_4D_avg']        = params['prod']+'/spec_4D_avg/'+params['CFG']
@@ -182,3 +187,5 @@ names['fh_spec']          = 'fh_spec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s
 names['fh_spec']         += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
 names['fh_baryons']       = 'fh_baryons_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['fh_baryons']      += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
+names['fh_mesons']       = 'fh_mesons_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+names['fh_mesons']      += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'

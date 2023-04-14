@@ -248,6 +248,8 @@ for c in cfgs_run:
                             params['H5_PATH'] = 'pt'
                             params['UP_QUARK'] = prop_name
                             params['DN_QUARK'] = prop_name
+                            if 'LIGHT_BARYONS' not in params:
+                                params['LIGHT_BARYONS'] = 'proton'
                             fin.write(xml_input.meson_spec % params)
                             fin.write(xml_input.baryon_spec % params)
                             ''' SS '''

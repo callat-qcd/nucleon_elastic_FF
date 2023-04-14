@@ -46,7 +46,10 @@ params['MV_L'] = '0.00702'
 params['MV_S'] = '0.0481'
 
 params['spec_size']      = 1121408
+params['spec_4D_tslice_fact'] = 0.33
 params['fh_size']        = 160720
+params['fh_baryons_size'] = 926720
+params['fh_mesons_size'] = 1
 params['hyperspec_size'] = 11305792
 params['pik_size']       = 3107024
 params['ff_size']        = 1

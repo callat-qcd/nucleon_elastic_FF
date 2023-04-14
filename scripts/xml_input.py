@@ -295,6 +295,27 @@ fh_baryons='''<elem>
 
 '''
 
+fh_mesons='''<elem>
+  <Name>MESON_CONTRACTIONS</Name>
+  <MesonParams>
+    <p2_max>0</p2_max>
+    <particle_list>
+%(PARTICLES)s
+    </particle_list>
+    <h5_file_name>%(FH_MESON_FILE)s</h5_file_name>
+    <obj_path>/%(H5_FH_PATH)s</obj_path>
+  </MesonParams>
+  <NamedObject>
+    <up_quark>%(UP_PROP)s</up_quark>
+    <down_quark>%(DN_PROP)s</down_quark>
+    <strange_quark>%(STRANGE_PROP)s</strange_quark>
+  </NamedObject>
+</elem>
+
+'''
+
+
+
 shell_source='''<elem>
 <Name>MAKE_SOURCE</Name>
 <Frequency>1</Frequency>

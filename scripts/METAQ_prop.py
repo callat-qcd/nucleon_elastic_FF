@@ -41,7 +41,7 @@ parser.add_argument('-p',             default=False,action='store_const',const=T
                     help=             'put task.sh in priority queue? [%(default)s]')
 parser.add_argument('-v','--verbose', default=True,action='store_const',const=False,\
                     help=             'run with verbose output? [%(default)s]')
-parser.add_argument('--force',        default=False,action='store_const',const=True,\
+parser.add_argument('-f','--force',   default=False,action='store_const',const=True,\
                     help=             'force create props? [%(default)s]')
 parser.add_argument('--src_set',      nargs=3,type=int,help='specify si sf ds')
 parser.add_argument('--vast',         default=False,action='store_true',\

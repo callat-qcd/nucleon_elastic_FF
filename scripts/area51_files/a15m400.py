@@ -69,6 +69,13 @@ params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P']
 #params['curr_p']  = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S','T34','T12','CHROMO_MAG']
 
+'''MOMENTUM LIST'''
+params['MOM_ML']=[params['MV_L']]
+params['NPR_MOM_LST']=[
+                       [4,4,0,0],[0,4,4,0],
+                      ]
+
+
 ''' SCHEDULING PARAMETERS '''
 
 params['queue'] = 'metaq'
@@ -81,6 +88,7 @@ def mpirun_params(machine):
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 15
+        params['landau_time'] = 15
         params['src_time']    = 5
         params['spec_time']   = 10
 
@@ -93,6 +101,7 @@ def mpirun_params(machine):
         params['cpu_bind']    = 'lassen_bind_cpu.N36.sh'
 
         params['gpu_nodes']   = 0
+        params['gpu_metaq_nodes'] = 1
         params['gpu_gpus']    = 4
         params['gpu_maxcus']  = 1
         params['prop_time']   = 10
@@ -104,6 +113,8 @@ def mpirun_params(machine):
         params['gpu_c_rs']    = '-c4'
         params['gpu_latency'] = '-l gpu-cpu'
         params['gpu_geom']    = ' -geom 1 1 1 4'
+        params['gpu_bind']    = 'lassen_bind_gpu.omp4.sh'
+
 
     if machine == 'summit':
         params['cpu_nodes']   = 1

@@ -139,10 +139,23 @@ for c in cfgs_run:
         for s0 in srcs[c]:
             params['SRC'] = s0
             ''' Do the FH spec files exist? '''
-            fh_spec_name = c51.names['fh_spec'] % params
-            fh_spec_file = params['fh_spec']+'/'+fh_spec_name +'.h5'
-            utils.check_file(fh_spec_file,params['fh_size'],params['file_time_delete'],params['corrupt'])
-            if not os.path.exists(fh_spec_file):
+            if params['run_strange']:
+                params['MQ'] = 'ml'+params['MV_L']+'_ms'+params['MV_S']
+                fh_baryon_name = c51.names['fh_baryons'] % params
+                fh_baryon_file = params['fh_baryons']+'/'+fh_baryon_name +'.h5'
+                utils.check_file(fh_baryon_file,params['fh_baryons_size'],params['file_time_delete'],params['corrupt'])
+                fh_mesons_name = c51.names['fh_mesons'] % params
+                fh_mesons_file = params['fh_mesons']+'/'+fh_mesons_name +'.h5'
+                utils.check_file(fh_mesons_file,params['fh_mesons_size'],params['file_time_delete'],params['corrupt'])
+            else:
+                fh_baryon_name = c51.names['fh_spec'] % params
+                fh_baryon_file = params['fh_spec']+'/'+fh_baryon_name +'.h5'
+                utils.check_file(fh_baryon_file,params['fh_size'],params['file_time_delete'],params['corrupt'])
+                fh_mesons_name = c51.names['fh_mesons'] % params
+                fh_mesons_file = params['fh_mesons']+'/'+fh_mesons_name +'.h5'
+                utils.check_file(fh_mesons_file,params['fh_mesons_size'],params['file_time_delete'],params['corrupt'])
+            if not os.path.exists(fh_baryon_file) or not os.path.exists(fh_mesons_file):
+                params['MQ'] = params['MV_L'] # FH prop only uses MV_L
                 ''' Do the FH prop files exist? '''
                 have_fh_props = True
                 fh_props = {}
@@ -214,7 +227,10 @@ for c in cfgs_run:
                         params['STDOUT']    = xmlini.replace('.ini.xml','.stdout').replace('/xml/','/stdout/')
                         params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                         params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
-                        params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_fhspec.py '
+                        if params['run_strange']:
+                            params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_fhbaryons.py '
+                        else:
+                            params['CLEANUP']  += '    '+c51.python+' '+params['SCRIPT_DIR']+'/METAQ_fhspec.py '
                         params['CLEANUP']  += params['CFG']+' -s '+s0+' '+src_args+' '+params['PRIORITY']+'\n'
                         params['CLEANUP']  += '    sleep 5\n'
                         params['CLEANUP']  += 'else\n'
@@ -235,10 +251,11 @@ for c in cfgs_run:
                         print('    exists:')
                         print('           '+' '.join([fh_props[fh]+'\n' for fh in fh_props]))
                     else:
-                        print('python METAQ_prop.py %s -s %s %s ' %(c, s0, src_args))
-                        os.system(c51.python+ ' %s/METAQ_prop.py %s -s %s %s' %(params['SCRIPT_DIR'], c, s0, src_args))
+                        print('python METAQ_prop.py %s -s %s %s --force ' %(c, s0, src_args))
+                        os.system(c51.python+ ' %s/METAQ_prop.py %s -s %s %s --force ' %(params['SCRIPT_DIR'], c, s0, src_args))
             else:
-                print('    exists:',fh_spec_name)
+                print('    exists:',fh_baryon_name)
+                print('    exists:',fh_mesons_name)
 
     else:
         if not os.path.exists(cfg_file):

@@ -233,10 +233,10 @@ for c in cfgs_run:
                             params['CLEANUP']   = 'if [ "$cleanup" -eq 0 ]; then\n'
                             params['CLEANUP']  += '    cd '+params['ENS_DIR']+'\n'
                             if not prop_exists:
-                                params['CLEANUP'] += '    %s %s %s -s %s %s %s --mtype %s --gpu_s %s\n'\
+                                params['CLEANUP'] += '    %s %s %s -f -s %s %s %s --mtype %s --gpu_s %s\n'\
                                     %(c51.python,params['SCRIPT_DIR']+'/METAQ_prop.py', params['CFG'], s0, src_args, params['PRIORITY'], args.gpu_l, args.gpu_s)
                             if args.strange and not os.path.exists(prop_strange):
-                                params['CLEANUP'] += '    %s %s %s -s %s %s %s --mtype %s --gpu_l %s\n'\
+                                params['CLEANUP'] += '    %s %s %s -f -s %s %s %s --mtype %s --gpu_l %s\n'\
                                     %(c51.python,params['SCRIPT_DIR']+'/METAQ_strange_prop.py', params['CFG'], s0, src_args, params['PRIORITY'], args.gpu_s, args.gpu_l)
                             elif not args.strange and not os.path.exists(prop_strange) and params['run_strange']:
                                 params['CLEANUP'] += '    %s %s %s -s %s %s %s --mtype %s --gpu_l %s\n'\

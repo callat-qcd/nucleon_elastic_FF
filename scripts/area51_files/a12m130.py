@@ -3,8 +3,9 @@ import sources
 params = dict()
 params['tuning_mq'] = False
 params['tuning_ms'] = False
-params['run_ff'] = True
+params['run_ff'] = False
 params['run_strange'] = True
+params['run_pipi'] = False
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -49,7 +50,7 @@ params['MV_S'] = '0.0693'
 params['spec_size']      = 43120
 params['hyperspec_size'] = 383680
 params['ff_size']        = 386408
-params['spec_4D_tslice_fact'] = 0.5
+params['spec_4D_tslice_fact'] = 1
 
 params['MAX_ITER']   = '15000'
 params['RSD_TARGET'] = '1.e-7'

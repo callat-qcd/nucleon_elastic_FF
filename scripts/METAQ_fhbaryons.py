@@ -119,6 +119,10 @@ params['C_RS']        = params['cpu_c_rs']
 params['L_GPU_CPU']   = params['cpu_latency']
 params['IO_OUT']      = '-i $ini -o $out > $stdout 2>&1'
 
+fh_meson_particles = {
+    'UU':'      <elem>piplus</elem><elem>piminus</elem>\n      <elem>kplus</elem>',
+    'DD':'      <elem>piplus</elem><elem>piminus</elem>\n      <elem>kminus</elem>',
+}
 
 for c in cfgs_run:
     no = str(c)
@@ -146,9 +150,15 @@ for c in cfgs_run:
                 print(c,s0)
             ''' check if FH spectrum exists '''
             params['MQ'] = 'ml'+params['MV_L']+'_ms'+params['MV_S']
+            # baryons
             fh_baryons_name = c51.names['fh_baryons'] % params
             fh_baryons_file = params['fh_baryons']+'/'+fh_baryons_name +'.h5'
             utils.check_file(fh_baryons_file,params['fh_baryons_size'],params['file_time_delete'],params['corrupt'])
+            # mesons
+            fh_mesons_name = c51.names['fh_mesons'] % params
+            fh_mesons_file = params['fh_mesons']+'/'+fh_mesons_name +'.h5'
+            utils.check_file(fh_mesons_file,params['fh_mesons_size'],params['file_time_delete'],params['corrupt'])
+            
             # set up file names for clean up
             fh_props = {}
             fh_prop_files = {}
@@ -168,7 +178,7 @@ for c in cfgs_run:
             strange_prop_file = params['prop_strange'] +'/'+strange_prop+'.'+params['SP_EXTENSION']
             utils.check_file(strange_prop_file, params['prop_size'], params['file_time_delete'],params['corrupt'])
 
-            if not os.path.exists(fh_baryons_file):
+            if not os.path.exists(fh_baryons_file) or not os.path.exists(fh_mesons_file):
                 ''' Do the FH_PROP and PROP files exist? '''
                 have_fh_props = True
                 for fh in ['A3','V4']:
@@ -213,18 +223,37 @@ for c in cfgs_run:
                             fin.write(xml_input.shell_smearing % params)
 
                         ''' make FH contractions '''
-                        params.update({'UP_PROP':prop_name, 'DN_PROP':prop_name, 'STRANGE_PROP':strange_prop, 'FH_BARYON_FILE':fh_baryons_file})
-                        curr   = "<elem>A3</elem><elem>A3</elem><elem>V4</elem><elem>V4</elem>"
-                        flavor = "<elem>UU</elem><elem>DD</elem><elem>UU</elem><elem>DD</elem>"
-                        fh_quarks = "<elem>"+fh_props['A3']+"</elem><elem>"+fh_props['A3']+"</elem><elem>"+fh_props['V4']+"</elem><elem>"+fh_props['V4']+"</elem>"
-                        params.update({'CURR':curr, 'FLAVOR':flavor, 'FH_PROP':fh_quarks, 'H5_FH_PATH':'PS'})
-                        fin.write(xml_input.fh_baryons % params)
+                        if not os.path.exists(fh_baryons_file):
+                            params.update({'UP_PROP':prop_name, 'DN_PROP':prop_name, 'STRANGE_PROP':strange_prop, 'FH_BARYON_FILE':fh_baryons_file})
+                            curr   = "<elem>A3</elem><elem>A3</elem><elem>V4</elem><elem>V4</elem>"
+                            flavor = "<elem>UU</elem><elem>DD</elem><elem>UU</elem><elem>DD</elem>"
+                            fh_quarks = "\n      <elem>"+fh_props['A3']+"</elem>\n      <elem>"+fh_props['A3']+"</elem>\n      <elem>"+fh_props['V4']+"</elem>\n      <elem>"+fh_props['V4']+"</elem>\n    "
+                            params.update({'CURR':curr, 'FLAVOR':flavor, 'FH_PROP':fh_quarks, 'H5_FH_PATH':'PS'})
+                            fin.write(xml_input.fh_baryons % params)
 
-                        params.update({'UP_PROP':prop_name+'_SS', 'DN_PROP':prop_name+'_SS', 'STRANGE_PROP':strange_prop+'_SS'})
-                        fh_quarks = "<elem>"+fh_props['A3']+'_SS'+"</elem><elem>"+fh_props['A3']+'_SS'+"</elem><elem>"+fh_props['V4']+'_SS'+"</elem><elem>"+fh_props['V4']+'_SS'+"</elem>"
-                        params.update({'FH_PROP':fh_quarks, 'H5_FH_PATH':'SS'})
-                        fin.write(xml_input.fh_baryons % params)
+                            params.update({'UP_PROP':prop_name+'_SS', 'DN_PROP':prop_name+'_SS', 'STRANGE_PROP':strange_prop+'_SS'})
+                            fh_quarks = "\n      <elem>"+fh_props['A3']+'_SS'+"</elem>\n      <elem>"+fh_props['A3']+'_SS'+"</elem>\n      <elem>"+fh_props['V4']+'_SS'+"</elem>\n      <elem>"+fh_props['V4']+'_SS'+"</elem>\n    "
+                            params.update({'FH_PROP':fh_quarks, 'H5_FH_PATH':'SS'})
+                            fin.write(xml_input.fh_baryons % params)
 
+                        if not os.path.exists(fh_mesons_file):
+                            params.update({'FH_MESON_FILE':fh_mesons_file})
+                            flav = 'UU'
+                            params.update({'PARTICLES':fh_meson_particles[flav]})
+                            params.update({'UP_PROP':fh_props['V4'], 'DN_PROP':prop_name, 'STRANGE_PROP':strange_prop, 'H5_FH_PATH':'PS/V4_'+flav})
+                            fin.write(xml_input.fh_mesons % params)
+
+                            params.update({'UP_PROP':fh_props['V4']+'_SS', 'DN_PROP':prop_name+'_SS', 'STRANGE_PROP':strange_prop+'_SS', 'H5_FH_PATH':'SS/V4_'+flav})
+                            fin.write(xml_input.fh_mesons % params)
+
+                            flav = 'DD'
+                            params.update({'PARTICLES':fh_meson_particles[flav]})
+                            params.update({'UP_PROP':prop_name, 'DN_PROP':fh_props['V4'], 'STRANGE_PROP':strange_prop, 'H5_FH_PATH':'PS/V4_'+flav})
+                            fin.write(xml_input.fh_mesons % params)
+
+                            params.update({'UP_PROP':prop_name+'_SS', 'DN_PROP':fh_props['V4']+'_SS', 'STRANGE_PROP':strange_prop+'_SS', 'H5_FH_PATH':'SS/V4_'+flav})
+                            fin.write(xml_input.fh_mesons % params)
+                                
                         ''' end xml file '''
                         fin.write(xml_input.tail % params)
 
@@ -253,7 +282,7 @@ for c in cfgs_run:
                     print('python METAQ_fhprop.py %s -s %s %s' %(c, s0, src_args))
                     os.system(c51.python+' %s/METAQ_fhprop.py %s -s %s %s %s' %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY']))
                     if not os.path.exists(strange_prop_file):
-                        os.system(c51.python+' %s/METAQ_strange_prop.py %s -f -s %s %s %s' %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY']))
+                        os.system(c51.python+' %s/METAQ_strange_prop.py %s --force -s %s %s %s' %(params['SCRIPT_DIR'], c, s0, src_args, params['PRIORITY']))
             else:
                 if args.verbose:
                     print('fhbaryon exists',fh_baryons_file)

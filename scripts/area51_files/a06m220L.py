@@ -65,6 +65,8 @@ params['ff_size']        = 1
 params['hyperspec_size'] = 8337216
 params['pik_size']       = 3863760
 params['fh_size']        = 1
+params['fh_baryons_size']= 926720
+params['fh_mesons_size'] = 60080
 params['mixed_size']     = 48000
 params['src_size']       = 55037659100
 params['prop_size']      = 55037660500
@@ -108,6 +110,18 @@ params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
 params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['A3','V4','A1','A2','A4','V1','V2','V3','S','T34','T12','CHROMO_MAG']
+
+'''MOMENTUM LIST'''
+params['MOM_ML']=[params['MV_L']]
+params['NPR_MOM_LST']=[
+                       [3,3,0,0],[0,3,3,0],
+                       [4,4,0,0],[0,4,4,0],
+                       [5,5,0,0],[0,5,5,0],
+                       [6,6,0,0],[0,6,6,0],
+                       [7,7,0,0],[0,7,7,0],
+                       [8,8,0,0],[0,8,8,0],
+                       [9,9,0,0],[0,9,9,0],
+                      ]
 
 ''' SCHEDULING PARAMETERS '''
 

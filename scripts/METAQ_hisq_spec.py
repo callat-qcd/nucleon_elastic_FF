@@ -31,17 +31,17 @@ params['METAQ_PROJECT'] = 'prop_'+ens_s
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='make xml input for %s that need running' %sys.argv[0].split('/')[-1])
-parser.add_argument('cfgs',nargs='+',type=int,help='start [stop] cfg numbers')
-parser.add_argument('-s','--src',type=str)
-parser.add_argument('-o',default=False,action='store_const',const=True,\
-    help='overwrite xml and metaq files? [%(default)s]')
-parser.add_argument('--mtype',default='gpu',help='specify metaq dir [%(default)s]')
-parser.add_argument('-p',default=False,action='store_const',const=True,\
-    help='put task.sh in priority queue? [%(default)s]')
-parser.add_argument('-v','--verbose',default=True,action='store_const',const=False,\
-    help='run with verbose output? [%(default)s]')
-parser.add_argument('--force',default=False,action='store_const',const=True,\
-    help='force create props? [%(default)s]')
+parser.add_argument('cfgs',           nargs='+',type=int,help='start [stop] cfg numbers')
+parser.add_argument('-s','--src',     type=str)
+parser.add_argument('-o',             default=False,action='store_true',
+                    help=             'overwrite xml and metaq files? [%(default)s]')
+parser.add_argument('--mtype',        default='gpu',help='specify metaq dir [%(default)s]')
+parser.add_argument('-p',             default=False,action='store_true',
+                    help=             'put task.sh in priority queue? [%(default)s]')
+parser.add_argument('-v','--verbose', default=True,action='store_false',
+                    help=             'run with verbose output? [%(default)s]')
+parser.add_argument('--force',        default=False,action='store_true',
+                    help=             'force create props? [%(default)s]')
 args = parser.parse_args()
 print('%s: Arguments passed' %sys.argv[0].split('/')[-1])
 print(args)
@@ -167,7 +167,7 @@ save_parallel %s
         t0_lst = [t_srcs[0]]
 
     else:
-        params['WALL_TIME'] = params['hisq_spec']
+        params['WALL_TIME'] = params['hisq_spec_time']
         params['CLEANUP']   = ''
         cfg_in = '''
 reload_parallel %s

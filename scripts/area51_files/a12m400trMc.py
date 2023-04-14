@@ -1,8 +1,11 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = True
-params['run_ff'] = True
+params['tuning_mq']   = True
+params['run_strange'] = False
+params['run_pipi']    = False
+params['run_ff']      = False
+params['LIGHT_BARYONS'] = 'proton</elem> <elem>delta_pp'
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -31,12 +34,18 @@ params['B5']     = '1.25'
 params['C5']     = '0.25'
 params['alpha5'] = '%.1f' %(float(params['B5']) + float(params['C5']))
 
-params['MV_L'] = '0.0231'
-params['MV_S'] = '0.0231'
+mv_q = '0.0231'
+mv_q = '0.0243'
+mv_q = '0.0246'
+mv_q = '0.0248'
+params['MV_L'] = mv_q
+params['MV_S'] = mv_q
 
-params['spec_size'] = 826000
+params['spec_size'] = 1
 params['hisq_spec_size'] = 4900
-params['ff_size']   = 4046000
+params['ff_size']   = 1
+params['prop_size'] = 1019218500
+params['src_size']  = 1019217800
 
 params['MAX_ITER']   = '4000'
 params['RSD_TARGET'] = '1.e-7'

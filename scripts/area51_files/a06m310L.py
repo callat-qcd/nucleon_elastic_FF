@@ -6,6 +6,7 @@ params['tuning_ms']   = False
 params['run_ff']      = False
 params['run_strange'] = True
 params['run_pipi']    = True
+params['run_fh']    = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -58,6 +59,8 @@ params['MV_S'] = '0.0309'
 
 params['spec_size']      = 51312
 params['ff_size']        = 1
+params['fh_mesons_size'] = 1
+params['fh_baryons_size'] = 1
 params['hyperspec_size'] = 486080
 params['mixed_size']     = 48000
 params['src_size']       = 41278244800
@@ -95,6 +98,17 @@ params['SS_PS']   = 'SS'
 params['particles'] = ['proton','proton_np']
 params['curr_4d'] = ['A3','V4','A1','A2','A4','V1','V2','V3','P','S']
 params['curr_0p'] = ['A3','V4','A1','A2','A4','V1','V2','V3','S','T34','T12','CHROMO_MAG']
+
+
+'''MOMENTUM LIST'''
+params['MOM_ML']=[params['MV_L']]
+params['NPR_MOM_LST']=[
+                       [4,4,0,0],[0,4,4,0],
+                       [5,5,0,0],[0,5,5,0],
+                       [6,6,0,0],[0,6,6,0],
+                       [7,7,0,0],[0,7,7,0],
+                       [8,8,0,0],[0,8,8,0],
+                      ]
 
 ''' SCHEDULING PARAMETERS '''
 
