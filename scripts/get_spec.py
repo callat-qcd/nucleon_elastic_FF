@@ -75,8 +75,14 @@ print('MINING SPEC')
 
 ps   = ['sh','pt']
 spin = ['spin_up','spin_dn']
+spin_d = ['spin_upup', 'spin_up', 'spin_dn', 'spin_dndn']
 par  = ['proton','proton_np']
+deltas = ['delta_pp', 'delta_pp_np']
 params['MQ'] = params['MV_L']
+try:
+    have_d = 'delta' in params['LIGHT_BARYONS']
+except:
+    have_d = False
 
 for cfg in cfgs_run:
     no = str(cfg)
@@ -96,84 +102,135 @@ for cfg in cfgs_run:
         src_split = sources.src_split(src)
         t_src = int(src.split('t')[1])
         mq = params['MQ'].replace('.','p')
-        f5 = h5.open_file(tmp_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a')
-        spec_dir = '/'+val_p+'/spec/ml'+mq
-        try:
-            f5.create_group(spec_dir,'piplus',createparents=True)
-            f5.flush()
-            for s in spin:
-                f5.create_group(spec_dir+'/proton',s,createparents=True)
-                f5.create_group(spec_dir+'/proton_np',s,createparents=True)
+        with h5.open_file(tmp_data_dir+'/'+ens_s+'_'+no+'_srcs'+src_ext+'.h5','a') as f5:
+            spec_dir = '/'+val_p+'/spec/ml'+mq
+            try:
+                f5.create_group(spec_dir,'piplus',createparents=True)
                 f5.flush()
-        except:
-            pass
-        # PI_PLUS
-        get_data = False
-        if src not in f5.get_node(spec_dir+'/piplus'):
-            get_data = True
-        if args.o and src in f5.get_node(spec_dir+'/piplus'):
-            get_data = True
-        if get_data:
-            fin = h5.open_file(ftmp,'r')
-            corr = 'piplus'
-            tmp_dir = spec_dir+'/'+corr
-            p_lst = utils.p_lst(params['MESONS_PSQ_MAX'])
-            for mom in p_lst:
-                if mom not in f5.get_node(tmp_dir):
-                    f5.create_group(tmp_dir,mom)
-                mom_dir = tmp_dir + '/'+mom
-                pt = fin.get_node('/pt/'+corr+'/'+src_split+'/'+mom).read()
-                sh = fin.get_node('/sh/'+corr+'/'+src_split+'/'+mom).read()
-                nt = len(pt)
-                data = np.zeros([nt,2,1],dtype=dtype)
-                data[:,0,0] = sh
-                data[:,1,0] = pt
-                if not np.any(np.isnan(data)):
-                    if args.v: print(no,corr,src,mom)
-                    if src not in f5.get_node(mom_dir):
-                        f5.create_array(mom_dir,src,data)
-                    elif src in f5.get_node(mom_dir) and args.o:
-                        f5.get_node(mom_dir+'/'+src)[:] = data
-                    elif src in f5.get_node(mom_dir) and not args.o:
-                        print('  skipping piplus: overwrite = False',no,src)
-                else:
-                    print('  NAN',no,src)
-            fin.close()
-        # PROTON
-        get_data = False
-        for s in spin:
-            if src not in f5.get_node(spec_dir+'/proton/'+s) or src not in f5.get_node(spec_dir+'/proton_np/'+s):
-                get_data = True
-            if args.o and (src in f5.get_node(spec_dir+'/proton/'+s) or src in f5.get_node(spec_dir+'/proton_np/'+s)):
-                get_data = True
-        if get_data:
-            fin = h5.open_file(ftmp,'r')
-            for corr in par:
                 for s in spin:
-                    tmp_dir = spec_dir+'/'+corr+'/'+s
-                    p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
-                    for mom in p_lst:
-                        if mom not in f5.get_node(tmp_dir):
-                            f5.create_group(tmp_dir,mom)
-                        mom_dir = tmp_dir + '/'+mom
-                        pt = fin.get_node('/pt/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
-                        sh = fin.get_node('/sh/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
-                        nt = len(pt)
-                        data = np.zeros([nt,2,1],dtype=dtype)
-                        data[:,0,0] = sh
-                        data[:,1,0] = pt
-                        if not np.any(np.isnan(data)):
-                            if args.v:
-                                print(no,corr,s,src,mom)
-                            if src not in f5.get_node(mom_dir):
-                                f5.create_array(mom_dir,src,data)
-                            elif src in f5.get_node(mom_dir) and args.o:
-                                f5.get_node(mom_dir+'/'+src)[:] = data
-                            elif src in f5.get_node(mom_dir) and not args.o:
-                                print('  skipping proton: overwrite = False',no,src)
-                        else:
-                            print('  NAN',no,src)
-            fin.close()
-            f5.close()
-        else:
-            f5.close()
+                    f5.create_group(spec_dir+'/proton',s,createparents=True)
+                    f5.create_group(spec_dir+'/proton_np',s,createparents=True)
+                    f5.flush()
+            except:
+                pass
+            if have_d:
+                try:
+                    for s in spin_d:
+                        f5.create_group(spec_dir+'/delta_pp', s,createparents=True)
+                        f5.create_group(spec_dir+'/delta_pp_np', s,createparents=True)
+                        f5.flush()
+                except:
+                    pass            
+            # PI_PLUS
+            get_data = False
+            if src not in f5.get_node(spec_dir+'/piplus'):
+                get_data = True
+            if args.o and src in f5.get_node(spec_dir+'/piplus'):
+                get_data = True
+            if get_data:
+                fin = h5.open_file(ftmp,'r')
+                corr = 'piplus'
+                tmp_dir = spec_dir+'/'+corr
+                p_lst = utils.p_lst(params['MESONS_PSQ_MAX'])
+                for mom in p_lst:
+                    if mom not in f5.get_node(tmp_dir):
+                        f5.create_group(tmp_dir,mom)
+                    mom_dir = tmp_dir + '/'+mom
+                    pt = fin.get_node('/pt/'+corr+'/'+src_split+'/'+mom).read()
+                    sh = fin.get_node('/sh/'+corr+'/'+src_split+'/'+mom).read()
+                    nt = len(pt)
+                    data = np.zeros([nt,2,1],dtype=dtype)
+                    data[:,0,0] = sh
+                    data[:,1,0] = pt
+                    if not np.any(np.isnan(data)):
+                        if args.v: print(no,corr,src,mom)
+                        if src not in f5.get_node(mom_dir):
+                            f5.create_array(mom_dir,src,data)
+                        elif src in f5.get_node(mom_dir) and args.o:
+                            f5.get_node(mom_dir+'/'+src)[:] = data
+                        elif src in f5.get_node(mom_dir) and not args.o:
+                            print('  skipping piplus: overwrite = False',no,src)
+                    else:
+                        print('  NAN',no,src)
+                fin.close()
+            # PROTON
+            get_data = False
+            for s in spin:
+                if src not in f5.get_node(spec_dir+'/proton/'+s) or src not in f5.get_node(spec_dir+'/proton_np/'+s):
+                    get_data = True
+                if args.o and (src in f5.get_node(spec_dir+'/proton/'+s) or src in f5.get_node(spec_dir+'/proton_np/'+s)):
+                    get_data = True
+            if get_data:
+                fin = h5.open_file(ftmp,'r')
+                for corr in par:
+                    for s in spin:
+                        tmp_dir = spec_dir+'/'+corr+'/'+s
+                        p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
+                        for mom in p_lst:
+                            if mom not in f5.get_node(tmp_dir):
+                                f5.create_group(tmp_dir,mom)
+                            mom_dir = tmp_dir + '/'+mom
+                            pt = fin.get_node('/pt/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
+                            sh = fin.get_node('/sh/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
+                            nt = len(pt)
+                            data = np.zeros([nt,2,1],dtype=dtype)
+                            data[:,0,0] = sh
+                            data[:,1,0] = pt
+                            if not np.any(np.isnan(data)):
+                                if args.v:
+                                    print(no,corr,s,src,mom)
+                                if src not in f5.get_node(mom_dir):
+                                    f5.create_array(mom_dir,src,data)
+                                elif src in f5.get_node(mom_dir) and args.o:
+                                    f5.get_node(mom_dir+'/'+src)[:] = data
+                                elif src in f5.get_node(mom_dir) and not args.o:
+                                    print('  skipping proton: overwrite = False',no,src)
+                            else:
+                                print('  NAN',no,src)
+                fin.close()
+
+            if have_d:
+                # DELTA
+                fin = h5.open_file(ftmp,'r')
+                if 'delta_pp' in fin.get_node('/pt'):
+                    get_delta = True
+                else:
+                    get_delta = False
+                fin.close()
+                if get_delta:
+                    get_data = False
+                    for s in spin_d:
+                        if src not in f5.get_node(spec_dir+'/delta_pp/'+s) or src not in f5.get_node(spec_dir+'/delta_pp_np/'+s):
+                            get_data = True
+                        if args.o and (src in f5.get_node(spec_dir+'/delta_pp/'+s) or src in f5.get_node(spec_dir+'/delta_pp_np/'+s)):
+                            get_data = True
+                    print('DEBUG: get_data',get_data)
+                    if get_data:
+                        fin = h5.open_file(ftmp,'r')
+                        for corr in deltas:
+                            for s in spin_d:
+                                tmp_dir = spec_dir+'/'+corr+'/'+s
+                                p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
+                                for mom in p_lst:
+                                    if mom not in f5.get_node(tmp_dir):
+                                        f5.create_group(tmp_dir,mom)
+                                    mom_dir = tmp_dir + '/'+mom
+                                    pt = fin.get_node('/pt/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
+                                    sh = fin.get_node('/sh/'+corr+'/'+s+'/'+src_split+'/'+mom).read()
+                                    nt = len(pt)
+                                    data = np.zeros([nt,2,1],dtype=dtype)
+                                    data[:,0,0] = sh
+                                    data[:,1,0] = pt
+                                    if not np.any(np.isnan(data)):
+                                        if args.v:
+                                            print(no,corr,s,src,mom)
+                                        if src not in f5.get_node(mom_dir):
+                                            f5.create_array(mom_dir,src,data)
+                                        elif src in f5.get_node(mom_dir) and args.o:
+                                            f5.get_node(mom_dir+'/'+src)[:] = data
+                                        elif src in f5.get_node(mom_dir) and not args.o:
+                                            print('  skipping proton: overwrite = False',no,src)
+                                    else:
+                                        print('  NAN',no,src)
+                        fin.close()
+
