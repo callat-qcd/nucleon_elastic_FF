@@ -87,8 +87,19 @@ val_p = val.replace('.','p')
 
 mq = params['MV_L']
 
-spin = ['spin_up','spin_dn']
+spin = {
+    'proton'     :['spin_up','spin_dn'],
+    'proton_np'  :['spin_up','spin_dn'],
+    'delta_pp'   :['spin_upup', 'spin_up','spin_dn', 'spin_dndn'],
+    'delta_pp_np':['spin_upup', 'spin_up','spin_dn', 'spin_dndn'],
+    }
 par  = ['proton','proton_np']
+try:
+    have_delta = 'delta' in params['LIGHT_BARYONS']
+except:
+    have_delta = False
+if have_delta:
+    par = par + ['delta_pp', 'delta_pp_np']
 
 corr = 'piplus'
 p_lst = utils.p_lst(params['MESONS_PSQ_MAX'])
@@ -169,7 +180,7 @@ for corr in par:
     for mom in p_lst:
         spin_data = dict()
         have_spin = False
-        for s in spin:
+        for s in spin[corr]:
             cfgs_srcs = []
             spec = np.array([],dtype=dtype)
             first_data = True
@@ -247,6 +258,6 @@ for corr in par:
                 ns_avg = cfgs_srcs.mean(axis=0)[1]
                 print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
                 fout.create_array(c_dir,'cfgs_srcs',cfgs_srcs)
-                for s in spin:
+                for s in spin[corr]:
                     fout.create_array(c_dir,s,spin_data[s])
             fout.close()
