@@ -15,6 +15,8 @@ params['run_mm']      = True
 
 params['cfg_i'] = 78
 params['cfg_f'] = 3102
+params['cfg_i'] = 6114
+params['cfg_f'] = 12318
 params['cfg_d'] = 6
 
 params['ENS_ABBR'] = 'a09m135'
@@ -124,7 +126,7 @@ def mpirun_params(machine):
         params['gpu_geom']    = ' -geom 1 1 1 4'
 
     if machine == 'summit':
-        params['metaq_split'] = True
+        params['metaq_split'] = False
         params['cpu_nodes']   = 4
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1

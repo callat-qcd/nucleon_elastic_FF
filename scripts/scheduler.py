@@ -61,7 +61,7 @@ qsub['summit'] = '''
 #BSUB -nnodes %(NODES)s
 #BSUB -cn_cu 'maxcus=%(MAXCUS)s'
 #BSUB -q batch
-#BSUB -P LGT100
+#BSUB -P NPH162
 #BSUB -W %(WALL_TIME)s
 #BSUB -alloc_flags smt4
 

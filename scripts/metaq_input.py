@@ -7,7 +7,7 @@ gflow='''#!/bin/bash
 
 #BSUB -nnodes %(NODES)s
 #BSUB -cn_cu 'maxcus=1'
-#BSUB -P LGT100
+#BSUB -P NPH162
 #BSUB -W %(WALL_TIME)s
 #BSUB -alloc_flags smt4
 
@@ -40,7 +40,7 @@ src='''#!/bin/bash
 
 #BSUB -nnodes %(NODES)s
 #BSUB -cn_cu 'maxcus=1'
-#BSUB -P LGT100
+#BSUB -P NPH162
 #BSUB -W %(WALL_TIME)s
 #BSUB -alloc_flags smt4
 
@@ -74,7 +74,7 @@ prop = '''#!/bin/bash
 
 #BSUB -nnodes %(NODES)s
 #BSUB -cn_cu 'maxcus=1'
-#BSUB -P LGT100
+#BSUB -P NPH162
 #BSUB -W %(WALL_TIME)s
 #BSUB -alloc_flags smt4
 
@@ -109,7 +109,7 @@ spec='''#!/bin/bash
 
 #BSUB -nnodes %(NODES)s
 #BSUB -cn_cu 'maxcus=1'
-#BSUB -P LGT100
+#BSUB -P NPH162
 #BSUB -W %(WALL_TIME)s
 #BSUB -alloc_flags smt4
 
@@ -139,7 +139,7 @@ seqsource='''#!/bin/bash
 
 #BSUB -nnodes 1
 #BSUB -cn_cu 'maxcus=1'
-#BSUB -P LGT100
+#BSUB -P NPH162
 #BSUB -W 20
 #BSUB -alloc_flags smt4
 
@@ -170,7 +170,7 @@ seqprop = '''#!/bin/bash
 
 #BSUB -nnodes 1
 #BSUB -cn_cu 'maxcus=1'
-#BSUB -P LGT100
+#BSUB -P NPH162
 #BSUB -W 20
 #BSUB -alloc_flags smt4
 
@@ -206,7 +206,7 @@ formfac_contractions='''#!/bin/bash
 
 #BSUB -nnodes 1
 #BSUB -cn_cu 'maxcus=1'
-#BSUB -P LGT100
+#BSUB -P NPH162
 #BSUB -W 20
 #BSUB -alloc_flags smt4
 

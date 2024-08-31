@@ -102,7 +102,7 @@ params['WALL_TIME']   = params['src_time']
 params['ENS_DIR']     = c51.ens_dir % params
 params['SCRIPT_DIR']  = c51.script_dir
 params['MAXCUS']      = params['cpu_maxcus']
-params['SOURCE_ENV']  = c51.env
+params['SOURCE_ENV']  = c51.env.replace('.sh','.cpu.sh')
 params['PROG']        = '$LALIBE_CPU'
 params['APP']         = 'APP='+c51.bind_dir+params['cpu_bind']
 params['NRS']         = params['cpu_nrs']

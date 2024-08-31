@@ -26,7 +26,16 @@ elif any(host in hn for host in ['lassen']):
     milc_dir  = '/usr/workspace/coldqcd/software/lassen_smpi_RR/install/lattice_milc_qcd'
     python    = '/usr/workspace/coldqcd/software/python_venv-3.7.2.lassen/bin/python'
 elif any(host in hn for host in ['summit']):
-    sys.exit('we have summit!')
+    manage   = '/ccs/proj/nph162'
+    scratch  = '/gpfs/alpine2/proj-shared/nph162/mdwf_hisq'
+    tape     = '/proj/lgt100/c51/x_files/project_2/production'
+    machine  = 'summit'
+    env      = 'source /ccs/proj/nph162/software/compile_scripts/env_summit.sh'
+    #env     += '\nmodule load python/3.7.0-anaconda3-5.3.0'
+    bind_dir = ''
+    milc_dir  = '/ccs/proj/lgt100/c51/software/summit_smpi/install/lattice_milc_qcd'
+    python   = 'python'
+
 elif any(host in hn for host in ['login','batch','rhea']):
     ''' TERRIBLE LOGIN NAME FOR SUMMIT '''
     manage   = '/ccs/proj/lgt100/c51/x_files/project_2'
