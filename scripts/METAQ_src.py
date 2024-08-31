@@ -177,7 +177,7 @@ for c in cfgs_run:
                 utils.check_file(src_file,file_size,params['file_time_delete'],params['corrupt'])
                 print('making src',src_name)
                 if not os.path.exists(src_file):
-                    metaq = src_name + '.sh'
+                    metaq = (src_name + '.sh').replace('src','source')
                     t_e,t_w = scheduler.check_task(metaq,args.mtype,params,folder=q,overwrite=args.o)
                     try:
                         if params['metaq_split']:

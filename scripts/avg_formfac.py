@@ -42,6 +42,7 @@ parser.add_argument('-v',            default=True,action='store_const',const=Fal
 parser.add_argument('--srcs',        type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
 parser.add_argument('--fout',        type=str,help='name of output file')
 parser.add_argument('--src_set',     nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--p_cut',       type=int,default=0,help='max momentum value [%(default)s]')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -110,6 +111,8 @@ if args.t_sep == None:
 else:
     params['t_seps'] = args.t_sep
 
+p_lst = utils.p_simple_lst(args.p_cut)
+    
 print('running ',cfgs[0],'-->',cfgs[-1])
 print('srcs:',src_ext)
 print('getting t_sep values')
@@ -118,6 +121,7 @@ if args.current != None:
     params['curr_0p'] = args.current
 print('currents')
 print('    ',params['curr_0p'])
+print(p_lst)
 
 for corr in params['particles']:
     for fs in flav_spin:
@@ -134,7 +138,7 @@ for corr in params['particles']:
                     f5_out.flush()
                 except:
                     pass
-                p_lst = ['px0_py0_pz0']
+                #p_lst = ['px0_py0_pz0']
                 for mom in p_lst:
                     mom_dir = curr_dir+'/'+mom
                     print(mom_dir)

@@ -65,7 +65,7 @@ params['prop_size']      = 41278245000
 #params['seqprop_size'] = 28991036000
 
 params['MAX_ITER']   = '10000'
-params['RSD_TARGET'] = '1.e-7'
+params['RSD_TARGET'] = '5.e-8'
 params['Q_DELTA']    = '0.1'
 params['RSD_TOL']    = '80'
 
@@ -76,15 +76,15 @@ params['seed']['a'] = '1a'
 params['seed']['b'] = '1b'
 params['seed']['c'] = '1c'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
-params['t_shifts'] = [ 0, 64  , 32  , 76 ,   16,  80, 48, 92 ]
+params['t_shifts'] = [ 0, 64  , 32  , 96 ,   16,  80, 48, 112 ]
 params['generator'] = sources.oa(int(params['NL']))
 
 ''' minutes after last file modification time when deletion of small files is OK '''
 params['file_time_delete'] = 10
 
 
-params['MESONS_PSQ_MAX']  = 0
-params['BARYONS_PSQ_MAX'] = 0
+params['MESONS_PSQ_MAX']  = 4
+params['BARYONS_PSQ_MAX'] = 4
 
 params['t_seps']  = [3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 params['flavs']   = ['UU','DD']
@@ -160,14 +160,14 @@ def mpirun_params(machine):
 
     if machine == 'summit':
         params['metaq_split'] = True
-        params['cpu_nodes']   = 4
+        params['cpu_nodes']   = 6
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 15
         params['src_time']    = 5
         params['spec_time']   = 10
 
-        params['cpu_nrs']     = '--nrs 8'
+        params['cpu_nrs']     = '--nrs 12'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a16'
         params['cpu_g_rs']    = ''
@@ -175,20 +175,20 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = ''
 
-        params['gpu_nodes']   = 4
+        params['gpu_nodes']   = 6
         params['gpu_metaq_nodes'] = 0
-        params['gpu_gpus']    = 24
+        params['gpu_gpus']    = 36
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 145
+        params['prop_time']   = 140
         params['seqprop_time'] = 75
 
-        params['gpu_nrs']     = '--nrs 4'
+        params['gpu_nrs']     = '--nrs 6'
         params['gpu_rs_node'] = '-r1'
         params['gpu_a_rs']    = '-a6'
         params['gpu_g_rs']    = '-g6'
         params['gpu_c_rs']    = '-c6'
         params['gpu_latency'] = '-l gpu-cpu'
-        params['gpu_geom']    = ' -geom 1 1 2 12'
+        params['gpu_geom']    = ' -geom 1 3 3 4'
         params['gpu_bind']    = ''
 
     return params

@@ -58,7 +58,7 @@ parser.add_argument('-a','--atol',     default=0.0  , help='specify absolute tol
 parser.add_argument('-r','--rtol',     default=1e-10, help='specify relative tolerance for comparing h5 files [%(default)s]')
 parser.add_argument('-o',              default=False,action='store_true', help='overwrite? [%(default)s]')
 parser.add_argument('--move',          default=False,action='store_true', help='move bad files? [%(default)s]')
-parser.add_argument('tmp_sync',        default=False,action='store_true', help='force sync to tmp_data? [%(default)s]')
+parser.add_argument('--tmp_sync',      default=False,action='store_true', help='force sync to tmp_data? [%(default)s]')
 parser.add_argument('-u','--update_db',default=False,action='store_true', help='update db without collection? [%(default)s]')
 parser.add_argument('-v',              default=False,action='store_true', help='verbose? [%(default)s]')
 parser.add_argument('-d','--debug',    default=False,action='store_true', help='debug? [%(default)s]')
@@ -152,6 +152,7 @@ else:
 
 print('MINING',corrs)
 print('ens_stream = ',ens_s)
+print('cfgs ',cfgs_run)
 print('srcs:',src_set)
 print('data dir',data_dir)
 

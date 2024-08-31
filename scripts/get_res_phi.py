@@ -46,7 +46,8 @@ print(args)
 print('')
 
 dtype = np.float64
-tmp_data_dir = c51.tmp_data_dir % params
+#tmp_data_dir = c51.tmp_data_dir % params
+tmp_data_dir = c51.data_dir % params
 utils.ensure_dirExists(tmp_data_dir)
 
 if 'si' in params and 'sf' in params and 'ds' in params:

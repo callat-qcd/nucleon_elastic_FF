@@ -1,10 +1,13 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['tuning_ms'] = False
-params['run_ff']    = True
+params['tuning_mq']   = False
+params['tuning_ms']   = False
+params['run_ff']      = False
 params['run_strange'] = True
+params['run_mm']      = True
+params['run_fh']      = True
+params['fh_curr']     = ['A3', 'V4', 'S']
 
 #l4864f211b600m00339m0507m628a.
 
@@ -50,6 +53,15 @@ params['MV_S'] = '0.0693'
 params['spec_size']      = 43120
 params['hyperspec_size'] = 383680
 params['ff_size']        = 429736
+params['ff_size']   = 429000
+params['fh_baryons_size']= 1093104
+params['fh_mesons_size'] = 51888
+
+params['src_size']     = 8153728000
+params['prop_size']    = 8153729000
+params['prop_size_h5'] = 8153729000
+params['seqsrc_size']  = 8153734000
+params['seqprop_size'] = 8153736000
 
 params['MAX_ITER']   = '10000'
 params['RSD_TARGET'] = '1.e-7'
@@ -130,7 +142,7 @@ def mpirun_params(machine):
 
     if machine == 'summit':
         # split tasks to todo/cgpu_n where n = nodes?
-        params['metaq_split'] = True
+        params['metaq_split'] = False
         # other params
         params['cpu_nodes']   = 2
         params['cpu_gpus']    = 0
@@ -151,7 +163,7 @@ def mpirun_params(machine):
         params['gpu_metaq_nodes']   = 0
         params['gpu_gpus']          = 12
         params['gpu_maxcus']        = 1
-        params['prop_time']         = 35
+        params['prop_time']         = 67
         params['seqprop_time']      = 27
         params['strange_prop_time'] = 15
 

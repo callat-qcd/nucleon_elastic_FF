@@ -32,12 +32,13 @@ print('ENSEMBLE:',ens_s)
     COMMAND LINE ARG PARSER
 '''
 parser = argparse.ArgumentParser(description='average phi_qq')
-parser.add_argument('--cfgs',nargs='+',type=int,help='cfgs: ci [cf dc]')
-parser.add_argument('-o',default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
-parser.add_argument('-v',default=True,action='store_const',const=False,help='verbose? [%(default)s]')
-parser.add_argument('--srcs',type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
-parser.add_argument('--fout',type=str,help='name of output file')
-parser.add_argument('--src_set',nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--cfgs',    nargs='+',type=int,help='cfgs: ci [cf dc]')
+parser.add_argument('-o',        default=False,action='store_const',const=True,help='overwrite? [%(default)s]')
+parser.add_argument('-v',        default=True,action='store_const',const=False,help='verbose? [%(default)s]')
+parser.add_argument('--srcs',    type=str,help='optional name extension when collecting data files, e.g. srcs0-7')
+parser.add_argument('--fout',    type=str,help='name of output file')
+parser.add_argument('--src_set', nargs=3,type=int,help='specify si sf ds')
+parser.add_argument('--mom',     nargs='+', type=str, default=[], help='specify list of momentum to collect')
 args = parser.parse_args()
 print('Arguments passed')
 print(args)
@@ -102,7 +103,11 @@ if have_delta:
     par = par + ['delta_pp', 'delta_pp_np']
 
 corr = 'piplus'
-p_lst = utils.p_lst(params['MESONS_PSQ_MAX'])
+if args.mom:
+    p_lst = args.mom
+else:
+    p_lst = utils.p_lst(params['MESONS_PSQ_MAX'])
+
 for mom in p_lst:
     cfgs_srcs = []
     spec = np.array([],dtype=dtype)
@@ -126,7 +131,7 @@ for mom in p_lst:
                 if srcs._v_nchildren > 0:
                     good_cfg = True
             except:
-                print('ERROR reading ',data_dir+'/'+ens_s+'_'+no+'.h5')
+                print('ERROR reading ', file_in)
         #    fin.close()
         if good_cfg:
             ns = 0
@@ -175,7 +180,10 @@ for mom in p_lst:
 
 for corr in par:
     print(corr)
-    p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
+    if args.mom:
+        p_lst = args.mom
+    else:
+        p_lst = utils.p_lst(params['BARYONS_PSQ_MAX'])
     ''' flip spin and momentum order in h5 dir structrure '''
     for mom in p_lst:
         spin_data = dict()
@@ -224,7 +232,7 @@ for corr in par:
             cfgs_srcs = np.array(cfgs_srcs)
             ''' perform time-reversal on neg par correlators '''
             if '_np' in corr:
-                print('PERFORMING TIME_REVERSAL:',corr)
+                print('\nPERFORMING TIME_REVERSAL:',corr)
                 spec = utils.time_reverse(spec,phase=-1,time_axis=1)
             spin_data[s] = spec
             if 'cfgs_srcs' not in spin_data:
@@ -256,7 +264,7 @@ for corr in par:
                 cfgs_srcs = spin_data['cfgs_srcs']
                 nc = cfgs_srcs.shape[0]
                 ns_avg = cfgs_srcs.mean(axis=0)[1]
-                print(corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
+                print('\n',corr,mq,mom,'Nc=',nc,'Ns=',ns_avg,'\n')
                 fout.create_array(c_dir,'cfgs_srcs',cfgs_srcs)
                 for s in spin[corr]:
                     fout.create_array(c_dir,s,spin_data[s])

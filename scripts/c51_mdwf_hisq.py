@@ -1,4 +1,4 @@
-import os,shutil
+import os,shutil,sys
 import time
 import socket
 
@@ -10,6 +10,7 @@ def ens_base():
     return ens,stream
 
 hn = socket.gethostname()
+hn = socket.getaddrinfo(socket.gethostname(), 0, flags=socket.AI_CANONNAME)[0][3]
 if any(host in hn for host in ['oslic','pascal']):
     manage    = '/usr/workspace/coldqcd/c51/x_files/project_2'
     scratch   = '/p/lustre1/walkloud/c51/x_files/project_2'
@@ -24,6 +25,8 @@ elif any(host in hn for host in ['lassen']):
     bind_dir  = '/usr/workspace/coldqcd/software/callat_build_scripts/binding_scripts/'
     milc_dir  = '/usr/workspace/coldqcd/software/lassen_smpi_RR/install/lattice_milc_qcd'
     python    = '/usr/workspace/coldqcd/software/python_venv-3.7.2.lassen/bin/python'
+elif any(host in hn for host in ['summit']):
+    sys.exit('we have summit!')
 elif any(host in hn for host in ['login','batch','rhea']):
     ''' TERRIBLE LOGIN NAME FOR SUMMIT '''
     manage   = '/ccs/proj/lgt100/c51/x_files/project_2'
@@ -47,6 +50,10 @@ print("c51 manage dir is",manage)
 print("c51 scratch dir is",scratch)
 
 ens_long = {
+    'a15m400trMc':'l2048f31b580m02405m02405m8447',
+    'a12m400trMc':'l2464f31b600m01878m01878m6382',
+    'a09m400trMc':'l3296f31b630m01300m01300m4313',
+    'a06m400trMc':'l48144f31b672m007819m007819m2579',
     'a15m400'  :'l1648f211b580m0217m065m838',
     'a15m350'  :'l1648f211b580m0166m065m838',
     'a15m310'  :'l1648f211b580m013m065m838',
@@ -82,6 +89,7 @@ ens_long = {
     'a09m130'  :'l6496f211b630m0012m0363m432',
     'a09m135'  :'l6496f211b630m001326m03636m4313',
     'a06m310L' :'l7296f211b672m0048m024m286',
+    'a06m220L' :'l72128f211b672m0024m02186m2579',
     }
 
 quda_resource_dir = scratch+'/production/quda_resource'
@@ -110,6 +118,18 @@ def ensemble(params):
         params[d] = params['prod']+'/'+d
     for d in dirs_no:
         params[d] = params['prod']+'/'+d+'/'+params['CFG']
+
+    if 'run_fh' in params:
+        if params['run_fh']:
+            params['fh_prop'] = params['prod']+'/fh_prop/'+params['CFG']
+            params['fh_spec'] = params['prod']+'/fh_spec/'+params['CFG']
+            params['fh_baryons'] = params['prod']+'/fh_spec/'+params['CFG']
+            params['fh_mesons'] = params['prod']+'/fh_spec/'+params['CFG']
+            utils.ensure_dirExists(params['fh_prop'])
+            utils.ensure_dirExists(params['fh_spec'])
+            utils.ensure_dirExists(params['fh_baryons'])
+            utils.ensure_dirExists(params['fh_mesons'])
+
     for d in dirs+dirs_no:
         utils.ensure_dirExists(params[d])
     params['spec_4D_tslice']     = params['prod']+'/spec_4D_tslice/'+params['CFG']
@@ -157,3 +177,12 @@ names['mixed_corr']       = 'dwf_hisq_spec_%(ENS_S)s_wflow%(FLOW_TIME)s_M5%(M5)s
 names['mixed_corr']      += '_a%(alpha5)s_cfg_%(CFG)s_src%(SRC)s_%(SMR)s_ml%(MQ_L)s_ms%(MQ_S)s.corr'
 names['pipi_scat']        = 'pipi_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
 names['pipi_scat']       += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_%(MV_LS)s_%(SRC)s'
+
+names['fh_prop']          = 'fh_prop_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+names['fh_prop']         += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s_%(CURR)s'
+names['fh_spec']          = 'fh_spec_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+names['fh_spec']         += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
+names['fh_baryons']       = 'fh_baryons_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+names['fh_baryons']      += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'
+names['fh_mesons']       = 'fh_mesons_%(ENS_S)s_%(CFG)s_gf%(FLOW_TIME)s_w%(WF_S)s_n%(WF_N)s'
+names['fh_mesons']      += '_M5%(M5)s_L5%(L5)s_a%(alpha5)s_mq%(MQ)s_%(SRC)s'

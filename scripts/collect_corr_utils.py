@@ -431,7 +431,8 @@ def get_formfac(params_in, h5_dsets,h5_file=None,collect=False):
                 # make sure file exists
                 utils.check_file(ff_file,params['ff_size'],params['file_time_delete'],params['corrupt'])
                 if os.path.exists(ff_file):
-                    print(params['corr'], no, src)
+                    if verbose:
+                        print(params['corr'], no, src)
                     f_in      = h5.open_file(ff_file,'r')
                     src_split = sources.src_split(src)
                     t_src     = src.split('t')[1]

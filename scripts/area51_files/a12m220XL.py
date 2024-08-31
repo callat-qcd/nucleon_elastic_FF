@@ -1,8 +1,13 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['run_ff'] = True
+params['tuning_mq']   = False
+params['tuning_ms']   = False
+params['run_ff']      = False
+params['run_strange'] = True
+params['run_mm']      = True
+params['run_fh']      = True
+params['fh_curr']     = ['A3', 'V4', 'S']
 
 params['si'] = 0
 params['sf'] = 7
@@ -36,6 +41,16 @@ params['MV_S'] = '0.0693'
 
 params['spec_size'] = 200100
 params['ff_size']   = 386400
+params['hyperspec_size'] = 850864
+params['ff_size']   = 429000
+params['fh_baryons_size']= 1093104
+params['fh_mesons_size'] = 51888
+
+params['src_size']     = 8153728000
+params['prop_size']    = 8153729000
+params['prop_size_h5'] = 8153729000
+params['seqsrc_size']  = 8153734000
+params['seqprop_size'] = 8153736000
 
 params['MAX_ITER']   = '8000'
 params['RSD_TARGET'] = '1.e-7'
@@ -47,7 +62,7 @@ params['SP_EXTENSION'] = 'lime'
 params['seed'] = dict()
 params['seed']['a'] = '1a'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
-params['t_shifts'] = [ 0, 32  , 16  , 48     ]
+params['t_shifts'] = [ 0, 32  , 16  , 48 , 8, 40, 24, 56 ]
 params['generator'] = sources.oa(int(params['NL']))
 
 ''' minutes after last file modification time when deletion of small files is OK '''
@@ -108,16 +123,16 @@ def mpirun_params(machine):
 
     if machine == 'summit':
         # split tasks to todo/cgpu_n where n = nodes?
-        params['metaq_split'] = True
+        params['metaq_split'] = False
         # other params
-        params['cpu_nodes']   = 1
+        params['cpu_nodes']   = 2
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 9
         params['src_time']    = 5
         params['spec_time']   = 10
 
-        params['cpu_nrs']     = '--nrs 2'
+        params['cpu_nrs']     = '--nrs 4'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a16'
         params['cpu_g_rs']    = ''
@@ -125,20 +140,21 @@ def mpirun_params(machine):
         params['cpu_latency'] = '-l cpu-cpu'
         params['cpu_bind']    = ''
 
-        params['gpu_nodes']   = 1
+        params['gpu_nodes']   = 2
         params['gpu_metaq_nodes'] = 0
-        params['gpu_gpus']    = 6
+        params['gpu_gpus']    = 12
         params['gpu_maxcus']  = 1
-        params['prop_time']   = 33
+        params['prop_time']   = 81
+        params['strange_prop_time']   = 12
         params['seqprop_time']   = 20
 
-        params['gpu_nrs']     = '--nrs 1'
+        params['gpu_nrs']     = '--nrs 2'
         params['gpu_rs_node'] = '-r1'
         params['gpu_a_rs']    = '-a6'
         params['gpu_g_rs']    = '-g6'
         params['gpu_c_rs']    = '-c6'
         params['gpu_latency'] = '-l gpu-cpu'
-        params['gpu_geom']    = ' -geom 1 1 3 2'
+        params['gpu_geom']    = ' -geom 1 1 3 4'
         params['gpu_bind']    = ''
 
     return params

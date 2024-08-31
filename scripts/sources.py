@@ -48,8 +48,8 @@ def src_start_stop(params,ens,stream):
         if any(host in hn for host in ['lassen']):
             pass
         elif any(host in hn for host in ['login','batch']):
-            params['si'] = 8
-            params['sf'] = 15
+            params['si'] = 0
+            params['sf'] = 7
             params['ds'] = 1
     if ens == 'a09m310':
         if any(host in hn for host in ['login','batch']):

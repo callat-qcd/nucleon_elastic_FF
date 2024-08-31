@@ -143,6 +143,7 @@ if __name__ == "__main__":
     # else, collect data and put it in the h5 files
     else:
         print('collecting data')
+        print(cfgs_run)
         for cfg in cfgs_run:
             no = str(cfg)
             sys.stdout.write('  cfg=%4d\r' %(cfg))

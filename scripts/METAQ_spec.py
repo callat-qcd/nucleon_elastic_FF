@@ -169,7 +169,7 @@ for c in cfgs_run:
                     try:
                         file_size = params['prop_size_h5']
                     except:
-                        print('PROP_SIZE not defined in area51 file: using crude default')
+                        print('PROP_SIZE_H5 not defined in area51 file: using crude default')
                         file_size = int(nt)* int(nl)**3 * 3**2 * 4**2 * 2 * 4
                     utils.check_file(prop_file,file_size,params['file_time_delete'],params['corrupt'])
                     prop_exists = os.path.exists(prop_file)

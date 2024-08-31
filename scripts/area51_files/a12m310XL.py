@@ -1,11 +1,13 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['tuning_ms'] = False
-params['run_ff'] = True
+params['tuning_mq']   = False
+params['tuning_ms']   = False
+params['run_ff']      = False
 params['run_strange'] = True
 params['run_mm']      = True
+params['run_fh']      = True
+params['fh_curr']     = ['A3', 'V4', 'S']
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -40,6 +42,8 @@ params['spec_size'] = 200000
 params['hyperspec_size'] = 1
 params['ff_size']   = 429000
 params['spec_4D_tslice_fact'] = 0.5
+params['fh_baryons_size']= 1093104
+params['fh_mesons_size'] = 51888
 
 params['src_size']     = 8153728000
 params['prop_size']    = 8153729000
@@ -57,7 +61,7 @@ params['SP_EXTENSION'] = 'lime'
 params['seed'] = dict()
 params['seed']['a'] = '1a'
 '''                    0, nt/2, nt/4, 3 nt/4 '''
-params['t_shifts'] = [ 0, 32  , 16  , 48     ]
+params['t_shifts'] = [ 0, 32  , 16  , 48  , 8, 40, 24, 56]
 params['generator'] = sources.oa(int(params['NL']))
 
 ''' minutes after last file modification time when deletion of small files is OK '''
@@ -117,16 +121,16 @@ def mpirun_params(machine):
 
     if machine == 'summit':
         # split tasks to todo/cgpu_n where n = nodes?
-        params['metaq_split'] = True
+        params['metaq_split'] = False
         # other params
-        params['cpu_nodes']   = 1
+        params['cpu_nodes']   = 2
         params['cpu_gpus']    = 0
         params['cpu_maxcus']  = 1
         params['gflow_time']  = 15
         params['src_time']    = 5
         params['spec_time']   = 10
 
-        params['cpu_nrs']     = '--nrs 2'
+        params['cpu_nrs']     = '--nrs 4'
         params['cpu_rs_node'] = '-r2'
         params['cpu_a_rs']    = '-a16'
         params['cpu_g_rs']    = ''

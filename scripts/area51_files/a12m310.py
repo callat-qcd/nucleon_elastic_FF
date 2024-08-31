@@ -1,8 +1,10 @@
 import sources
 
 params = dict()
-params['tuning_mq'] = False
-params['run_ff'] = True
+params['tuning_mq']   = False
+params['run_ff']      = True
+params['run_strange'] = True
+params['run_pipi']    = True
 
 # the params['si','sf','ds'] are now handled in the sources.py file - srcs here overide those defaults
 # you must specify all three of these params to override the default
@@ -26,8 +28,8 @@ params['WF_N'] = '30'
 params['M5'] = '1.2'
 params['L5'] = '8'
 ''' NOTE: b5-c5 = 1 for all our tuning '''
-params['B5']     = '1.5'
-params['C5']     = '0.5'
+params['B5']     = '1.25'
+params['C5']     = '0.25'
 params['alpha5'] = '1.5'
 
 params['MV_L'] = '0.0126'

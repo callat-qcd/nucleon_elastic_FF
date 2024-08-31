@@ -336,6 +336,7 @@ pi_k_spec='''<elem>
 
 '''
 
+"""
 baryon_spec = '''  <elem>
 <Name>BARYON_CONTRACTIONS</Name>
 <Frequency>1</Frequency>
@@ -346,6 +347,27 @@ baryon_spec = '''  <elem>
 %(BARYON_MOM)s
     <particle_list>
         <elem>proton</elem>
+    </particle_list>
+</BaryonParams>
+<NamedObject>
+    <up_quark>%(UP_QUARK)s</up_quark>
+    <down_quark>%(DN_QUARK)s</down_quark>
+</NamedObject>
+</elem>
+
+'''
+"""
+
+baryon_spec = '''  <elem>
+<Name>BARYON_CONTRACTIONS</Name>
+<Frequency>1</Frequency>
+<BaryonParams>
+    <ng_parity>true</ng_parity>
+    <h5_file_name>%(SPEC_FILE)s</h5_file_name>
+    <path>/%(H5_PATH)s</path>
+%(BARYON_MOM)s
+    <particle_list>
+        <elem>%(LIGHT_BARYONS)s</elem>
     </particle_list>
 </BaryonParams>
 <NamedObject>
@@ -820,6 +842,112 @@ stag_src_write = '''<elem>
  <NamedObject>
    <source_id>%(SRC_ID)s</source_id>
  </NamedObject>
+</elem>
+
+'''
+
+fh_prop_ga='''<elem>
+<Name>FH_PROPAGATOR</Name>
+<FHParams>
+  <currents>%(CURRENTS)s
+  </currents>
+  <PropagatorParam>
+    <version>10</version>
+    <quarkSpinType>FULL</quarkSpinType>
+    <obsvP>true</obsvP>
+    <numRetries>1</numRetries>
+    <FermionAction>
+    <FermAct>UNPRECONDITIONED_NEF</FermAct>
+      <OverMass>%(M5)s</OverMass>
+      <N5>%(L5)s</N5>
+      <b5>%(B5)s</b5>
+      <c5>%(C5)s</c5>
+      <Mass>%(MQ)s</Mass>
+      <FermionBC>
+        <FermBC>SIMPLE_FERMBC</FermBC>
+        <boundary>1 1 1 -1</boundary>
+      </FermionBC>
+    </FermionAction>
+    <InvertParam>
+      <invType>QUDA_NEF_INVERTER</invType>
+      <DoCGNR>true</DoCGNR>
+      <MaxIter>%(MAX_ITER)s</MaxIter>
+      <RsdTarget>%(RSD_TARGET)s</RsdTarget>
+      <Delta>%(Q_DELTA)s</Delta>
+      <RsdToleranceFactor>%(RSD_TOL)s</RsdToleranceFactor>
+      <MaxResIncrease>1</MaxResIncrease>
+      <SolverType>CG</SolverType>
+      <Verbose>false</Verbose>
+      <AsymmetricLinop>false</AsymmetricLinop>
+      <CudaReconstruct>RECONS_NONE</CudaReconstruct>
+      <CudaSloppyPrecision>HALF</CudaSloppyPrecision>
+      <CudaSloppyReconstruct>RECONS_12</CudaSloppyReconstruct>
+      <AxialGaugeFix>false</AxialGaugeFix>
+      <AutotuneDslash>true</AutotuneDslash>
+      <MatPCType>EVEN_EVEN</MatPCType>
+      <checkSolution>false</checkSolution>
+      <NEFParams>
+        <OverMass>%(M5)s</OverMass>
+        <N5>%(L5)s</N5>
+        <b5>%(B5)s</b5>
+        <c5>%(C5)s</c5>
+        <Mass>%(MQ)s</Mass>
+        <clovCoeff>0</clovCoeff>
+      </NEFParams>
+      <AntiPeriodicT>true</AntiPeriodicT>
+    </InvertParam>
+  </PropagatorParam>
+</FHParams>
+<NamedObject>
+  <gauge_id>default_gauge_field</gauge_id>
+  <src_prop_id>%(SRC_PROP)s</src_prop_id>
+  <fh_prop_id>%(FH_PROPS)s
+  </fh_prop_id>
+  </NamedObject>
+</elem>
+
+'''
+
+fh_baryons='''<elem>
+  <Name>BARYON_FH_CONTRACTIONS</Name>
+  <Frequency>1</Frequency>
+  <FHBaryonParams>
+    <ng_parity>true</ng_parity>
+    <currents>%(CURR)s</currents>
+    <flavors>%(FLAVOR)s</flavors>
+    <h5_file_name>%(FH_BARYON_FILE)s</h5_file_name>
+    <path>/%(H5_FH_PATH)s</path>
+    <p2_max>0</p2_max>
+    <particle_list>
+      <elem>octet</elem>
+      <elem>decuplet</elem>
+    </particle_list>
+  </FHBaryonParams>
+  <NamedObject>
+    <up_quark>%(UP_PROP)s</up_quark>
+    <down_quark>%(DN_PROP)s</down_quark>
+    <strange_quark>%(STRANGE_PROP)s</strange_quark>
+    <fh_quarks>%(FH_PROP)s</fh_quarks>
+  </NamedObject>
+</elem>
+
+'''
+
+fh_mesons='''<elem>
+  <Name>MESON_CONTRACTIONS</Name>
+  <MesonParams>
+    <p2_max>0</p2_max>
+    <particle_list>
+%(PARTICLES)s
+    </particle_list>
+    <h5_file_name>%(FH_MESON_FILE)s</h5_file_name>
+    <obj_path>/%(H5_FH_PATH)s</obj_path>
+  </MesonParams>
+  <NamedObject>
+    <up_quark>%(UP_PROP)s</up_quark>
+    <down_quark>%(DN_PROP)s</down_quark>
+    <strange_quark>%(STRANGE_PROP)s</strange_quark>
+  </NamedObject>
 </elem>
 
 '''
