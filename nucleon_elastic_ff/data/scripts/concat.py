@@ -144,7 +144,7 @@ def concat_dsets(  # pylint: disable=R0913, R0914
                     dsets_meta[out_grp] = meta
 
     LOGGER.info("Writing `%d` dsets to `%s`", len(dsets_paths), out_file)
-    with h5py.File(out_file) as h5f:
+    with h5py.File(out_file,'a') as h5f:
         for key, dset_path in dsets_paths.items():
 
             dset_list = []
