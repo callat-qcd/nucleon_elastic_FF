@@ -269,6 +269,156 @@ def fft_file(  # pylint: disable = R0914, R0913, R0912
         )
 
 
+def fft_file_complex_structural_array(  # pylint: disable = R0914, R0913, R0912
+    file_address_in: str,
+    file_address_out: str,
+    max_momentum: Optional[int] = None,
+    dset_patterns: List[str] = (
+        "local_current",
+        "x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+",
+        "4D_correlator",
+    ),
+    chunk_size: Optional[int] = None,
+    overwrite: bool = False,
+    cuda: bool = True,
+):
+    """Reads input file and writes ffts and cuts data to output file.
+
+    This methods scans all datasets within the file.
+    If a data set has "local_current" in its name it is ffted in its spatial components.
+    The slicing info is inferred by the argument `max_momentum`.
+    This routines transforms `local_current` dsets to `momentum_current` dsets.
+    Also the slicing meta info is stored in the resulting output file in the `meta`
+    attribute of `momentum_current`.
+
+    .. note::
+        The user specifies ``max_momentum = 5``, which means, in each direction,
+        ``x, y, z``, the momentum should is of from ``[0,1,2,3,4,5,-5,-4,-3,-2,-1]``,
+        just like a regular FFT space, except the higher valued modes are chopped out.
+
+    .. Note::
+        This routine explicitly assumes that the datasets to transform are of shape
+        ``shape1 + [Nz, Ny, Nx] + [2]`` where shape1 can be anything the second shape is
+        the to transformed shape and the last shape corresponds to real / complex.
+
+    **Arguments**
+        file_address_in: str
+            Address of the to be scanned and sliced HDF5 file.
+
+        file_address_out: str
+            Address of the output HDF5 file.
+
+        max_momentum: Optional[int] = None
+            The momentum at which the FT is cutoff in each spatial dimension.
+
+        dset_patterns: List[str] = (
+            "local_current",
+            "x[0-9]+_y[0-9]+_z[0-9]+_t[0-9]+",
+            "4D_correlator",
+        ),
+            List of regex patterns data sets must match to be ffted (needs to match one).
+
+        chunk_size: Optional[int] = None
+            Reads in arrays in chunks and applys fft chunkwise.
+            This reduce the memory load.
+            For now, only slices the zeroth-dimension.
+
+        overwrite: bool = False
+            Overwrite existing sliced file.
+
+        cuda: bool = True
+            Use `cupy` to run fft if possible.
+
+    **Raises**
+        KeyError:
+            If no dset was transformed.
+    """
+    LOGGER.info("Sclicing\n\t  `%s`\n\t->`%s`", file_address_in, file_address_out)
+
+    transformed_dstes = 0
+
+    with h5py.File(file_address_in, "r") as h5f:
+        dsets = get_dsets(h5f, load_dsets=False)
+
+        LOGGER.info("Start fft for %d dsets", len(dsets))
+        with h5py.File(file_address_out) as h5f_out:
+            for name, dset in dsets.items():
+
+                if has_match(name, dset_patterns, match_all=False):
+                    if "local_current" in name:
+                        name = name.replace("local_current", "momentum_current")
+                    LOGGER.debug("Start fft procedure for dset `%s`", name)
+                    shape = dset.shape
+                    dt = dset.dtype
+                    dtype_shape = tuple()
+                    while len(dt.shape) > 0:
+                        dtype_shape += dt.shape
+                        dt = dt.subdtype[0]
+                    dtype_Ndim = len(dtype_shape)
+
+                    if len(shape) < 3:
+                        raise ValueError(
+                            f"Expected dset `{name}` to have at least 3 dimensions but"
+                            f" only found {len(shape)}"
+                        )
+                    if not shape[-1] == shape[-2] == shape[-3]:
+                        raise ValueError(
+                            f"Expected dset `{name}` to have same dimensions in x, y, z"
+                            f" but found {shape}"
+                        )
+                    n1d = shape[-1]
+
+                    if chunk_size is None:
+                        arr = dset[()]
+
+                        LOGGER.debug("\tStart fft")
+                        axes = tuple(-dtype_Ndim-n-1 for n in range(3))
+                        out = get_fft(arr, cuda=cuda, axes=axes)
+                    else:
+                        out = []
+                        for n_chunk, chunk in enumerate(
+                            get_dset_chunks(dset, chunk_size)
+                        ):
+                            axes = tuple(-dtype_Ndim-n-1 for n in range(3))
+                            LOGGER.debug("\tStart fft of %d. chunk", n_chunk)
+                            out.append(get_fft(chunk, cuda=cuda, axes=axes))
+                        out = np.concatenate(out, axis=0)
+
+                    meta = dset.attrs.get("meta", None)
+                    meta = str(meta) + "&" if meta else ""
+                    if max_momentum is not None:
+                        meta += f"max_momentum=={max_momentum}&n1d_prev=={n1d}"
+
+                        LOGGER.debug("\tSlicing fft")
+                        slice_index = list(range(max_momentum + 1))
+                        slice_index += [
+                            el % n1d
+                            for el in range(-max_momentum, 0)  # pylint: disable=E1130
+                        ]
+                        for axis, key in enumerate(["x", "y", "z"]):
+                            axis = -1 * (axis + 1) -dtype_Ndim
+                            LOGGER.debug(
+                                "\t\t Axis %d: %s -> %s[%s]", axis, key, key, slice_index
+                            )
+                            out = np.take(out, slice_index, axis=axis)
+
+                    transformed_dstes += 1
+
+                else:
+                    meta = None
+                    out = dset[()]
+
+                create_dset(h5f_out, name, out, overwrite=overwrite)
+                if meta:
+                    h5f_out[name].attrs["meta"] = meta
+
+    if transformed_dstes == 0:
+        raise KeyError(
+            "Could not identify any dsets to parse."
+            "Must match one out of `%s`" % dset_patterns
+        )
+
+
 def main():
     """Runs argparse for ``fft_file``.
     """
